@@ -16,30 +16,14 @@
  */
 package org.nuxeo.build.maven.filter;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Dependency;
-import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  *
  */
-public class AnyFilter implements Filter {
+public interface NodeFilter {
 
-    public boolean accept(Artifact artifact) {
-        return true;
-    }
+    boolean accept(Node node);
 
-    public boolean accept(Dependency dep) {
-        return true;
-    }
-
-    public boolean accept(Edge edge) {
-        return true;
-    }
-
-    public boolean accept(Node node) {
-        return true;
-    }
 }

@@ -21,6 +21,7 @@ import java.util.List;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.nuxeo.build.maven.graph.Edge;
+import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -57,6 +58,15 @@ public class AndFilter extends CompositeFilter {
     public boolean accept(Artifact artifact) {
         for (int i=0,len=filters.size(); i<len; i++) {
             if (!this.filters.get(i).accept(artifact)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean accept(Node node) {
+        for (int i=0,len=filters.size(); i<len; i++) {
+            if (!this.filters.get(i).accept(node)) {
                 return false;
             }
         }

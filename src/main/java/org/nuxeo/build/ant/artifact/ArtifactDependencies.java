@@ -24,7 +24,6 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.types.DataType;
 import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.FileResource;
-import org.nuxeo.build.ant.artifact.ArtifactSet.NodeFilesIterator;
 import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.AndFilter;
@@ -146,7 +145,7 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
     }
     
     public Iterator<FileResource> iterator() {
-        return new NodeFilesIterator(getNodes().iterator());
+        return ArtifactSet.createIterator(getNodes());
     }
 
     public int size() {

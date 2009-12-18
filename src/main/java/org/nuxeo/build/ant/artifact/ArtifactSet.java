@@ -265,7 +265,7 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
         if (finalFilter != Filter.ANY) {
             ArrayList<Node> result = new ArrayList<Node>();
             for (Node node : roots) {
-                if (finalFilter.accept(node.getArtifact())) {
+                if (finalFilter.accept(node)) {
                     result.add(node);
                 }
             }
@@ -304,7 +304,20 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
     }
 
     public Iterator<FileResource> iterator() {
-        return new NodeFilesIterator(getNodes().iterator());
+        return createIterator(getNodes());
+    }
+    
+    public static Iterator<FileResource> createIterator(Collection<Node> nodes) {
+        ArrayList<FileResource> files = new ArrayList<FileResource>();
+        for (Node node : nodes) {
+            File file = node.getFile();
+            if (file != null) {
+                FileResource fr = new FileResource(file);
+                fr.setBaseDir(file.getParentFile());
+                files.add(fr);
+            }
+        }
+        return files.iterator();  
     }
 
     public int size() {
@@ -321,25 +334,6 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
             parser.parse(src, nodes);
         } catch (IOException e) {
             throw new BuildException("Failed to import artifacts file: "+src, e);
-        }
-    }
-
-    public static class NodeFilesIterator implements Iterator<FileResource> {
-        protected Iterator<Node> it;
-        public NodeFilesIterator(Iterator<Node> it) {
-            this.it = it;
-        }
-        public boolean hasNext() {
-            return it.hasNext();
-        }
-        public FileResource next() {
-            File f = it.next().getFile();
-            FileResource fr = new FileResource(f);
-            fr.setBaseDir(f.getParentFile());
-            return fr;
-        }
-        public void remove() {
-            throw new UnsupportedOperationException();
         }
     }
 

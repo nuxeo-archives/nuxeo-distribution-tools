@@ -23,6 +23,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.build.maven.graph.Edge;
+import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -34,6 +35,7 @@ public class AncestorFilter implements Filter {
     protected List<EdgeFilter> filters;
 
     public AncestorFilter(String pattern) {
+        ad = new ArtifactDescriptor(pattern);
         filters = new ArrayList<EdgeFilter>();
         if (ad.groupId != null && !ad.groupId.equals("*")) {
             addFilter(new GroupIdFilter(ad.groupId));
@@ -59,6 +61,15 @@ public class AncestorFilter implements Filter {
         filters.add(filter);
     }
 
+    public boolean accept(Node node) {
+        for (Edge edge : node.getEdgesIn()) {
+            if (accept(edge)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public boolean accept(Dependency dep) {
         throw new UnsupportedOperationException("Ancestor folter cannt be applied on dependency objects");
     }
@@ -75,5 +86,5 @@ public class AncestorFilter implements Filter {
     public boolean accept(Artifact artifact) {
         throw new UnsupportedOperationException("Ancestor folter cannt be applied on artifact objects");
     }
-
+    
 }

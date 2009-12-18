@@ -19,6 +19,7 @@ package org.nuxeo.build.maven.filter;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.nuxeo.build.maven.graph.Edge;
+import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -50,5 +51,9 @@ public class GroupIdFilter implements Filter {
 
     public boolean accept(Artifact artifact) {
         return matcher.match(artifact.getGroupId());
+    }
+    
+    public boolean accept(Node node) {
+        return accept(node.getArtifact());
     }
 }

@@ -127,4 +127,23 @@ public class ArtifactDescriptor {
         return null;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder buf = new StringBuilder(); 
+        buf.append(groupId).append(':').append(artifactId);
+        if (version != null) {
+            buf.append(':').append(version);
+        }
+        if (type != null) {
+            buf.append(':').append(type);
+        }
+        if (classifier != null) {
+            buf.append(':').append(classifier);
+        }
+        if (scope != null) {
+            buf.append(':').append(scope);
+        }
+        return buf.toString();
+    }
+    
 }
