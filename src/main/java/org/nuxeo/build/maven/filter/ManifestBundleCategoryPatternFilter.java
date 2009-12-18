@@ -55,8 +55,10 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
         File file=artifact.getFile();
         if (file==null) {
             if (artifact.isResolved()) {
+                // TODO log error
                 //mojo.getLog().warn("Artifact "+artifact+" doesn't contain a file");
             } else if (!artifact.SCOPE_PROVIDED.equals(artifact.getScope())) {
+                // TODO log error
                 // ignore provided artifacts; raise a warning for non provided
                 //mojo.getLog().warn("Artifact "+artifact+" unresolved");
                 System.err.println();
@@ -82,10 +84,12 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
                     }
                 }
             } else {
+                // TODO log error
                 //mojo.getLog().warn("Artifact "+artifact+" doesn't contain a manifest");
                 System.out.println("Artifact "+artifact+" doesn't contain a manifest");
             }
         } catch (IOException e) {
+            // TODO log error
             //mojo.getLog().error("error while inspecting this jar manifest: " + artifact.getFile(), e);
             System.err.println("error while inspecting this jar manifest: " + artifact.getFile());
             e.printStackTrace(System.err);

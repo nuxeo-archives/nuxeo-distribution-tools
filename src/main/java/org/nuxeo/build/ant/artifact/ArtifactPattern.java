@@ -30,34 +30,34 @@ import org.nuxeo.build.maven.filter.VersionFilter;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class ArtifactPattern extends DataType {
 
     public AndFilter filter = new AndFilter();
 
     public void setGroupId(String groupId) {
-        filter.addFilter(new GroupIdFilter(groupId));
+        filter.addFilter(GroupIdFilter.class, groupId);
     }
 
     public void setArtifactId(String artifactId) {
-        filter.addFilter(new ArtifactIdFilter(artifactId));
+        filter.addFilter(ArtifactIdFilter.class, artifactId);
     }
 
     public void setVersion(String version) {
-        filter.addFilter(new VersionFilter(version));
+        filter.addFilter(VersionFilter.class, version);
     }
 
     public void setClassifier(String classifier) {
-        filter.addFilter(new ClassifierFilter(classifier));
+        filter.addFilter(ClassifierFilter.class, classifier);
     }
 
     public void setType(String type) {
-        filter.addFilter(new TypeFilter(type));
+        filter.addFilter(TypeFilter.class, type);
     }
 
     public void setScope(String scope) {
-        filter.addFilter(new ScopeFilter(scope));
+        filter.addFilter(ScopeFilter.class, scope);
     }
 
     public void setOptional(boolean isOptional) {
@@ -69,11 +69,11 @@ public class ArtifactPattern extends DataType {
     }
 
     public void setAncestor(String ancestor) {
-        filter.addFilter(new AncestorFilter(ancestor));
+        filter.addFilter(AncestorFilter.class, ancestor);
     }
-    
+
     public void setCategory(String category) {
-        filter.addFilter(new ManifestBundleCategoryPatternFilter(category));
+        filter.addFilter(ManifestBundleCategoryPatternFilter.class, category);
     }
 
 }
