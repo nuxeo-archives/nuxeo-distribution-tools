@@ -23,6 +23,7 @@ import org.nuxeo.build.maven.filter.ArtifactIdFilter;
 import org.nuxeo.build.maven.filter.ClassifierFilter;
 import org.nuxeo.build.maven.filter.GroupIdFilter;
 import org.nuxeo.build.maven.filter.IsOptionalFilter;
+import org.nuxeo.build.maven.filter.ManifestBundleCategoryPatternFilter;
 import org.nuxeo.build.maven.filter.ScopeFilter;
 import org.nuxeo.build.maven.filter.TypeFilter;
 import org.nuxeo.build.maven.filter.VersionFilter;
@@ -69,6 +70,10 @@ public class ArtifactPattern extends DataType {
 
     public void setAncestor(String ancestor) {
         filter.addFilter(new AncestorFilter(ancestor));
+    }
+    
+    public void setCategory(String category) {
+        filter.addFilter(new ManifestBundleCategoryPatternFilter(category));
     }
 
 }
