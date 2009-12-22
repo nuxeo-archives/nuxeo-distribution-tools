@@ -43,40 +43,56 @@ import org.nuxeo.build.swing.ArtifactTableModel.ArtifactRow;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class ArtifactTable extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
     protected JFrame frame;
+
     protected boolean isDirty;
+
     protected JToolBar tbar;
+
     protected JTable table;
+
     JTextField textFilter;
+
     JToggleButton btnFilter;
+
     protected ArtifactTableModel model;
+
     protected File file;
 
     public ArtifactTable(JFrame frame) {
-        super(new BorderLayout(5,5));
+        super(new BorderLayout(5, 5));
         this.frame = frame;
         tbar = new JToolBar();
-        AbstractAction action = new AbstractAction("Add", IconUtils.createImageIcon(getClass(), "add.gif")) {
+        AbstractAction action = new AbstractAction("Add",
+                IconUtils.createImageIcon(getClass(), "add.gif")) {
+            private static final long serialVersionUID = 1L;
+
             public void actionPerformed(ActionEvent e) {
                 openAddArtifactDialog();
             }
         };
         action.putValue(Action.SHORT_DESCRIPTION, "Add Artifact");
         tbar.add(action);
-        action = new AbstractAction("Remove", IconUtils.createImageIcon(getClass(), "delete.gif")) {
+        action = new AbstractAction("Remove", IconUtils.createImageIcon(
+                getClass(), "delete.gif")) {
+            private static final long serialVersionUID = 1L;
+
             public void actionPerformed(ActionEvent e) {
                 deleteSelectedArtifacts();
             }
         };
         action.putValue(Action.SHORT_DESCRIPTION, "Remove Selected Artifacts");
         tbar.add(action);
-        action = new AbstractAction("Profiles", IconUtils.createImageIcon(getClass(), "profiles.gif")) {
+        action = new AbstractAction("Profiles", IconUtils.createImageIcon(
+                getClass(), "profiles.gif")) {
+            private static final long serialVersionUID = 1L;
+
             public void actionPerformed(ActionEvent e) {
                 openProfilesDialog();
             }
@@ -84,25 +100,32 @@ public class ArtifactTable extends JPanel {
         action.putValue(Action.SHORT_DESCRIPTION, "Manage Profiles");
         tbar.add(action);
 
-
-        JComboBox presets = new JComboBox(new String[] {"All", "Runtime", "Core", "Features", "Toolkits", "Libraries"});
+        JComboBox presets = new JComboBox(new String[] { "All", "Runtime",
+                "Core", "Features", "Toolkits", "Libraries" });
         presets.setToolTipText("Default Filters");
         presets.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String preset = (String)((JComboBox)e.getSource()).getSelectedItem();
-                System.out.println("preset: "+preset);
+                String preset = (String) ((JComboBox) e.getSource()).getSelectedItem();
+                System.out.println("preset: " + preset);
                 if ("All".equals(preset)) {
                     removePresetFilter();
                 } else if ("Runtime".equals(preset)) {
-                    applyPresetFilter(new MultiPrefixFilter("nuxeo-runtime", "org.nuxeo.runtime", "nuxeo-common", "org.nuxeo.common"));
+                    applyPresetFilter(new MultiPrefixFilter("nuxeo-runtime",
+                            "org.nuxeo.runtime", "nuxeo-common",
+                            "org.nuxeo.common"));
                 } else if ("Core".equals(preset)) {
-                    applyPresetFilter(new MultiPrefixFilter("nuxeo-core", "org.nuxeo.ecm.core"));
+                    applyPresetFilter(new MultiPrefixFilter("nuxeo-core",
+                            "org.nuxeo.ecm.core"));
                 } else if ("Features".equals(preset)) {
-                    applyPresetFilter(new MultiPrefixFilter("nuxeo-platform", "org.nuxeo.ecm.platform"));
+                    applyPresetFilter(new MultiPrefixFilter("nuxeo-platform",
+                            "org.nuxeo.ecm.platform"));
                 } else if ("Toolkits".equals(preset)) {
-                    applyPresetFilter(new MultiPrefixFilter("nuxeo-webengine", "org.nuxeo.ecm.webengine", "nuxeo-theme", "org.nuxeo.theme"));
+                    applyPresetFilter(new MultiPrefixFilter("nuxeo-webengine",
+                            "org.nuxeo.ecm.webengine", "nuxeo-theme",
+                            "org.nuxeo.theme"));
                 } else if ("Libraries".equals(preset)) {
-                    applyPresetFilter(new MultiExclusionFilter("nuxeo-", "org.nuxeo"));
+                    applyPresetFilter(new MultiExclusionFilter("nuxeo-",
+                            "org.nuxeo"));
                 }
             }
         });
@@ -110,7 +133,8 @@ public class ArtifactTable extends JPanel {
 
         textFilter = new JTextField();
         tbar.add(textFilter);
-        btnFilter = new JToggleButton(null, IconUtils.createImageIcon(getClass(), "search.gif"));
+        btnFilter = new JToggleButton(null, IconUtils.createImageIcon(
+                getClass(), "search.gif"));
         btnFilter.setSelected(false);
         btnFilter.setToolTipText("Apply Filter");
         tbar.add(btnFilter);
@@ -118,7 +142,7 @@ public class ArtifactTable extends JPanel {
         textFilter.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (!btnFilter.isSelected()) {
-                    btnFilter.doClick();//setSelected(true);
+                    btnFilter.doClick();// setSelected(true);
                 } else {
                     String text = textFilter.getText().trim();
                     if (text.length() > 0) {
@@ -138,9 +162,9 @@ public class ArtifactTable extends JPanel {
         model = new ArtifactTableModel(this);
         table = new JTable(model);
         table.setPreferredScrollableViewportSize(new Dimension(500, 70));
-        //Create the scroll pane and add the table to it.
+        // Create the scroll pane and add the table to it.
         JScrollPane scrollPane = new JScrollPane(table);
-        //Add the scroll pane to this panel.
+        // Add the scroll pane to this panel.
         add(scrollPane, BorderLayout.CENTER);
 
         installKeybordShortcuts();
@@ -148,7 +172,7 @@ public class ArtifactTable extends JPanel {
 
     public void applyPrefixFilter(String prefix) {
         PrefixFilter filter = new PrefixFilter(prefix);
-        CompositeFilter cf = (CompositeFilter)model.getFilter();
+        CompositeFilter cf = (CompositeFilter) model.getFilter();
         if (cf != null) {
             cf.setPrefixFilter(filter);
             model.buildRows();
@@ -160,7 +184,7 @@ public class ArtifactTable extends JPanel {
     }
 
     public void removePrefixFilter() {
-        CompositeFilter cf = (CompositeFilter)model.getFilter();
+        CompositeFilter cf = (CompositeFilter) model.getFilter();
         if (cf != null) {
             cf.setPrefixFilter(null);
             model.buildRows();
@@ -168,7 +192,7 @@ public class ArtifactTable extends JPanel {
     }
 
     public void applyPresetFilter(Filter filter) {
-        CompositeFilter cf = (CompositeFilter)model.getFilter();
+        CompositeFilter cf = (CompositeFilter) model.getFilter();
         if (cf != null) {
             cf.setPresetFilter(filter);
             model.buildRows();
@@ -180,7 +204,7 @@ public class ArtifactTable extends JPanel {
     }
 
     public void removePresetFilter() {
-        CompositeFilter cf = (CompositeFilter)model.getFilter();
+        CompositeFilter cf = (CompositeFilter) model.getFilter();
         if (cf != null) {
             cf.setPresetFilter(null);
             model.buildRows();
@@ -191,13 +215,14 @@ public class ArtifactTable extends JPanel {
         model.setFilter(null);
     }
 
-
     public void setDirty(boolean value) {
         isDirty = value;
         if (isDirty) {
-            frame.setTitle("* Assembly Editor - "+(file == null ? "Untitled" : file.getName()));
+            frame.setTitle("* Assembly Editor - "
+                    + (file == null ? "Untitled" : file.getName()));
         } else {
-            frame.setTitle("Assembly Editor - "+(file == null ? "Untitled" : file.getName()));
+            frame.setTitle("Assembly Editor - "
+                    + (file == null ? "Untitled" : file.getName()));
         }
     }
 
@@ -212,9 +237,9 @@ public class ArtifactTable extends JPanel {
     }
 
     protected boolean selectFile(boolean save) {
-        //Create a file chooser
+        // Create a file chooser
         final JFileChooser fc = new JFileChooser();
-        //In response to a button click:
+        // In response to a button click:
         int r = 0;
         if (save) {
             r = fc.showSaveDialog(this);
@@ -263,11 +288,8 @@ public class ArtifactTable extends JPanel {
     }
 
     public void openAddArtifactDialog() {
-        String s = (String)JOptionPane.showInputDialog(
-                ArtifactTable.this,
-                "Artifact Key: ",
-                "Add Artifact",
-                JOptionPane.PLAIN_MESSAGE);
+        String s = JOptionPane.showInputDialog(ArtifactTable.this,
+                "Artifact Key: ", "Add Artifact", JOptionPane.PLAIN_MESSAGE);
         if (s != null) {
             ArtifactRow row = new ArtifactRow(s);
             model.map.put(s, row);
@@ -280,10 +302,10 @@ public class ArtifactTable extends JPanel {
     public void deleteSelectedArtifacts() {
         int[] rows = table.getSelectedRows();
         ArtifactRow[] _rows = new ArtifactRow[rows.length];
-        for (int i=0; i<rows.length; i++) {
+        for (int i = 0; i < rows.length; i++) {
             _rows[i] = model.getVisibleRows().get(rows[i]);
         }
-        for (int i=0; i<rows.length; i++) {
+        for (int i = 0; i < rows.length; i++) {
             model.getVisibleRows().remove(_rows[i]);
             model.map.remove(_rows[i].key);
             setDirty(true);
@@ -303,24 +325,26 @@ public class ArtifactTable extends JPanel {
     }
 
     public void installKeybordShortcuts() {
-//        KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.META_MASK);
-//        registerKeyboardAction(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                openAddArtifactDialog();
-//            }
-//        }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-//        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.META_MASK);
-//        registerKeyboardAction(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                openProfilesDialog();
-//            }
-//        }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-//        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, InputEvent.META_MASK);
-//        registerKeyboardAction(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                deleteSelectedArtifacts();
-//            }
-//        }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        // KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,
+        // InputEvent.META_MASK);
+        // registerKeyboardAction(new ActionListener() {
+        // public void actionPerformed(ActionEvent e) {
+        // openAddArtifactDialog();
+        // }
+        // }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        // stroke = KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.META_MASK);
+        // registerKeyboardAction(new ActionListener() {
+        // public void actionPerformed(ActionEvent e) {
+        // openProfilesDialog();
+        // }
+        // }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        // stroke = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE,
+        // InputEvent.META_MASK);
+        // registerKeyboardAction(new ActionListener() {
+        // public void actionPerformed(ActionEvent e) {
+        // deleteSelectedArtifacts();
+        // }
+        // }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
         KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
         registerKeyboardAction(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

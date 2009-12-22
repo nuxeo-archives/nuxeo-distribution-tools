@@ -78,7 +78,7 @@ public class ProfilesDialog extends JDialog implements ActionListener {
         HashSet<String> vcols = new HashSet<String>(table.getModel().getVisibleColumns());
         model = new ColumnsDataModel();
         for (String col : cols) {
-            model.addColumn(col, vcols.contains(col) ? Boolean.TRUE : Boolean.FALSE);
+            model.addColumn(col, vcols.contains(col) ? true : false);
         }
         columnTable = new JTable(model);
         JScrollPane scrollPane = new JScrollPane(columnTable);
@@ -103,14 +103,14 @@ public class ProfilesDialog extends JDialog implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if ("Add".equals(e.getActionCommand())) {
-            String s = (String)JOptionPane.showInputDialog(
+            String s = JOptionPane.showInputDialog(
                     this,
                     "Pofile Name: ",
                     "Create profile",
                     JOptionPane.PLAIN_MESSAGE);
             if (s != null) {
                 table.getModel().addColumn(s);
-                model.addColumn(s, Boolean.TRUE);
+                model.addColumn(s, true);
             }
         } else {
             int[] rows = columnTable.getSelectedRows();

@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.tools.ant.taskdefs.email.EmailAddress;
 import org.nuxeo.build.ant.AntClient;
 import org.nuxeo.build.maven.EmbeddedMavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
