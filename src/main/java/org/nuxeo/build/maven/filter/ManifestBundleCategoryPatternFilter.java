@@ -113,6 +113,10 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
     }
 
     public boolean accept(Artifact artifact) {
+        // Exclude non Nuxeo artifacts
+        if (!artifact.getGroupId().startsWith("org.nuxeo")) {
+            return false;
+        }
         boolean include = matchPattern(getValuesToMatch(artifact));
         if (MavenClientFactory.getLog().isDebugEnabled()) {
             MavenClientFactory.getLog().debug((include?"accepts ":"rejects ")+artifact);

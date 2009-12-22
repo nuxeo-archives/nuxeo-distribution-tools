@@ -61,13 +61,16 @@ public class DependsOnCategoryPatternFilter implements Filter {
     }
 
     public boolean accept(Node node) {
+        // Exclude non Nuxeo artifacts
+        if (!node.getArtifact().getGroupId().startsWith("org.nuxeo")) {
+            return false;
+        }
         boolean accept=accept(node.getArtifact());
-        List<Edge> children = node.getEdgesOut();
-        
         if (MavenClientFactory.getLog().isDebugEnabled()) {
             MavenClientFactory.getLog().debug(DependsOnCategoryPatternFilter.class+" filtering "+node.getArtifact()+" on pattern "+
                     pattern +" ...");
         }
+        List<Edge> children = node.getEdgesOut();
         if (!accept && children!=null) {
             for (Edge childEdge : children) {
                 if (accept(childEdge.dst)) {

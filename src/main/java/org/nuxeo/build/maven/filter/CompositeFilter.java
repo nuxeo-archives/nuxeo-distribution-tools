@@ -56,7 +56,9 @@ public abstract class CompositeFilter implements Filter {
     }
 
     public void addFiltersFromPattern(String pattern) {
-        addFiltersFromDescriptor(new ArtifactDescriptor(pattern));
+        if (pattern!=null) {
+            addFiltersFromDescriptor(new ArtifactDescriptor(pattern));
+        }
     }
 
     public void addFiltersFromDescriptor(ArtifactDescriptor ad) {
