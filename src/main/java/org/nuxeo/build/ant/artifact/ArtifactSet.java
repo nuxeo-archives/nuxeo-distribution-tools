@@ -47,22 +47,27 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
-public class ArtifactSet extends DataType  implements ResourceCollection {
+public class ArtifactSet extends DataType implements ResourceCollection {
 
     public AndFilter filter = new AndFilter();
+
     public String id;
+
     public File src;
+
     public Expand expand;
 
     public List<ArtifactFile> artifacts;
+
     public List<ArtifactSet> artifactSets;
+
     public Includes includes;
+
     public Excludes excludes;
 
     protected Collection<Node> nodes;
-
 
     public void setGroupId(String groupId) {
         if (isReference()) {
@@ -170,7 +175,8 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
             throw noChildrenAllowed();
         }
         if (this.includes != null) {
-            throw new BuildException("Found an Includes that is defined more than once in an artifactSet");
+            throw new BuildException(
+                    "Found an Includes that is defined more than once in an artifactSet");
         }
         this.includes = includes;
     }
@@ -180,9 +186,10 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
             throw noChildrenAllowed();
         }
         if (this.excludes != null) {
-            throw new BuildException("Found an Excludes that is defined more than once in an artifactSet");
+            throw new BuildException(
+                    "Found an Excludes that is defined more than once in an artifactSet");
         }
-        this.excludes =  excludes;
+        this.excludes = excludes;
     }
 
     @Override
@@ -207,7 +214,9 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
         }
         return new ArrayList<Node>() {
             private static final long serialVersionUID = 1L;
+
             Filter f = CompositeFilter.compact(ieFilter);
+
             @Override
             public boolean add(Node node) {
                 if (!f.accept(node.getArtifact())) {
@@ -215,6 +224,7 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
                 }
                 return super.add(node);
             }
+
             @Override
             public boolean addAll(Collection<? extends Node> c) {
                 for (Node node : c) {
@@ -287,7 +297,6 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
         return roots;
     }
 
-
     public Collection<Node> getNodes() {
         if (isReference()) {
             return getRef(getProject()).getNodes();
@@ -306,7 +315,7 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
     public Iterator<FileResource> iterator() {
         return createIterator(getNodes());
     }
-    
+
     public static Iterator<FileResource> createIterator(Collection<Node> nodes) {
         ArrayList<FileResource> files = new ArrayList<FileResource>();
         for (Node node : nodes) {
@@ -317,7 +326,7 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
                 files.add(fr);
             }
         }
-        return files.iterator();  
+        return files.iterator();
     }
 
     public int size() {
@@ -333,12 +342,13 @@ public class ArtifactSet extends DataType  implements ResourceCollection {
             ArtifactSetParser parser = new ArtifactSetParser(getProject());
             parser.parse(src, nodes);
         } catch (IOException e) {
-            throw new BuildException("Failed to import artifacts file: "+src, e);
+            throw new BuildException("Failed to import artifacts file: " + src,
+                    e);
         }
     }
 
-
-    public static void collectNodes(Collection<Node> nodes, Node node, Filter filter, int depth) {
+    public static void collectNodes(Collection<Node> nodes, Node node,
+            Filter filter, int depth) {
         nodes.add(node);
         if (depth > 0) {
             depth--;

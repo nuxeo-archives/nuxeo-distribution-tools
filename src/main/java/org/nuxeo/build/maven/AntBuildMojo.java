@@ -40,22 +40,20 @@ import org.nuxeo.build.ant.profile.AntProfileManager;
 import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 
-
 /**
  * 
  * @goal build
  * @phase package
- *
+ * 
  * @requiresDependencyResolution runtime
  * 
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
-    
     protected Graph graph;
-    
+
     protected AntProfileManager antProfileManager;
 
     /**
@@ -73,15 +71,14 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
      * @required
      */
     protected String target;
-    
 
     /**
-     * How many levels the graph must be expanded before running ant. 
+     * How many levels the graph must be expanded before running ant.
      * 
      * @parameter expression="${expand}" default-value="0"
-     */    
+     */
     protected int expand;
-    
+
     /**
      * Location of the file.
      * 
@@ -133,7 +130,6 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
      * @readonly
      */
     protected org.apache.maven.artifact.resolver.ArtifactResolver resolver;
-    
 
     /**
      * 
@@ -142,17 +138,54 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
      */
     protected MavenProjectBuilder projectBuilder;
 
+    private Logger logger;
 
-    
-    
     @SuppressWarnings("unchecked")
     public void execute() throws MojoExecutionException, MojoFailureException {
         AntClient ant = new AntClient();
         MavenClientFactory.setInstance(this);
+        logger = new Logger() {
+
+            public void debug(String message) {
+                getLog().debug(message);
+            }
+
+            public void debug(String message, Throwable error) {
+                getLog().debug(message, error);
+            }
+
+            public void error(String message) {
+                getLog().error(message);
+            }
+
+            public void error(String message, Throwable error) {
+                getLog().error(message, error);
+            }
+
+            public void info(String message) {
+                getLog().info(message);
+            }
+
+            public void info(String message, Throwable error) {
+                getLog().info(message, error);
+            }
+
+            public void warn(String message) {
+                getLog().warn(message);
+            }
+
+            public void warn(String message, Throwable error) {
+                getLog().warn(message, error);
+            }
+
+            public boolean isDebugEnabled() {
+                return getLog().isDebugEnabled();
+            }
+        };
         graph = new Graph(this);
-        antProfileManager = new AntProfileManager();        
-                
-        // add project properties 
+        antProfileManager = new AntProfileManager();
+
+        // add project properties
         HashMap<String, String> props = new HashMap<String, String>();
         for (Map.Entry entry : project.getProperties().entrySet()) {
             props.put(entry.getKey().toString(), entry.getValue().toString());
@@ -160,24 +193,28 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         props.put("maven.basedir", project.getBasedir().getAbsolutePath());
         props.put("maven.project.name", project.getName());
         props.put("maven.project.artifactId", project.getArtifactId());
-        props.put("maven.project.groupId", project.getGroupId());        
+        props.put("maven.project.groupId", project.getGroupId());
         props.put("maven.project.version", project.getVersion());
         props.put("maven.project.packaging", project.getPackaging());
         props.put("maven.project.id", project.getId());
-        props.put("maven.project.build.directory", project.getBuild().getDirectory());
-        props.put("maven.project.build.outputDirectory", project.getBuild().getOutputDirectory());
-        props.put("maven.project.build.finalName", project.getBuild().getFinalName());
+        props.put("maven.project.build.directory",
+                project.getBuild().getDirectory());
+        props.put("maven.project.build.outputDirectory",
+                project.getBuild().getOutputDirectory());
+        props.put("maven.project.build.finalName",
+                project.getBuild().getFinalName());
 
         // add active maven profiles to ant
         List<Profile> profiles = getActiveProfiles();
         for (Profile profile : profiles) {
             antProfileManager.activateProfile(profile.getId(), true);
-            // define a property for each activate profile (so you can use it in ant conditional expression)
-            props.put("maven.profile."+profile.getId(), "true");
+            // define a property for each activate profile (so you can use it in
+            // ant conditional expression)
+            props.put("maven.profile." + profile.getId(), "true");
         }
 
         ant.setGlobalProperties(props);
-        
+
         // create a root into the graph to point to the current pom
         try {
             Node root = graph.addRootNode(project);
@@ -187,7 +224,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         } catch (ArtifactNotFoundException e) {
             throw new MojoExecutionException("Failed to initialize graph", e);
         }
-        
+
         if (target != null && target.length() > 0) {
             ArrayList<String> targets = new ArrayList<String>();
             targets.add(target);
@@ -196,12 +233,12 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
             ant.run(buildFile);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     public List<Profile> getActiveProfiles() {
         return project.getActiveProfiles();
     }
-    
+
     public MavenProject getProject() {
         return project;
     }
@@ -240,7 +277,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         } catch (ArtifactNotFoundException e) {
             throw e;
         }
-     }
+    }
 
     public void resolve(Artifact artifact) throws ArtifactNotFoundException {
         try {
@@ -259,5 +296,9 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     public AntProfileManager getAntProfileManager() {
         return antProfileManager;
     }
-    
+
+    public Logger getCommonLogger() {
+        return logger;
+    }
+
 }

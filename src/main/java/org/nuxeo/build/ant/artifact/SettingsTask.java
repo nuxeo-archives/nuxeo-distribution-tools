@@ -28,18 +28,21 @@ import org.nuxeo.build.maven.MavenClientFactory;
 
 /**
  * TODO offline setting is not working
- *
+ * 
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class SettingsTask extends Sequential {
 
     public File file;
-    public Repositories repos;
-    public boolean offline = false;
-    public boolean interactive = false;
-    public boolean debug = false;
 
+    public Repositories repos;
+
+    public boolean offline = false;
+
+    public boolean interactive = false;
+
+    public boolean debug = false;
 
     public void setDebug(boolean debug) {
         this.debug = debug;
@@ -56,7 +59,6 @@ public class SettingsTask extends Sequential {
     public void setOffline(boolean offline) {
         this.offline = offline;
     }
-
 
     public void addRepositories(Repositories repos) {
         this.repos = repos;
@@ -92,7 +94,8 @@ public class SettingsTask extends Sequential {
         }
     }
 
-    public org.apache.maven.model.Repository convertRepositoryToMavenModel(Repository repo) {
+    public org.apache.maven.model.Repository convertRepositoryToMavenModel(
+            Repository repo) {
         org.apache.maven.model.Repository r = new org.apache.maven.model.Repository();
         r.setId(repo.id);
         r.setLayout(repo.layout);

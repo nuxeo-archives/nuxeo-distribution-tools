@@ -30,38 +30,41 @@ import java.util.jar.Manifest;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
+import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
-public class ManifestBundleCategoryPatternFilter implements Filter { 
+public class ManifestBundleCategoryPatternFilter implements Filter {
 
     public static final String MANIFEST_BUNDLE_CATEGORY = "Bundle-Category";
+
     public static final String MANIFEST_BUNDLE_CATEGORY_TOKEN = ",";
 
+    protected List<char[]> patterns = new ArrayList<char[]>();
 
-    protected char[] pattern;
-    
-    public ManifestBundleCategoryPatternFilter(String pattern) {
-        this.pattern = pattern.toCharArray();
+    public ManifestBundleCategoryPatternFilter(String patterns) {
+        StringTokenizer st = new StringTokenizer(patterns,
+                MANIFEST_BUNDLE_CATEGORY_TOKEN);
+        while (st.hasMoreTokens()) {
+            this.patterns.add(st.nextToken().toCharArray());
+        }
     }
-    
 
     protected List<String> getValuesToMatch(Artifact artifact) {
-        List<String> valuesToMatch =new ArrayList<String>();
-        File file=artifact.getFile();
-        if (file==null) {
+        List<String> valuesToMatch = new ArrayList<String>();
+        File file = artifact.getFile();
+        if (file == null) {
             if (artifact.isResolved()) {
-                // TODO log error
-                //mojo.getLog().warn("Artifact "+artifact+" doesn't contain a file");
-            } else if (!artifact.SCOPE_PROVIDED.equals(artifact.getScope())) {
-                // TODO log error
+                MavenClientFactory.getLog().warn(
+                        "Artifact " + artifact + " doesn't contain a file");
+            } else if (!Artifact.SCOPE_PROVIDED.equals(artifact.getScope())) {
                 // ignore provided artifacts; raise a warning for non provided
-                //mojo.getLog().warn("Artifact "+artifact+" unresolved");
-                System.err.println();
+                MavenClientFactory.getLog().warn(
+                        "Artifact " + artifact + " unresolved");
             }
             return valuesToMatch;
         }
@@ -72,36 +75,35 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
         try {
             JarFile jarFile = new JarFile(file, true);
             Manifest mf = jarFile.getManifest();
-            if (mf!=null) {
-                Attributes attributes=mf.getMainAttributes();
-                if (attributes!=null) {
-                    String bundleCategories= attributes.getValue(MANIFEST_BUNDLE_CATEGORY);
-                    if (bundleCategories!=null) {
-                        StringTokenizer st=new StringTokenizer(bundleCategories,MANIFEST_BUNDLE_CATEGORY_TOKEN);
-                        while(st.hasMoreTokens()) {
+            if (mf != null) {
+                Attributes attributes = mf.getMainAttributes();
+                if (attributes != null) {
+                    String bundleCategories = attributes.getValue(MANIFEST_BUNDLE_CATEGORY);
+                    if (bundleCategories != null) {
+                        StringTokenizer st = new StringTokenizer(
+                                bundleCategories,
+                                MANIFEST_BUNDLE_CATEGORY_TOKEN);
+                        while (st.hasMoreTokens()) {
                             valuesToMatch.add(st.nextToken());
                         }
                     }
                 }
             } else {
-                // TODO log error
-                //mojo.getLog().warn("Artifact "+artifact+" doesn't contain a manifest");
-                System.out.println("Artifact "+artifact+" doesn't contain a manifest");
+                MavenClientFactory.getLog().warn(
+                        "Artifact " + artifact + " doesn't contain a manifest");
             }
         } catch (IOException e) {
-            // TODO log error
-            //mojo.getLog().error("error while inspecting this jar manifest: " + artifact.getFile(), e);
-            System.err.println("error while inspecting this jar manifest: " + artifact.getFile());
-            e.printStackTrace(System.err);
+            MavenClientFactory.getLog().error(
+                    "error while inspecting this jar manifest: "
+                            + artifact.getFile(), e);
         }
         return valuesToMatch;
     }
 
-
     public boolean accept(Node node) {
         return accept(node.getArtifact());
     }
-    
+
     public boolean accept(Dependency dep) {
         throw new UnsupportedOperationException("Not supported");
     }
@@ -112,30 +114,32 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
 
     public boolean accept(Artifact artifact) {
         boolean include = matchPattern(getValuesToMatch(artifact));
-        //MavenClientFactory.getInstance().
-        //mojo.getLog().debug((include?"accepts ":"rejects ")+artifact);
+        if (MavenClientFactory.getLog().isDebugEnabled()) {
+            MavenClientFactory.getLog().debug((include?"accepts ":"rejects ")+artifact);
+        }
         return include;
     }
 
     private boolean matchPattern(List<String> valuesToMatch) {
         for (String valueToMatch : valuesToMatch) {
-            if (matchPattern(valueToMatch, pattern)) {
-                return true;
+            for (char[] pattern : patterns) {
+                if (matchPattern(valueToMatch, pattern)) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    public static boolean matchPattern(String name, char[] pattern) {
+    public boolean matchPattern(String name, char[] pattern) {
         return matchPattern(name.toCharArray(), pattern);
     }
 
-    public static boolean matchPattern(char[] name, char[] pattern) {
+    public boolean matchPattern(char[] name, char[] pattern) {
         return matchPattern(name, 0, name.length, pattern);
     }
 
-    public static boolean matchPattern(char[] name, int offset, int len,
-            char[] pattern) {
+    public boolean matchPattern(char[] name, int offset, int len, char[] pattern) {
         int i = offset;
         boolean wildcard = false;
         for (char c : pattern) {

@@ -18,14 +18,16 @@ package org.nuxeo.build.maven;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class MavenClientFactory {
 
     private static boolean isEmbedded;
+
     private static MavenClient instance;
-    private static ThreadLocal<MavenClient> threadInstance = new ThreadLocal<MavenClient>(); 
-    
+
+    private static ThreadLocal<MavenClient> threadInstance = new ThreadLocal<MavenClient>();
+
     public static void setInstance(MavenClient client) {
         if (client instanceof EmbeddedMavenClient) {
             isEmbedded = true;
@@ -35,11 +37,11 @@ public class MavenClientFactory {
             threadInstance.set(client);
         }
     }
-    
+
     public static boolean isEmbedded() {
         return isEmbedded;
     }
-    
+
     public static MavenClient getInstance() {
         if (isEmbedded) {
             return instance;
@@ -47,12 +49,17 @@ public class MavenClientFactory {
             return threadInstance.get();
         }
     }
-    
+
     public static EmbeddedMavenClient getEmbeddedMaven() {
         if (isEmbedded) {
-            return (EmbeddedMavenClient)instance;
+            return (EmbeddedMavenClient) instance;
         }
-        throw new IllegalStateException("Not an embedded maven client. You can run this task only in embedded mode");
+        throw new IllegalStateException(
+                "Not an embedded maven client. You can run this task only in embedded mode");
     }
-    
+
+    public static Logger getLog() {
+        return getInstance().getCommonLogger();
+    }
+
 }

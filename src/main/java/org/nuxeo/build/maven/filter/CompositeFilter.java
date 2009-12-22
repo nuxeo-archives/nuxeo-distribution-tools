@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.nuxeo.build.maven.ArtifactDescriptor;
+import org.nuxeo.build.maven.MavenClientFactory;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -42,8 +43,8 @@ public abstract class CompositeFilter implements Filter {
         filters.add(filter);
     }
 
-    public void addFilters(List<Filter> filters) {
-        this.filters.addAll(filters);
+    public void addFilters(List<Filter> filtersToAdd) {
+        this.filters.addAll(filtersToAdd);
     }
 
     public List<Filter> getFilters() {
@@ -99,6 +100,9 @@ public abstract class CompositeFilter implements Filter {
      */
     @SuppressWarnings("unchecked")
     public void addFilter(Class filterClass, String pattern) {
+        if (pattern == null) {
+            return;
+        }
         Constructor<Filter> filterConstructor = null;
         try {
             filterConstructor = filterClass.getConstructor(String.class);
@@ -109,23 +113,23 @@ public abstract class CompositeFilter implements Filter {
                 addFilter(filterConstructor.newInstance(pattern));
             }
         } catch (SecurityException e) {
-            // TODO log error
-            e.printStackTrace();
+            MavenClientFactory.getLog().error(
+                    "Couldn't get constructor for " + filterClass, e);
         } catch (NoSuchMethodException e) {
-            // TODO log error
-            e.printStackTrace();
+            MavenClientFactory.getLog().error(
+                    "Couldn't get constructor for " + filterClass, e);
         } catch (IllegalArgumentException e) {
-            // TODO log error
-            e.printStackTrace();
+            MavenClientFactory.getLog().error(
+                    "Couldn't call constructor for " + filterClass, e);
         } catch (InstantiationException e) {
-            // TODO log error
-            e.printStackTrace();
+            MavenClientFactory.getLog().error(
+                    "Couldn't call constructor for " + filterClass, e);
         } catch (IllegalAccessException e) {
-            // TODO log error
-            e.printStackTrace();
+            MavenClientFactory.getLog().error(
+                    "Couldn't call constructor for " + filterClass, e);
         } catch (InvocationTargetException e) {
-            // TODO log error
-            e.printStackTrace();
+            MavenClientFactory.getLog().error(
+                    "Couldn't call constructor for " + filterClass, e);
         }
 
     }

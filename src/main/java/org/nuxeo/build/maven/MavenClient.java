@@ -60,6 +60,6 @@ public interface MavenClient {
 
     public void resolve(Artifact artifact, List<ArtifactRepository> remoteRepositories) throws ArtifactNotFoundException;
 
-    //public MavenEmbedderLogger getLogger();
+    public Logger getCommonLogger();
 
 }

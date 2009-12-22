@@ -33,6 +33,6 @@ public class Excludes extends DataType {
         if (filter == null) {
             filter = new NotFilter(new OrFilter());
         }
-        ((OrFilter)filter.getFilter()).addFilter(f.filter);
+        ((OrFilter)filter.getFilter()).addFilter(f.getFilter());
     }
 }

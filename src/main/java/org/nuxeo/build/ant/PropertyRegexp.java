@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.tools.ant.Task;
+import org.nuxeo.build.maven.MavenClientFactory;
 
 public class PropertyRegexp extends Task {
 
@@ -67,8 +68,7 @@ public class PropertyRegexp extends Task {
             }
             getProject().setProperty(property, findString);
         } catch (IOException e) {
-            // TODO use log4j
-            e.printStackTrace();
+            MavenClientFactory.getLog().error("Couldn't read " + input, e);
         }
     }
 

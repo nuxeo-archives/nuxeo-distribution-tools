@@ -29,7 +29,7 @@ public class Includes extends DataType {
     public OrFilter filter = new OrFilter();
 
     public void addArtifact(ArtifactPattern f) {
-        filter.addFilter(f.filter);
+        filter.addFilter(f.getFilter());
     }
 
 }
