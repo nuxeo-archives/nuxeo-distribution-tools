@@ -59,6 +59,15 @@ public class Node {
      */
     protected MavenProject pom;
 
+    private List<char[]> acceptedCategories;
+
+    public List<char[]> getAcceptedCategories() {
+        if (acceptedCategories == null) {
+            acceptedCategories = new ArrayList<char[]>();
+        }
+        return acceptedCategories;
+    }
+
     public static String createNodeId(Artifact artifact) {
         return new StringBuilder().append(artifact.getGroupId()).append(':').append(
                 artifact.getArtifactId()).append(':').append(
@@ -167,8 +176,7 @@ public class Node {
             return;
         }
         if (recurse > 0) {
-            loadDependencies(recurse - 1,
-                    (List<Dependency>) pom.getDependencies(), filter);
+            loadDependencies(recurse - 1, pom.getDependencies(), filter);
             // if ("pom".equals(artifact.getType())) {
             // loadDependencies(recurse-1,
             // (List<Dependency>)pom.getDependencyManagement().getDependencies(),
@@ -284,5 +292,25 @@ public class Node {
     @Override
     public String toString() {
         return id;
+    }
+
+    /**
+     * @param pattern
+     */
+    public void setAcceptedCategory(char[] pattern) {
+        getAcceptedCategories().add(pattern);
+    }
+
+    /**
+     * @param patterns
+     * @return true if at least one pattern has been accepted
+     */
+    public boolean isAcceptedCategory(List<char[]> patterns) {
+        for (char[] pattern : patterns) {
+            if (getAcceptedCategories().contains(pattern)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

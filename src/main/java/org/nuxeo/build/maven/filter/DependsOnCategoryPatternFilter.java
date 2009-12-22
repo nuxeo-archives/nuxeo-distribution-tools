@@ -32,6 +32,7 @@ import org.nuxeo.build.maven.graph.Node;
  * @author jcarsique An artifact satisfies this filter if at least one of its
  *         dependencies match ManifestBundleCategoryPatternFilter conditions
  * @see ManifestBundleCategoryPatternFilter
+ * @deprecated replaced with {@link ManifestBundleCategoryFilter}
  *
  */
 public class DependsOnCategoryPatternFilter implements Filter {

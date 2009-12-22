@@ -21,10 +21,9 @@ import org.nuxeo.build.maven.filter.AncestorFilter;
 import org.nuxeo.build.maven.filter.AndFilter;
 import org.nuxeo.build.maven.filter.ArtifactIdFilter;
 import org.nuxeo.build.maven.filter.ClassifierFilter;
-import org.nuxeo.build.maven.filter.DependsOnCategoryPatternFilter;
 import org.nuxeo.build.maven.filter.GroupIdFilter;
 import org.nuxeo.build.maven.filter.IsOptionalFilter;
-import org.nuxeo.build.maven.filter.ManifestBundleCategoryPatternFilter;
+import org.nuxeo.build.maven.filter.ManifestBundleCategoryFilter;
 import org.nuxeo.build.maven.filter.ScopeFilter;
 import org.nuxeo.build.maven.filter.TypeFilter;
 import org.nuxeo.build.maven.filter.VersionFilter;
@@ -73,10 +72,8 @@ public class ArtifactPattern extends DataType {
             }
             filter.addFiltersFromPattern(pattern);
             filter.addFilter(AncestorFilter.class, ancestor);
-            filter.addFilter(ManifestBundleCategoryPatternFilter.class,
-                    category);
-            if (isDependsOnCategory) {
-                filter.addFilter(DependsOnCategoryPatternFilter.class, category);
+            if (category!=null) {
+                filter.addFilter(new ManifestBundleCategoryFilter(category,isDependsOnCategory));
             }
         }
         return filter;

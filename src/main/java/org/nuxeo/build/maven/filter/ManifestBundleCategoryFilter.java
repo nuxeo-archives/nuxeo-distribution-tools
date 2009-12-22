@@ -35,10 +35,10 @@ import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
- * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * @deprecated replaced with {@link ManifestBundleCategoryFilter}
+ * @author jcarsique
+ * 
  */
-public class ManifestBundleCategoryPatternFilter implements Filter {
+public class ManifestBundleCategoryFilter implements Filter {
 
     public static final String MANIFEST_BUNDLE_CATEGORY = "Bundle-Category";
 
@@ -46,7 +46,11 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
 
     protected List<char[]> patterns = new ArrayList<char[]>();
 
-    public ManifestBundleCategoryPatternFilter(String patterns) {
+    protected boolean isDependOnCategory;
+
+    public ManifestBundleCategoryFilter(String patterns,
+            boolean isDependsOnCategory) {
+        this.isDependOnCategory = isDependsOnCategory;
         StringTokenizer st = new StringTokenizer(patterns,
                 MANIFEST_BUNDLE_CATEGORY_TOKEN);
         while (st.hasMoreTokens()) {
@@ -101,7 +105,64 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
     }
 
     public boolean accept(Node node) {
-        return accept(node.getArtifact());
+        // Exclude non Nuxeo artifacts
+        if (!node.getArtifact().getGroupId().startsWith("org.nuxeo")) {
+            return false;
+        }
+        if (MavenClientFactory.getLog().isDebugEnabled()) {
+            MavenClientFactory.getLog().debug(
+                    getClass() + " filtering " + node.getArtifact());
+        }
+        // quick check of already accepted nodes
+        boolean accept = node.isAcceptedCategory(patterns);
+        // else check artifact's Manifest
+        if (!accept) {
+//            accept=accept(node.getArtifact());
+            for (String valueToMatch : getValuesToMatch(node.getArtifact())) {
+                for (char[] pattern : patterns) {
+                    if (matchPattern(valueToMatch, pattern)) {
+                        if (MavenClientFactory.getLog().isDebugEnabled()) {
+                            MavenClientFactory.getLog().debug(
+                                    "Match on " + String.valueOf(pattern));
+                        }
+                        accept =  true;
+                        node.setAcceptedCategory(pattern);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!accept && isDependOnCategory) {
+            // check if there's an acceptable/accepted child
+            List<Edge> children = node.getEdgesOut();
+            // if (children!=null) {
+            for (Edge child : children) {
+                if (accept(child.dst)) {
+                    accept = true;
+                    break;
+                }
+            }
+            // }
+        }
+        if (!accept) {
+            // check if there's an acceptable/accepted parent
+            List<Edge> parents = node.getEdgesIn();
+            // if (parents!=null) {
+            for (Edge ancestor : parents) {
+                if (accept(ancestor.dst)) {
+                    accept = true;
+                    break;
+                }
+            }
+            // }
+        }
+        if (MavenClientFactory.getLog().isDebugEnabled()) {
+            MavenClientFactory.getLog().debug(
+                    "Filtering result for " + node.getArtifact() + " : "
+                            + accept);
+        }
+        return accept;
     }
 
     public boolean accept(Dependency dep) {
@@ -112,22 +173,26 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
         throw new UnsupportedOperationException("Not supported");
     }
 
+    /**
+     * @deprecated prefer use of {@link #accept(Node)} as it remembers already parsed artifacts
+     */
     public boolean accept(Artifact artifact) {
-        // Exclude non Nuxeo artifacts
-        if (!artifact.getGroupId().startsWith("org.nuxeo")) {
-            return false;
-        }
-        boolean include = matchPattern(getValuesToMatch(artifact));
+        boolean accept = matchPattern(getValuesToMatch(artifact));
         if (MavenClientFactory.getLog().isDebugEnabled()) {
-            MavenClientFactory.getLog().debug((include?"accepts ":"rejects ")+artifact);
+            MavenClientFactory.getLog().debug(
+                    (accept ? "Accepts " : "Rejects ") + artifact);
         }
-        return include;
+        return accept;
     }
 
     private boolean matchPattern(List<String> valuesToMatch) {
         for (String valueToMatch : valuesToMatch) {
             for (char[] pattern : patterns) {
                 if (matchPattern(valueToMatch, pattern)) {
+                    if (MavenClientFactory.getLog().isDebugEnabled()) {
+                        MavenClientFactory.getLog().debug(
+                                "Match on " + String.valueOf(pattern));
+                    }
                     return true;
                 }
             }
