@@ -34,7 +34,7 @@ import org.nuxeo.build.maven.filter.VersionFilter;
  */
 public class ArtifactPattern extends DataType {
 
-    private AndFilter filter = null;
+    private AndFilter filter = new AndFilter();
 
     protected String category = null;
 
@@ -58,69 +58,73 @@ public class ArtifactPattern extends DataType {
 
     protected boolean isDependsOnCategory = true;
 
+    private ManifestBundleCategoryFilter categoryFilter = null;
+
     public AndFilter getFilter() {
-        if (filter == null) {
-            filter = new AndFilter();
-            filter.addFilter(GroupIdFilter.class, groupId);
-            filter.addFilter(ArtifactIdFilter.class, artifactId);
-            filter.addFilter(VersionFilter.class, version);
-            filter.addFilter(ClassifierFilter.class, classifier);
-            filter.addFilter(TypeFilter.class, type);
-            filter.addFilter(ScopeFilter.class, scope);
-            if (isOptional) {
-                filter.addFilter(new IsOptionalFilter(isOptional));
-            }
-            filter.addFiltersFromPattern(pattern);
-            filter.addFilter(AncestorFilter.class, ancestor);
-            if (category!=null) {
-                filter.addFilter(new ManifestBundleCategoryFilter(category,isDependsOnCategory));
-            }
-        }
         return filter;
     }
 
     public void setGroupId(String groupId) {
         this.groupId = groupId;
+        filter.addFilter(GroupIdFilter.class, groupId);
     }
 
     public void setArtifactId(String artifactId) {
         this.artifactId = artifactId;
+        filter.addFilter(ArtifactIdFilter.class, artifactId);
     }
 
     public void setVersion(String version) {
         this.version = version;
+        filter.addFilter(VersionFilter.class, version);
     }
 
     public void setClassifier(String classifier) {
         this.classifier = classifier;
+        filter.addFilter(ClassifierFilter.class, classifier);
     }
 
     public void setType(String type) {
         this.type = type;
+        filter.addFilter(TypeFilter.class, type);
     }
 
     public void setScope(String scope) {
         this.scope = scope;
+        filter.addFilter(ScopeFilter.class, scope);
     }
 
     public void setOptional(boolean isOptional) {
         this.isOptional = isOptional;
+        if (isOptional) {
+            filter.addFilter(new IsOptionalFilter(isOptional));
+        }
     }
 
     public void setPattern(String pattern) {
         this.pattern = pattern;
+        filter.addFiltersFromPattern(pattern);
     }
 
     public void setAncestor(String ancestor) {
         this.ancestor = ancestor;
+        filter.addFilter(AncestorFilter.class, ancestor);
     }
 
     public void setCategory(String category) {
         this.category = category;
+        categoryFilter = new ManifestBundleCategoryFilter(category,
+                isDependsOnCategory);
+        filter.addFilter(categoryFilter);
     }
 
     public void setDependsOnCategory(boolean isDependsOnCategory) {
         this.isDependsOnCategory = isDependsOnCategory;
+        // in case category has been set before isDependsOnCategory
+        if (categoryFilter != null) {
+            categoryFilter = new ManifestBundleCategoryFilter(category,
+                    isDependsOnCategory);
+        }
     }
 
 }
