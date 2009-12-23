@@ -18,7 +18,7 @@ package org.nuxeo.build.maven.filter;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class ExactMatch extends SegmentMatch {
 
@@ -30,6 +30,11 @@ public class ExactMatch extends SegmentMatch {
 
     public boolean match(String segment) {
         return this.segment.equals(segment);
+    }
+
+    @Override
+    public String toString() {
+        return "" + getClass() + " (" + segment + ")";
     }
 
 }

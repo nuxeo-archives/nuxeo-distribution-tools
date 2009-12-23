@@ -214,8 +214,6 @@ public class Node {
         } catch (ArtifactNotFoundException e) {
             throw new BuildException("Artifact not found: " + artifact.getId(),
                     e);
-            // System.err.println("Artifact not found: "+artifact.getId());
-            // e.printStackTrace();
         }
     }
 
@@ -232,8 +230,7 @@ public class Node {
                 continue;
             }
             // the last boolean parameter is redundant, but the version that
-            // doesn't take this
-            // has a bug. See MNG-2524
+            // doesn't take this has a bug. See MNG-2524
             Artifact a = factory.createDependencyArtifact(d.getGroupId(),
                     d.getArtifactId(),
                     VersionRange.createFromVersion(d.getVersion()),

@@ -23,15 +23,19 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class VersionFilter implements Filter {
 
+    @Override
+    public String toString() {
+        return "" + getClass() + " [" + matcher + "]";
+    }
+
     protected SegmentMatch matcher;
 
-
     public VersionFilter(String pattern) {
-        this (SegmentMatch.parse(pattern));
+        this(SegmentMatch.parse(pattern));
     }
 
     public VersionFilter(SegmentMatch matcher) {

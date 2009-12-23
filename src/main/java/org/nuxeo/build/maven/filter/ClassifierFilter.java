@@ -23,15 +23,19 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class ClassifierFilter implements Filter {
 
+    @Override
+    public String toString() {
+        return "" + getClass() + " [" + matcher + "]";
+    }
+
     protected SegmentMatch matcher;
 
-
     public ClassifierFilter(String pattern) {
-        this (SegmentMatch.parse(pattern));
+        this(SegmentMatch.parse(pattern));
     }
 
     public ClassifierFilter(SegmentMatch matcher) {

@@ -275,8 +275,15 @@ public class ArtifactSet extends DataType implements ResourceCollection {
         if (finalFilter != Filter.ANY) {
             ArrayList<Node> result = new ArrayList<Node>();
             for (Node node : roots) {
+                MavenClientFactory.getLog().debug(
+                        "Filtering - " + node + " ...");
                 if (finalFilter.accept(node)) {
                     result.add(node);
+                    MavenClientFactory.getLog().debug(
+                            "Filtering - accepted " + node);
+                } else {
+                    MavenClientFactory.getLog().debug(
+                            "Filtering - refused " + node);
                 }
             }
             roots = result;

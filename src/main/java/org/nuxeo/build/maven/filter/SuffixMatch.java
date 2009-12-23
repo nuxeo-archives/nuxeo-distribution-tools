@@ -32,4 +32,9 @@ public class SuffixMatch extends SegmentMatch {
         return segment.endsWith(suffix);
     }
 
+    @Override
+    public String toString() {
+        return ""+getClass()+" ("+suffix+")";
+    }
+
 }

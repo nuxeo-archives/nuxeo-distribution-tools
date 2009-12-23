@@ -20,26 +20,40 @@ import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
+import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class OrFilter extends CompositeFilter {
+
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("" + getClass());
+        for (Filter filter : filters) {
+            sb.append(System.getProperty("line.separator") + filter);
+        }
+        return sb.toString();
+    }
 
     public OrFilter() {
         super();
     }
 
     public OrFilter(List<Filter> filters) {
-        super (filters);
+        super(filters);
     }
 
     public boolean accept(Dependency dep) {
-        for (int i=0,len=filters.size(); i<len; i++) {
-            if (this.filters.get(i).accept(dep)) {
+        for (Filter filter : filters) {
+            if (filter.accept(dep)) {
+                MavenClientFactory.getLog().debug(
+                        "Filtering - " + filter + " accepted "
+                                + dep.getArtifactId());
                 return true;
             }
         }
@@ -47,8 +61,10 @@ public class OrFilter extends CompositeFilter {
     }
 
     public boolean accept(Edge edge) {
-        for (int i=0,len=filters.size(); i<len; i++) {
-            if (this.filters.get(i).accept(edge)) {
+        for (Filter filter : filters) {
+            if (filter.accept(edge)) {
+                MavenClientFactory.getLog().debug(
+                        "Filtering - " + filter + " accepted " + edge);
                 return true;
             }
         }
@@ -56,17 +72,21 @@ public class OrFilter extends CompositeFilter {
     }
 
     public boolean accept(Artifact artifact) {
-        for (int i=0,len=filters.size(); i<len; i++) {
-            if (this.filters.get(i).accept(artifact)) {
+        for (Filter filter : filters) {
+            if (filter.accept(artifact)) {
+                MavenClientFactory.getLog().debug(
+                        "Filtering - " + filter + " accepted " + artifact);
                 return true;
             }
         }
         return false;
     }
-    
+
     public boolean accept(Node node) {
-        for (int i=0,len=filters.size(); i<len; i++) {
-            if (this.filters.get(i).accept(node)) {
+        for (Filter filter : filters) {
+            if (filter.accept(node)) {
+                MavenClientFactory.getLog().debug(
+                        "Filtering - " + filter + " accepted " + node);
                 return true;
             }
         }

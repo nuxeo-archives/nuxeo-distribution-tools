@@ -36,4 +36,9 @@ public class MiddleMatch extends SegmentMatch {
         return len <=  segment.length() && segment.startsWith(prefix) && segment.endsWith(suffix);
     }
 
+    @Override
+    public String toString() {
+        return ""+getClass()+" ("+prefix+","+suffix+")";
+    }
+
 }

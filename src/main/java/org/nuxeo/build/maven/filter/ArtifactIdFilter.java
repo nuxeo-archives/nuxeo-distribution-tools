@@ -23,14 +23,14 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class ArtifactIdFilter implements Filter {
 
     protected SegmentMatch matcher;
 
     public ArtifactIdFilter(String pattern) {
-        this (SegmentMatch.parse(pattern));
+        this(SegmentMatch.parse(pattern));
     }
 
     public ArtifactIdFilter(SegmentMatch matcher) {
@@ -56,4 +56,10 @@ public class ArtifactIdFilter implements Filter {
     public boolean accept(Node node) {
         return accept(node.getArtifact());
     }
+
+    @Override
+    public String toString() {
+        return "" + getClass() + " [" + matcher + "]";
+    }
+
 }

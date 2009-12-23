@@ -27,6 +27,11 @@ public abstract class SegmentMatch {
         public boolean match(String arg0) {
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "AnySegmentMatch";
+        }
     };
 
     abstract boolean match(String segment);
@@ -49,4 +54,7 @@ public abstract class SegmentMatch {
         return new MiddleMatch(pattern.substring(0, p), pattern.substring(p+1));
     }
 
+    @Override
+    public abstract String toString();
+    
 }

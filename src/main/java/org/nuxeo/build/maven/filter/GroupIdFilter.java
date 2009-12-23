@@ -27,6 +27,11 @@ import org.nuxeo.build.maven.graph.Node;
  */
 public class GroupIdFilter implements Filter {
 
+    @Override
+    public String toString() {
+        return "" + getClass() + " [" + matcher + "]";
+    }
+
     protected SegmentMatch matcher;
 
     public GroupIdFilter(String pattern) {

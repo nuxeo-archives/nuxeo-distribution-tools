@@ -32,4 +32,9 @@ public class PrefixMatch extends SegmentMatch {
         return segment.startsWith(prefix);
     }
 
+    @Override
+    public String toString() {
+        return ""+getClass()+" ("+prefix+")";
+    }
+
 }

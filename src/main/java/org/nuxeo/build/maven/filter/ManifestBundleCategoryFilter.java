@@ -265,4 +265,8 @@ public class ManifestBundleCategoryFilter implements Filter {
         return "" + getClass() + " patterns[" + patternsStr + "]";
     }
 
+    public void setDependsOnCategory(boolean isDependsOnCategory) {
+        this.isDependOnCategory=isDependsOnCategory;
+    }
+
 }
