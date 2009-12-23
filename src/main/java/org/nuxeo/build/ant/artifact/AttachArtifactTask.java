@@ -21,7 +21,6 @@ package org.nuxeo.build.ant.artifact;
 
 import java.io.File;
 
-import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -56,9 +55,7 @@ public class AttachArtifactTask extends Task {
      * attach the main artifact.
      */
     public void setClassifier(String classifier) {
-        if (classifier != null && classifier.length() == 0)
-            classifier = null;
-        this.classifier = classifier;
+        this.classifier = "".equals(classifier)?null:classifier;
     }
 
     public void setTarget(String artifactKey) {
@@ -81,57 +78,26 @@ public class AttachArtifactTask extends Task {
         }
         final Node node = maven.getGraph().findFirst(target, true);
         if (node == null) {
-            throw new BuildException("No such artofact found: "+target);
+            throw new BuildException("No such artifact found: "+target);
         }
 
-        if(classifier==null) {
-            if(type!=null) {
-                throw new BuildException("type is set but classifier is not set");
-            }
-            log("Attaching main file "+file+" to artifact "+target, Project.MSG_INFO);
-            node.getPom().getArtifact().setFile(file);
+        log("Attaching "+file+" to "+target, Project.MSG_INFO);
+        if (classifier != null) {
 
-            // Even if you define ArtifactHandlers as components, often because of the
-            // initialization order, a proper ArtifactHandler won't be discovered.
-            // so force our own ArtifactHandler that gets the extension right.
-            ArtifactHandler handler = new ArtifactHandler() {
-                public String getExtension() {
-                    return AttachArtifactTask.this.getExtension(file.getName());
-                }
-
-                public String getDirectory() {
-                    return null;
-                }
-
-                public String getClassifier() {
-                    return null;
-                }
-
-                public String getPackaging() {
-                    return node.getPom().getPackaging();
-                }
-
-                public boolean isIncludesDependencies() {
-                    return false;
-                }
-
-                public String getLanguage() {
-                    return null;
-                }
-
-                public boolean isAddedToClasspath() {
-                    return false;
-                }
-            };
-            node.getPom().getArtifact().setArtifactHandler(handler);
-        } else {
-            log("Attaching "+file+" as an attached artifact to "+target, Project.MSG_INFO);
-
-            String type = this.type;
             if(type==null)  {
-                type = getExtension(file.getName());
+                maven.getProjectHelper().attachArtifact(node.getPom(),file,classifier);
+            } else {
+                maven.getProjectHelper().attachArtifact(node.getPom(),type,classifier,file);
             }
-            maven.getProjectHelper().attachArtifact(node.getPom(),type,classifier,file);
+        } else if (type == null) {
+            type = getExtension(file.getName());
+            maven.getProjectHelper().attachArtifact(node.getPom(),type,file);
+            log("Attached artifacts must define at least a type or a classifier, guessing type: "+type);
+//            maven.getProjectHelper().attachArtifact(node.getPom(),file);
+//            throw new BuildException(
+//                    "Attached artifacts must define at least a type or a classifier");
+        } else {
+            maven.getProjectHelper().attachArtifact(node.getPom(),type,file);
         }
     }
 
