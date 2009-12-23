@@ -14,7 +14,7 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  *
- * $Id$
+ * bstefanescu, jcarsique, $Id$
  */
 
 package org.nuxeo.build.ant.artifact;
@@ -30,7 +30,7 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * Attaches the artifact to Maven.
- *
+ * 
  * @author Kohsuke Kawaguchi
  */
 public class AttachArtifactTask extends Task {
@@ -51,11 +51,11 @@ public class AttachArtifactTask extends Task {
     }
 
     /**
-     * Optional classifier. If left unset, the task will
-     * attach the main artifact.
+     * Optional classifier. If left unset, the task will attach the main
+     * artifact.
      */
     public void setClassifier(String classifier) {
-        this.classifier = "".equals(classifier)?null:classifier;
+        this.classifier = "".equals(classifier) ? null : classifier;
     }
 
     public void setTarget(String artifactKey) {
@@ -63,8 +63,8 @@ public class AttachArtifactTask extends Task {
     }
 
     /**
-     * Artifact type. Think of it as a file extension.
-     * Optional, and if omitted, infered from the file extension.
+     * Artifact type. Think of it as a file extension. Optional, and if omitted,
+     * inferred from the file extension.
      */
     public void setType(String type) {
         this.type = type;
@@ -78,31 +78,32 @@ public class AttachArtifactTask extends Task {
         }
         final Node node = maven.getGraph().findFirst(target, true);
         if (node == null) {
-            throw new BuildException("No such artifact found: "+target);
+            throw new BuildException("No such artifact found: " + target);
         }
 
-        log("Attaching "+file+" to "+target, Project.MSG_INFO);
+        log("Attaching " + file + " to " + target, Project.MSG_INFO);
         if (classifier != null) {
 
-            if(type==null)  {
-                maven.getProjectHelper().attachArtifact(node.getPom(),file,classifier);
+            if (type == null) {
+                maven.getProjectHelper().attachArtifact(node.getPom(), file,
+                        classifier);
             } else {
-                maven.getProjectHelper().attachArtifact(node.getPom(),type,classifier,file);
+                maven.getProjectHelper().attachArtifact(node.getPom(), type,
+                        classifier, file);
             }
         } else if (type == null) {
             type = getExtension(file.getName());
-            maven.getProjectHelper().attachArtifact(node.getPom(),type,file);
-            log("Attached artifacts must define at least a type or a classifier, guessing type: "+type);
-//            maven.getProjectHelper().attachArtifact(node.getPom(),file);
-//            throw new BuildException(
-//                    "Attached artifacts must define at least a type or a classifier");
+            maven.getProjectHelper().attachArtifact(node.getPom(), type, file);
+            log(
+                    "Attached artifacts must define at least a type or a classifier, guessing type: "
+                            + type, Project.MSG_WARN);
         } else {
-            maven.getProjectHelper().attachArtifact(node.getPom(),type,file);
+            maven.getProjectHelper().attachArtifact(node.getPom(), type, file);
         }
     }
 
     private String getExtension(String name) {
         int idx = name.lastIndexOf('.');
-        return name.substring(idx+1);
+        return name.substring(idx + 1);
     }
 }
