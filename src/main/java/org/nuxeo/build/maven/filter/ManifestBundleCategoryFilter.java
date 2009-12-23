@@ -68,7 +68,8 @@ public class ManifestBundleCategoryFilter implements Filter {
             if (artifact.isResolved()) {
                 MavenClientFactory.getLog().warn(
                         "Artifact " + artifact + " doesn't contain a file");
-            } else if (!Artifact.SCOPE_PROVIDED.equals(artifact.getScope())) {
+            } else if (!Artifact.SCOPE_PROVIDED.equals(artifact.getScope()) && 
+                    !"pom".equalsIgnoreCase(artifact.getType())) {
                 // ignore provided artifacts; raise a warning for non provided
                 MavenClientFactory.getLog().warn(
                         "Artifact " + artifact + " unresolved");
