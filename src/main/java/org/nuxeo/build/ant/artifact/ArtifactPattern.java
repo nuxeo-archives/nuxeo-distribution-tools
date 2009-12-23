@@ -113,7 +113,7 @@ public class ArtifactPattern extends DataType {
 
     public void setCategory(String category) {
         this.category = category;
-        categoryFilter = new ManifestBundleCategoryFilter(category, true);
+        categoryFilter = new ManifestBundleCategoryFilter(category, isDependsOnCategory);
         filter.addFilter(categoryFilter);
     }
 
