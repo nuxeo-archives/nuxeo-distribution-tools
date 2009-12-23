@@ -48,6 +48,8 @@ public class ManifestBundleCategoryFilter implements Filter {
 
     protected boolean isDependOnCategory;
 
+    private String patternsStr;
+
     public ManifestBundleCategoryFilter(String patterns,
             boolean isDependsOnCategory) {
         this.isDependOnCategory = isDependsOnCategory;
@@ -56,6 +58,7 @@ public class ManifestBundleCategoryFilter implements Filter {
         while (st.hasMoreTokens()) {
             this.patterns.add(st.nextToken().toCharArray());
         }
+        this.patternsStr = patterns;
     }
 
     protected List<String> getValuesToMatch(Artifact artifact) {
@@ -105,52 +108,47 @@ public class ManifestBundleCategoryFilter implements Filter {
     }
 
     public boolean accept(Node node) {
+        return accept(node,true,true);
+    }
+
+    private boolean accept(Node node,boolean browseChildren,boolean browseParents) {
         // Exclude non Nuxeo artifacts
         if (!node.getArtifact().getGroupId().startsWith("org.nuxeo")) {
             return false;
         }
         if (MavenClientFactory.getLog().isDebugEnabled()) {
             MavenClientFactory.getLog().debug(
-                    getClass() + " filtering " + node.getArtifact());
+                    "Filtering - " + getClass() + " looking at "
+                            + node.getArtifact());
         }
         // quick check of already accepted nodes
         boolean accept = node.isAcceptedCategory(patterns);
         // else check artifact's Manifest
         if (!accept) {
-//            accept=accept(node.getArtifact());
-            for (String valueToMatch : getValuesToMatch(node.getArtifact())) {
-                for (char[] pattern : patterns) {
-                    if (matchPattern(valueToMatch, pattern)) {
-                        if (MavenClientFactory.getLog().isDebugEnabled()) {
-                            MavenClientFactory.getLog().debug(
-                                    "Match on " + String.valueOf(pattern));
-                        }
-                        accept =  true;
-                        node.setAcceptedCategory(pattern);
-                        break;
-                    }
-                }
-            }
+            // accept=accept(node.getArtifact());
+            accept = checkCategoryFromManifest(node);
         }
 
-        if (!accept && isDependOnCategory) {
+        if (!accept && isDependOnCategory && browseChildren) {
             // check if there's an acceptable/accepted child
+            MavenClientFactory.getLog().debug("Filtering - check children of "+node); 
             List<Edge> children = node.getEdgesOut();
             // if (children!=null) {
-            for (Edge child : children) {
-                if (accept(child.dst)) {
+            for (Edge edge : children) {
+                if (accept(edge.dst,true,false)) {
                     accept = true;
                     break;
                 }
             }
             // }
         }
-        if (!accept) {
+        if (!accept && browseParents) {
             // check if there's an acceptable/accepted parent
+            MavenClientFactory.getLog().debug("Filtering - check parents of "+node); 
             List<Edge> parents = node.getEdgesIn();
             // if (parents!=null) {
-            for (Edge ancestor : parents) {
-                if (accept(ancestor.dst)) {
+            for (Edge edge : parents) {
+                if (accept(edge.src,false,true)) {
                     accept = true;
                     break;
                 }
@@ -159,8 +157,27 @@ public class ManifestBundleCategoryFilter implements Filter {
         }
         if (MavenClientFactory.getLog().isDebugEnabled()) {
             MavenClientFactory.getLog().debug(
-                    "Filtering result for " + node.getArtifact() + " : "
+                    "Filtering - result for " + node.getArtifact() + " : "
                             + accept);
+        }
+        return accept;
+    }
+
+    private boolean checkCategoryFromManifest(Node node) {
+        boolean accept=false;
+        for (String valueToMatch : getValuesToMatch(node.getArtifact())) {
+            for (char[] pattern : patterns) {
+                if (matchPattern(valueToMatch, pattern)) {
+                    if (MavenClientFactory.getLog().isDebugEnabled()) {
+                        MavenClientFactory.getLog().debug(
+                                "Filtering - match on "
+                                        + String.valueOf(pattern));
+                    }
+                    accept = true;
+                    node.setAcceptedCategory(pattern);
+                    break;
+                }
+            }
         }
         return accept;
     }
@@ -174,7 +191,8 @@ public class ManifestBundleCategoryFilter implements Filter {
     }
 
     /**
-     * @deprecated prefer use of {@link #accept(Node)} as it remembers already parsed artifacts
+     * @deprecated prefer use of {@link #accept(Node)} as it remembers already
+     *             parsed artifacts
      */
     public boolean accept(Artifact artifact) {
         boolean accept = matchPattern(getValuesToMatch(artifact));
@@ -191,7 +209,8 @@ public class ManifestBundleCategoryFilter implements Filter {
                 if (matchPattern(valueToMatch, pattern)) {
                     if (MavenClientFactory.getLog().isDebugEnabled()) {
                         MavenClientFactory.getLog().debug(
-                                "Match on " + String.valueOf(pattern));
+                                "Filtering - match on "
+                                        + String.valueOf(pattern));
                     }
                     return true;
                 }
@@ -239,6 +258,11 @@ public class ManifestBundleCategoryFilter implements Filter {
             }
         }
         return wildcard || i == len;
+    }
+
+    @Override
+    public String toString() {
+        return "" + getClass() + " patterns[" + patternsStr + "]";
     }
 
 }
