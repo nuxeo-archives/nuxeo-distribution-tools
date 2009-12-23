@@ -113,17 +113,16 @@ public class ArtifactPattern extends DataType {
 
     public void setCategory(String category) {
         this.category = category;
-        categoryFilter = new ManifestBundleCategoryFilter(category,
-                isDependsOnCategory);
+        categoryFilter = new ManifestBundleCategoryFilter(category, true);
         filter.addFilter(categoryFilter);
     }
 
     public void setDependsOnCategory(boolean isDependsOnCategory) {
         this.isDependsOnCategory = isDependsOnCategory;
-        // in case category has been set before isDependsOnCategory
-        if (categoryFilter != null) {
-            categoryFilter = new ManifestBundleCategoryFilter(category,
-                    isDependsOnCategory);
+        // in case category has been set before isDependsOnCategory and
+        // isDependsOnCategory==false
+        if (categoryFilter != null && !isDependsOnCategory) {
+            categoryFilter.setDependsOnCategory(false);
         }
     }
 
