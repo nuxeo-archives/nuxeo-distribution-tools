@@ -40,9 +40,11 @@ public class AndFilter extends CompositeFilter {
     public boolean accept(Dependency dep) {
         for (Filter filter : filters) {
             if (!filter.accept(dep)) {
-                MavenClientFactory.getLog().debug(
-                        "Filtering - " + filter + " refused "
-                                + dep.getArtifactId());
+                if (MavenClientFactory.getLog().isDebugEnabled()) {
+                    MavenClientFactory.getLog().debug(
+                            "Filtering - " + filter + " refused "
+                                    + dep.getArtifactId());
+                }
                 return false;
             }
         }
@@ -52,8 +54,10 @@ public class AndFilter extends CompositeFilter {
     public boolean accept(Edge edge) {
         for (Filter filter : filters) {
             if (!filter.accept(edge)) {
-                MavenClientFactory.getLog().debug(
-                        "Filtering - " + filter + " refused " + edge);
+                if (MavenClientFactory.getLog().isDebugEnabled()) {
+                    MavenClientFactory.getLog().debug(
+                            "Filtering - " + filter + " refused " + edge);
+                }
                 return false;
             }
         }
@@ -63,8 +67,10 @@ public class AndFilter extends CompositeFilter {
     public boolean accept(Artifact artifact) {
         for (Filter filter : filters) {
             if (!filter.accept(artifact)) {
-                MavenClientFactory.getLog().debug(
-                        "Filtering - " + filter + " refused " + artifact);
+                if (MavenClientFactory.getLog().isDebugEnabled()) {
+                    MavenClientFactory.getLog().debug(
+                            "Filtering - " + filter + " refused " + artifact);
+                }
                 return false;
             }
         }
@@ -74,8 +80,10 @@ public class AndFilter extends CompositeFilter {
     public boolean accept(Node node) {
         for (Filter filter : filters) {
             if (!filter.accept(node)) {
-                MavenClientFactory.getLog().debug(
-                        "Filtering - " + filter + " refused " + node);
+                if (MavenClientFactory.getLog().isDebugEnabled()) {
+                    MavenClientFactory.getLog().debug(
+                            "Filtering - " + filter + " refused " + node);
+                }
                 return false;
             }
         }

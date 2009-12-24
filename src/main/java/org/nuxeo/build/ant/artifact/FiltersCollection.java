@@ -32,14 +32,14 @@ public class FiltersCollection extends DataType {
         if (filter == null) {
             filter = new AndFilter();
         }
-        filter.addFilter(new NotFilter(excludes.filter));
+        filter.addFilter(new NotFilter(excludes.getFilter()));
     }
 
     public void addIncludes(Includes includes) {
         if (filter == null) {
             filter = new AndFilter();
         }
-        filter.addFilter(includes.filter);
+        filter.addFilter(includes.getFilter());
     }
 
 }

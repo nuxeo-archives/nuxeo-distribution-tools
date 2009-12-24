@@ -28,12 +28,12 @@ import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
- *
+ * 
  * @author jcarsique An artifact satisfies this filter if at least one of its
  *         dependencies match ManifestBundleCategoryPatternFilter conditions
  * @see ManifestBundleCategoryPatternFilter
  * @deprecated replaced with {@link ManifestBundleCategoryFilter}
- *
+ * 
  */
 public class DependsOnCategoryPatternFilter implements Filter {
 
@@ -42,7 +42,7 @@ public class DependsOnCategoryPatternFilter implements Filter {
     private String pattern;
 
     public DependsOnCategoryPatternFilter(String pattern) {
-        this.pattern=pattern;
+        this.pattern = pattern;
         categoryFilter = new AndFilter();
         categoryFilter.addFilter(ManifestBundleCategoryPatternFilter.class,
                 pattern);
@@ -66,21 +66,27 @@ public class DependsOnCategoryPatternFilter implements Filter {
         if (!node.getArtifact().getGroupId().startsWith("org.nuxeo")) {
             return false;
         }
-        boolean accept=accept(node.getArtifact());
+        boolean accept = accept(node.getArtifact());
         if (MavenClientFactory.getLog().isDebugEnabled()) {
-            MavenClientFactory.getLog().debug(DependsOnCategoryPatternFilter.class+" filtering "+node.getArtifact()+" on pattern "+
-                    pattern +" ...");
+            MavenClientFactory.getLog().debug(
+                    DependsOnCategoryPatternFilter.class + " filtering "
+                            + node.getArtifact() + " on pattern " + pattern
+                            + " ...");
         }
         List<Edge> children = node.getEdgesOut();
-        if (!accept && children!=null) {
+        if (!accept && children != null) {
             for (Edge childEdge : children) {
                 if (accept(childEdge.dst)) {
-                    accept= true;
+                    accept = true;
                     break;
                 }
             }
         }
-        MavenClientFactory.getLog().debug("Filtering on pattern "+pattern+" result for "+node.getArtifact()+" : "+accept);
+        if (MavenClientFactory.getLog().isDebugEnabled()) {
+            MavenClientFactory.getLog().debug(
+                    "Filtering on pattern " + pattern + " result for "
+                            + node.getArtifact() + " : " + accept);
+        }
         return accept;
     }
 

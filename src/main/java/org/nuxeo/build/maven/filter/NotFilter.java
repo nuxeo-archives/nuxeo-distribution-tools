@@ -23,9 +23,9 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
-public class NotFilter implements Filter  {
+public class NotFilter implements Filter {
 
     protected Filter filter;
 
@@ -44,11 +44,11 @@ public class NotFilter implements Filter  {
     public boolean accept(Artifact artifact) {
         return !filter.accept(artifact);
     }
-    
+
     public boolean accept(Node node) {
         return !filter.accept(node);
     }
-    
+
     public Filter getFilter() {
         return filter;
     }

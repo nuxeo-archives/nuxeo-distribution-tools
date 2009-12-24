@@ -18,19 +18,23 @@ package org.nuxeo.build.ant.artifact;
 
 import org.apache.tools.ant.types.DataType;
 import org.nuxeo.build.maven.filter.NotFilter;
-
+import org.nuxeo.build.maven.filter.OrFilter;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class Excludes extends DataType {
 
-    public NotFilter filter = null;
+    private OrFilter orFilter = new OrFilter();
+
+    private NotFilter filter = new NotFilter(orFilter);
+
+    public NotFilter getFilter() {
+        return filter;
+    }
 
     public void addArtifact(ArtifactPattern f) {
-        if (filter == null) {
-            filter = new NotFilter(f.getFilter());
-        }
+        orFilter.addFilter(f.getFilter());
     }
 }

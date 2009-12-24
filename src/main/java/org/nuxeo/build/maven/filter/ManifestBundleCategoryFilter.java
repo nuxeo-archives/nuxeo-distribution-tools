@@ -68,8 +68,8 @@ public class ManifestBundleCategoryFilter implements Filter {
             if (artifact.isResolved()) {
                 MavenClientFactory.getLog().warn(
                         "Artifact " + artifact + " doesn't contain a file");
-            } else if (!Artifact.SCOPE_PROVIDED.equals(artifact.getScope()) && 
-                    !"pom".equalsIgnoreCase(artifact.getType())) {
+            } else if (!Artifact.SCOPE_PROVIDED.equals(artifact.getScope())
+                    && !"pom".equalsIgnoreCase(artifact.getType())) {
                 // ignore provided artifacts; raise a warning for non provided
                 MavenClientFactory.getLog().warn(
                         "Artifact " + artifact + " unresolved");
@@ -109,10 +109,11 @@ public class ManifestBundleCategoryFilter implements Filter {
     }
 
     public boolean accept(Node node) {
-        return accept(node,true,true);
+        return accept(node, true, true);
     }
 
-    private boolean accept(Node node,boolean browseChildren,boolean browseParents) {
+    private boolean accept(Node node, boolean browseChildren,
+            boolean browseParents) {
         // Exclude non Nuxeo artifacts
         if (!node.getArtifact().getGroupId().startsWith("org.nuxeo")) {
             return false;
@@ -132,11 +133,14 @@ public class ManifestBundleCategoryFilter implements Filter {
 
         if (!accept && isDependOnCategory && browseChildren) {
             // check if there's an acceptable/accepted child
-            MavenClientFactory.getLog().debug("Filtering - check children of "+node); 
+            if (MavenClientFactory.getLog().isDebugEnabled()) {
+                MavenClientFactory.getLog().debug(
+                        "Filtering - check children of " + node);
+            }
             List<Edge> children = node.getEdgesOut();
             // if (children!=null) {
             for (Edge edge : children) {
-                if (accept(edge.dst,true,false)) {
+                if (accept(edge.dst, true, false)) {
                     accept = true;
                     break;
                 }
@@ -145,11 +149,14 @@ public class ManifestBundleCategoryFilter implements Filter {
         }
         if (!accept && browseParents) {
             // check if there's an acceptable/accepted parent
-            MavenClientFactory.getLog().debug("Filtering - check parents of "+node); 
+            if (MavenClientFactory.getLog().isDebugEnabled()) {
+                MavenClientFactory.getLog().debug(
+                        "Filtering - check parents of " + node);
+            }
             List<Edge> parents = node.getEdgesIn();
             // if (parents!=null) {
             for (Edge edge : parents) {
-                if (accept(edge.src,false,true)) {
+                if (accept(edge.src, false, true)) {
                     accept = true;
                     break;
                 }
@@ -165,7 +172,7 @@ public class ManifestBundleCategoryFilter implements Filter {
     }
 
     private boolean checkCategoryFromManifest(Node node) {
-        boolean accept=false;
+        boolean accept = false;
         for (String valueToMatch : getValuesToMatch(node.getArtifact())) {
             for (char[] pattern : patterns) {
                 if (matchPattern(valueToMatch, pattern)) {
@@ -267,7 +274,7 @@ public class ManifestBundleCategoryFilter implements Filter {
     }
 
     public void setDependsOnCategory(boolean isDependsOnCategory) {
-        this.isDependOnCategory=isDependsOnCategory;
+        this.isDependOnCategory = isDependsOnCategory;
     }
 
 }

@@ -118,10 +118,10 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
             if (includes != null || excludes != null) {
                 AndFilter andf = new AndFilter();
                 if (includes != null) {
-                    andf.addFilter(includes.filter);
+                    andf.addFilter(includes.getFilter());
                 }
                 if (excludes != null) {
-                    andf.addFilter(excludes.filter);
+                    andf.addFilter(excludes.getFilter());
                 }
                 filter = CompositeFilter.compact(andf);
             }

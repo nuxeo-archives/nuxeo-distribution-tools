@@ -207,10 +207,10 @@ public class ArtifactSet extends DataType implements ResourceCollection {
         }
         final AndFilter ieFilter = new AndFilter();
         if (includes != null) {
-            ieFilter.addFilter(includes.filter);
+            ieFilter.addFilter(includes.getFilter());
         }
         if (excludes != null) {
-            ieFilter.addFilter(excludes.filter);
+            ieFilter.addFilter(excludes.getFilter());
         }
         return new ArrayList<Node>() {
             private static final long serialVersionUID = 1L;
@@ -243,10 +243,10 @@ public class ArtifactSet extends DataType implements ResourceCollection {
             f.addFilters(filter.getFilters());
         }
         if (includes != null) {
-            f.addFilter(includes.filter);
+            f.addFilter(includes.getFilter());
         }
         if (excludes != null) {
-            f.addFilter(excludes.filter);
+            f.addFilter(excludes.getFilter());
         }
         return f.isEmpty() ? Filter.ANY : CompositeFilter.compact(f);
     }
@@ -275,15 +275,21 @@ public class ArtifactSet extends DataType implements ResourceCollection {
         if (finalFilter != Filter.ANY) {
             ArrayList<Node> result = new ArrayList<Node>();
             for (Node node : roots) {
-                MavenClientFactory.getLog().debug(
-                        "Filtering - " + node + " ...");
+                if (MavenClientFactory.getLog().isDebugEnabled()) {
+                    MavenClientFactory.getLog().debug(
+                            "Filtering - " + node + " ...");
+                }
                 if (finalFilter.accept(node)) {
                     result.add(node);
-                    MavenClientFactory.getLog().debug(
-                            "Filtering - accepted " + node);
+                    if (MavenClientFactory.getLog().isDebugEnabled()) {
+                        MavenClientFactory.getLog().debug(
+                                "Filtering - accepted " + node);
+                    }
                 } else {
-                    MavenClientFactory.getLog().debug(
-                            "Filtering - refused " + node);
+                    if (MavenClientFactory.getLog().isDebugEnabled()) {
+                        MavenClientFactory.getLog().debug(
+                                "Filtering - refused " + node);
+                    }
                 }
             }
             roots = result;

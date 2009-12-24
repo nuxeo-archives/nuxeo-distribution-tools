@@ -48,7 +48,7 @@ public class ArtifactPattern extends DataType {
 
     protected String type = null;
 
-    protected String scope = null;
+    protected String scope = "!test";
 
     protected boolean isOptional = false;
 

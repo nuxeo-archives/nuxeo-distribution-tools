@@ -119,7 +119,8 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
         }
         boolean include = matchPattern(getValuesToMatch(artifact));
         if (MavenClientFactory.getLog().isDebugEnabled()) {
-            MavenClientFactory.getLog().debug((include?"accepts ":"rejects ")+artifact);
+            MavenClientFactory.getLog().debug(
+                    (include ? "accepts " : "rejects ") + artifact);
         }
         return include;
     }
