@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, jcarsique
  */
 package org.nuxeo.build.maven;
 
@@ -57,12 +57,19 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     protected AntProfileManager antProfileManager;
 
     /**
-     * Location of the file.
+     * Location of the build file, if unique
      * 
      * @parameter expression="${buildFile}" default-value="build.xml"
-     * @required
+     * @deprecated prefer use of buildFiles
      */
     protected File buildFile;
+
+    /**
+     * Location of the build files.
+     * 
+     * @parameter expression="${buildFiles}"
+     */
+    protected String[] buildFiles;
 
     /**
      * Location of the build file.
@@ -138,6 +145,15 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
      */
     protected MavenProjectBuilder projectBuilder;
 
+    /**
+     * Base directory of the project.
+     * 
+     * @parameter default-value="${basedir}"
+     * @required
+     * @readonly
+     */
+    private File basedir;
+
     private Logger logger;
 
     @SuppressWarnings("unchecked")
@@ -182,7 +198,6 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                 return getLog().isDebugEnabled();
             }
         };
-        graph = new Graph(this);
         antProfileManager = new AntProfileManager();
 
         // add project properties
@@ -215,22 +230,30 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
         ant.setGlobalProperties(props);
 
-        // create a root into the graph to point to the current pom
-        try {
-            Node root = graph.addRootNode(project);
-            if (expand > 0) {
-                root.expand(expand, null);
-            }
-        } catch (ArtifactNotFoundException e) {
-            throw new MojoExecutionException("Failed to initialize graph", e);
+        if (buildFiles == null && buildFile != null) {
+            buildFiles = new String[] { buildFile.getPath() };
         }
+        for (String file : buildFiles) {
+            graph = new Graph(this);
 
-        if (target != null && target.length() > 0) {
-            ArrayList<String> targets = new ArrayList<String>();
-            targets.add(target);
-            ant.run(buildFile, targets);
-        } else {
-            ant.run(buildFile);
+            // create a root into the graph to point to the current pom
+            try {
+                Node root = graph.addRootNode(project);
+                if (expand > 0) {
+                    root.expand(expand, null);
+                }
+            } catch (ArtifactNotFoundException e) {
+                throw new MojoExecutionException("Failed to initialize graph",
+                        e);
+            }
+
+            if (target != null && target.length() > 0) {
+                ArrayList<String> targets = new ArrayList<String>();
+                targets.add(target);
+                ant.run(new File(file), targets);
+            } else {
+                ant.run(new File(file));
+            }
         }
     }
 

@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, jcarsique
  */
 package org.nuxeo.build.ant;
 
@@ -38,19 +38,22 @@ import org.nuxeo.build.maven.MavenClient;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class AntClient {
 
     public final static String MAVEN_CLIENT_REF = "maven.client.ref";
 
     protected ClassLoader loader;
+
     protected Project project;
+
     protected MavenClient maven;
+
     Map<String, String> globalProperties;
 
     public AntClient() {
-        this (null);
+        this(null);
     }
 
     public AntClient(ClassLoader loader) {
@@ -66,7 +69,7 @@ public class AntClient {
     public void setGlobalProperties(Map<String, String> globalProperties) {
         this.globalProperties = globalProperties;
     }
-    
+
     public void setMavenClient(MavenClient maven) {
         this.maven = maven;
     }
@@ -79,33 +82,21 @@ public class AntClient {
         return project;
     }
 
-
     public void run(File buildFile) {
-        run(buildFile, (List<String>)null);
-    }
-
-    public void run(File buildFile, List<String> targets) {
-        run(buildFile.getParentFile(), buildFile, targets);
-    }
-
-    public void run(File cwd, URL buildFile) {
-        run(cwd, buildFile, null);
+        run(buildFile, (List<String>) null);
     }
 
     public void run(URL buildFile) {
-        run(new File("."), saveURL(buildFile), null);
+        globalProperties.put("maven.basedir", ".");
+        run(saveURL(buildFile), null);
     }
 
     public void run(URL buildFile, List<String> targets) {
-        run(new File("."), saveURL(buildFile), targets);
+        globalProperties.put("maven.basedir", ".");
+        run(saveURL(buildFile), targets);
     }
 
-    public void run(File cwd, URL buildFile, List<String> targets) {
-        run(cwd, saveURL(buildFile), targets);
-    }
-
-
-    public void run(File cwd, File buildFile, List<String> targets) {
+    public void run(File buildFile, List<String> targets) {
         PrintStream err = System.err;
         PrintStream out = System.out;
         InputStream in = System.in;
@@ -113,29 +104,29 @@ public class AntClient {
         project = new Project();
         project.setCoreLoader(loader);
 
-        InputHandler handler =  new DefaultInputHandler();
+        InputHandler handler = new DefaultInputHandler();
         project.setInputHandler(handler);
         configureIO(false);
         project.setKeepGoingMode(false);
 
-        project.setBaseDir(cwd);
-        project.setUserProperty("ant.file",
-                buildFile.getPath());
-        project.setUserProperty("ant.version", org.apache.tools.ant.Main.getAntVersion());
+        project.setBaseDir(new File(globalProperties.get("maven.basedir")));
+        project.setUserProperty("ant.file", buildFile.getPath());
+        project.setUserProperty("ant.version",
+                org.apache.tools.ant.Main.getAntVersion());
 
         if (globalProperties != null) {
             for (Map.Entry<String, String> entry : globalProperties.entrySet()) {
                 project.setUserProperty(entry.getKey(), entry.getValue());
             }
         }
-        
+
         // add maven reference
         if (maven != null) {
             project.addReference(MAVEN_CLIENT_REF, maven);
         }
 
-        //TODO add user defined properties
-        //project.setUserProperty(arg, value);
+        // TODO add user defined properties
+        // project.setUserProperty(arg, value);
 
         // Add the default listener
         project.addBuildListener(createLogger());
@@ -147,9 +138,11 @@ public class AntClient {
             ProjectHelper.configureProject(project, buildFile);
 
             if (targets != null) {
-                project.getExecutor().executeTargets(project, targets.toArray(new String[targets.size()]));
+                project.getExecutor().executeTargets(project,
+                        targets.toArray(new String[targets.size()]));
             } else {
-                project.getExecutor().executeTargets(project, new String[] {project.getDefaultTarget()});
+                project.getExecutor().executeTargets(project,
+                        new String[] { project.getDefaultTarget() });
             }
 
             project.fireBuildFinished(null);
@@ -173,7 +166,6 @@ public class AntClient {
         System.setErr(new PrintStream(new DemuxOutputStream(project, true)));
     }
 
-
     /** Stream to use for logging. */
     private static PrintStream out = System.out;
 
@@ -181,14 +173,13 @@ public class AntClient {
     private static PrintStream err = System.err;
 
     private BuildLogger createLogger() {
-        BuildLogger logger =  new DefaultLogger();
+        BuildLogger logger = new DefaultLogger();
         logger.setMessageOutputLevel(Project.MSG_INFO);
         logger.setOutputPrintStream(out);
         logger.setErrorPrintStream(err);
-        //logger.setEmacsMode(false);
+        // logger.setEmacsMode(false);
         return logger;
     }
-
 
     public static File saveURL(URL url) {
         InputStream in = null;
@@ -202,11 +193,13 @@ public class AntClient {
             throw new RuntimeException(e);
         } finally {
             if (in != null) {
-                try {in.close();} catch (IOException e) {}
+                try {
+                    in.close();
+                } catch (IOException e) {
+                }
             }
         }
     }
-
 
     public static void copyToFile(InputStream in, File file) throws IOException {
         OutputStream out = null;
@@ -237,6 +230,8 @@ public class AntClient {
     }
 
     private static final int BUFFER_SIZE = 1024 * 64; // 64K
+
     private static final int MAX_BUFFER_SIZE = 1024 * 1024; // 64K
+
     private static final int MIN_BUFFER_SIZE = 1024 * 8; // 64K
 }
