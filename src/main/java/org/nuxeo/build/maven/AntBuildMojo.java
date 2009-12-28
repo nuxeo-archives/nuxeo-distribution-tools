@@ -35,6 +35,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.tools.ant.BuildException;
 import org.nuxeo.build.ant.AntClient;
 import org.nuxeo.build.ant.profile.AntProfileManager;
 import org.nuxeo.build.maven.graph.Graph;
@@ -145,15 +146,6 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
      */
     protected MavenProjectBuilder projectBuilder;
 
-    /**
-     * Base directory of the project.
-     * 
-     * @parameter default-value="${basedir}"
-     * @required
-     * @readonly
-     */
-    private File basedir;
-
     private Logger logger;
 
     @SuppressWarnings("unchecked")
@@ -247,12 +239,16 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                         e);
             }
 
-            if (target != null && target.length() > 0) {
-                ArrayList<String> targets = new ArrayList<String>();
-                targets.add(target);
-                ant.run(new File(file), targets);
-            } else {
-                ant.run(new File(file));
+            try {
+                if (target != null && target.length() > 0) {
+                    ArrayList<String> targets = new ArrayList<String>();
+                    targets.add(target);
+                    ant.run(new File(file), targets);
+                } else {
+                    ant.run(new File(file));
+                }
+            } catch (BuildException e) {
+                throw new MojoExecutionException("Failed to run " + file, e);
             }
         }
     }

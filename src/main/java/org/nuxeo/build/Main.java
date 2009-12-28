@@ -17,9 +17,11 @@
 package org.nuxeo.build;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.tools.ant.BuildException;
 import org.nuxeo.build.ant.AntClient;
 import org.nuxeo.build.maven.EmbeddedMavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
@@ -29,7 +31,7 @@ import org.nuxeo.build.maven.MavenClientFactory;
  */
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws BuildException, IOException {
         MavenClientFactory.setInstance(new EmbeddedMavenClient());
         AntClient ant = new AntClient();
 
@@ -46,7 +48,8 @@ public class Main {
             }
         }
         if (profiles != null) {
-            MavenClientFactory.getInstance().getAntProfileManager().activateProfiles(profiles);
+            MavenClientFactory.getInstance().getAntProfileManager().activateProfiles(
+                    profiles);
         }
 
         if (buildFile == null) {

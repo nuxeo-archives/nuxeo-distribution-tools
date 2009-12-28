@@ -26,6 +26,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.BuildLogger;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.DemuxInputStream;
@@ -82,21 +83,21 @@ public class AntClient {
         return project;
     }
 
-    public void run(File buildFile) {
+    public void run(File buildFile) throws BuildException {
         run(buildFile, (List<String>) null);
     }
 
-    public void run(URL buildFile) {
+    public void run(URL buildFile) throws BuildException {
         globalProperties.put("maven.basedir", ".");
         run(saveURL(buildFile), null);
     }
 
-    public void run(URL buildFile, List<String> targets) {
+    public void run(URL buildFile, List<String> targets) throws BuildException {
         globalProperties.put("maven.basedir", ".");
         run(saveURL(buildFile), targets);
     }
 
-    public void run(File buildFile, List<String> targets) {
+    public void run(File buildFile, List<String> targets) throws BuildException {
         PrintStream err = System.err;
         PrintStream out = System.out;
         InputStream in = System.in;
@@ -146,9 +147,9 @@ public class AntClient {
             }
 
             project.fireBuildFinished(null);
-        } catch (Throwable t) {
-            project.fireBuildFinished(t);
-            t.printStackTrace();
+        } catch (BuildException e) {
+            project.fireBuildFinished(e);
+            throw e;
         } finally {
             System.setOut(out);
             System.setErr(err);
