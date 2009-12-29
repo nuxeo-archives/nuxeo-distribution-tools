@@ -85,7 +85,6 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
     }
 
     public List<Profile> getActiveProfiles() {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
     
