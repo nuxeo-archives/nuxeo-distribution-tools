@@ -222,7 +222,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
         ant.setGlobalProperties(props);
 
-        if (buildFiles == null && buildFile != null) {
+        if (buildFile != null && (buildFiles == null || buildFiles.length == 0)) {
             buildFiles = new String[] { buildFile.getPath() };
         }
         for (String file : buildFiles) {
