@@ -102,6 +102,7 @@ xmlns:artifact="urn:nuxeo-artifact" xmlns:nx="urn:nuxeo-build">
       classifier="jdk15" />
       <artifact:file key="net.sf.ezmorph:ezmorph" />
       <artifact:file key="net.sf.opencsv:opencsv" />
+      <artifact:file key="org.codehaus.plexus:plexus-utils" />
       <artifact:file key="xerces:xercesImpl" />
       <artifact:file key="org.apache.derby:derby" />
       <artifact:file key="org.hibernate:hibernate" />
