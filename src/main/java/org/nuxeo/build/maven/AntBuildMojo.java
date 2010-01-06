@@ -228,15 +228,9 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         for (String file : buildFiles) {
             graph = new Graph(this);
 
-            // create a root into the graph to point to the current pom
-            try {
-                Node root = graph.addRootNode(project);
-                if (expand > 0) {
-                    root.expand(expand, null);
-                }
-            } catch (ArtifactNotFoundException e) {
-                throw new MojoExecutionException("Failed to initialize graph",
-                        e);
+            Node root = graph.addRootNode(project);
+            if (expand > 0) {
+                root.expand(expand, null);
             }
 
             try {
@@ -287,10 +281,10 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     }
 
     public void resolve(Artifact artifact,
-            List<ArtifactRepository> remoteRepositories)
+            List<ArtifactRepository> otherRemoteRepositories)
             throws ArtifactNotFoundException {
         try {
-            resolver.resolve(artifact, remoteRepositories, localRepository);
+            resolver.resolve(artifact, otherRemoteRepositories, localRepository);
         } catch (ArtifactResolutionException e) {
             throw new RuntimeException(e);
         } catch (ArtifactNotFoundException e) {

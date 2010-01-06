@@ -59,14 +59,14 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
         }
     }
     
-    public void addExcludes(Excludes excludes) {
+    public void addExcludes(@SuppressWarnings("hiding") Excludes excludes) {
         if (this.excludes != null) {
             throw new BuildException("Found an Excludes that is defined more than once in an artifact dependencies");
         }        
         this.excludes = excludes;
     }
     
-    public void addIncludes(Includes includes) {
+    public void addIncludes(@SuppressWarnings("hiding") Includes includes) {
         if (this.includes != null) {
             throw new BuildException("Found an Includes that is defined more than once in an artifact dependencies");
         }
@@ -125,9 +125,8 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
                 }
                 filter = CompositeFilter.compact(andf);
             }
-            Node node = getNode();
             // make sure node is expanded        
-            node.expand(depth, null); // if not already expanded this expand may not be done correctly
+            getNode().expand(depth, null); // if not already expanded this expand may not be done correctly
             nodes = new ArrayList<Node>();
             if (filter != null) {
                 for (Edge edge : node.getEdgesOut()) {

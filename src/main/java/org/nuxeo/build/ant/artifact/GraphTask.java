@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.nuxeo.build.maven.ArtifactDescriptor;
@@ -34,14 +33,15 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class GraphTask extends Task {
 
     protected List<ArtifactKey> resolves;
-    protected String src;
-    protected Expand expand;
 
+    protected String src;
+
+    protected Expand expand;
 
     public void setResolve(String resolve) {
         if (resolves == null) {
@@ -54,7 +54,7 @@ public class GraphTask extends Task {
         src = file;
     }
 
-    public void addExpand(Expand expand) {
+    public void addExpand(@SuppressWarnings("hiding") Expand expand) {
         this.expand = expand;
     }
 
@@ -64,7 +64,6 @@ public class GraphTask extends Task {
         }
         resolves.add(artifact);
     }
-
 
     @Override
     public void execute() throws BuildException {
@@ -82,30 +81,29 @@ public class GraphTask extends Task {
                     line = reader.readLine();
                 }
             } catch (IOException e) {
-                throw new BuildException("Failed to import file: "+src, e);
+                throw new BuildException("Failed to import file: " + src, e);
             }
         }
         if (resolves != null) {
             for (ArtifactKey resolve : resolves) {
                 ArtifactDescriptor ad = new ArtifactDescriptor(resolve.pattern);
                 Artifact arti = readArtifact(ad);
-                try {
-                    Node node = maven.getGraph().getRootNode(arti);
-                    if (expand != null) {
-                        if (expand.filter != null) {
-                            node.expand(expand.depth, CompositeFilter.compact(expand.filter));
-                        } else {
-                            node.expand(expand.depth, null);
-                        }
+                Node node = maven.getGraph().getRootNode(arti);
+                if (expand != null) {
+                    if (expand.filter != null) {
+                        node.expand(expand.depth,
+                                CompositeFilter.compact(expand.filter));
+                    } else {
+                        node.expand(expand.depth, null);
                     }
-                } catch (ArtifactNotFoundException e) {
-                    throw new BuildException("Root artifact cannot be found: "+arti, e);
                 }
             }
         }
     }
 
     public static Artifact readArtifact(ArtifactDescriptor artifactDescriptor) {
-        return MavenClientFactory.getInstance().getArtifactFactory().createBuildArtifact(artifactDescriptor.groupId, artifactDescriptor.artifactId, artifactDescriptor.version, artifactDescriptor.type);
+        return MavenClientFactory.getInstance().getArtifactFactory().createBuildArtifact(
+                artifactDescriptor.groupId, artifactDescriptor.artifactId,
+                artifactDescriptor.version, artifactDescriptor.type);
     }
 }

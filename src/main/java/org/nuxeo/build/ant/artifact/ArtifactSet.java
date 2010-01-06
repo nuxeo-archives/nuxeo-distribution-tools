@@ -273,14 +273,14 @@ public class ArtifactSet extends DataType implements ResourceCollection {
         }
 
         if (finalFilter != Filter.ANY) {
-            ArrayList<Node> result = new ArrayList<Node>();
+            ArrayList<Node> resultNodes = new ArrayList<Node>();
             for (Node node : roots) {
                 if (MavenClientFactory.getLog().isDebugEnabled()) {
                     MavenClientFactory.getLog().debug(
                             "Filtering - " + node + " ...");
                 }
                 if (finalFilter.accept(node)) {
-                    result.add(node);
+                    resultNodes.add(node);
                     if (MavenClientFactory.getLog().isDebugEnabled()) {
                         MavenClientFactory.getLog().debug(
                                 "Filtering - accepted " + node);
@@ -292,20 +292,21 @@ public class ArtifactSet extends DataType implements ResourceCollection {
                     }
                 }
             }
-            roots = result;
+            roots = resultNodes;
         }
         if (expand != null) {
-            ArrayList<Node> nodes = new ArrayList<Node>();
+            ArrayList<Node> resultNodes = new ArrayList<Node>();
             if (expand.filter != null) {
-                Filter filter = CompositeFilter.compact(expand.filter);
+                Filter expandFilter = CompositeFilter.compact(expand.filter);
                 for (Node root : roots) {
-                    collectNodes(nodes, root, filter, expand.depth);
+                    collectNodes(resultNodes, root, expandFilter, expand.depth);
                 }
             } else {
                 for (Node root : roots) {
-                    collectNodes(nodes, root, expand.depth);
+                    collectNodes(resultNodes, root, expand.depth);
                 }
             }
+            roots.addAll(resultNodes);
         }
         return roots;
     }
@@ -350,10 +351,10 @@ public class ArtifactSet extends DataType implements ResourceCollection {
         return true;
     }
 
-    public void collectImportedNodes(Collection<Node> nodes) {
+    public void collectImportedNodes(Collection<Node> nodesCollection) {
         try {
             ArtifactSetParser parser = new ArtifactSetParser(getProject());
-            parser.parse(src, nodes);
+            parser.parse(src, nodesCollection);
         } catch (IOException e) {
             throw new BuildException("Failed to import artifacts file: " + src,
                     e);

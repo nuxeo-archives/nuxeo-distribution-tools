@@ -137,7 +137,7 @@ public class ArtifactTableModel extends AbstractTableModel {
         }
     }
 
-    public void store(OutputStream out) throws IOException {
+    public void store(OutputStream out) {
         PrintStream printer = new PrintStream(out);
         for (ArtifactRow row : map.values()) {
             printer.print(row.key);
@@ -260,9 +260,9 @@ public class ArtifactTableModel extends AbstractTableModel {
             this.key = key;
             this.profiles = new ArrayList<String>();
         }
-        public Boolean getValue(String key) {
+        public Boolean getValue(String rowKey) {
             for (int i=0,len=profiles.size(); i<len; i++) {
-                if (key.equals(profiles.get(i))) {
+                if (rowKey.equals(profiles.get(i))) {
                     return Boolean.TRUE;
                 }
             }

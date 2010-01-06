@@ -48,7 +48,7 @@ public class Main {
      * this method should be invoked from the
      * event-dispatching thread.
      */
-    private static void createAndShowGUI(File file) throws IOException {
+    protected static void createAndShowGUI(File file) throws IOException {
         //Create and set up the window.
         frame = new JFrame("Assembly Editor");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

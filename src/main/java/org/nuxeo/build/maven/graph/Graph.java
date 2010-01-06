@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, jcarsique
  */
 package org.nuxeo.build.maven.graph;
 
@@ -26,25 +26,28 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.project.MavenProject;
 import org.apache.tools.ant.BuildException;
 import org.nuxeo.build.ant.artifact.GraphTask;
 import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.build.maven.MavenClient;
+import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.Filter;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class Graph {
 
     protected MavenClient maven;
 
     protected LinkedList<Node> roots = new LinkedList<Node>();
+
     protected TreeMap<String, Node> nodes = new TreeMap<String, Node>();
+
     protected Resolver resolver = new Resolver(this);
+
     protected Map<String, Artifact> file2artifacts = new HashMap<String, Artifact>();
 
     public Graph(MavenClient maven) {
@@ -92,40 +95,38 @@ public class Graph {
     }
 
     public Node findFirst(String pattern, boolean stopIfNotUnique) {
-        SortedMap<String, Node> map = nodes.subMap(pattern+':', pattern+((char)(':'+1)));
+        SortedMap<String, Node> map = nodes.subMap(pattern + ':', pattern
+                + ((char) (':' + 1)));
         int size = map.size();
         if (size == 0) {
             return null;
         }
         if (stopIfNotUnique && size > 1) {
-            throw new BuildException("Pattern '"+pattern+"' cannot be resolved to a unique node. Matching nodes are: "+map.values());
+            throw new BuildException(
+                    "Pattern '"
+                            + pattern
+                            + "' cannot be resolved to a unique node. Matching nodes are: "
+                            + map.values());
         }
         return map.get(map.firstKey());
     }
 
     public Collection<Node> find(String pattern) {
-        SortedMap<String, Node> map = nodes.subMap(pattern+':', pattern+((char)(':'+1)));
+        SortedMap<String, Node> map = nodes.subMap(pattern + ':', pattern
+                + ((char) (':' + 1)));
         return map.values();
     }
 
-
-//    public List<Node> getNodes(NodeFilter filter) {
-//        Node[] allNodes = getNodes();
-//        ArrayList<Node> result = new ArrayList<Node>();
-//
-//    }
-//
-
     /**
-     * Add a root node given an artifact pom. This can be used by the embedder maven mojo
-     * to initialize the graph with the current pom.
+     * Add a root node given an artifact pom. This can be used by the embedder
+     * maven mojo to initialize the graph with the current pom.
      */
-    public Node addRootNode(MavenProject pom) throws ArtifactNotFoundException {
+    public Node addRootNode(MavenProject pom) {
         Artifact artifact = pom.getArtifact();
         String key = Node.createNodeId(artifact);
         Node node = nodes.get(key);
         if (node == null) {
-            //node = getResolver().resolve(artifact);
+            // node = getResolver().resolve(artifact);
             node = new Node(this, pom, artifact, key);
             nodes.put(node.getId(), node);
             roots.add(node);
@@ -133,17 +134,17 @@ public class Graph {
         return node;
     }
 
-    public Node addRootNode(String key) throws ArtifactNotFoundException {
+    public Node addRootNode(String key) {
         ArtifactDescriptor ad = new ArtifactDescriptor(key);
         Artifact artifact = GraphTask.readArtifact(ad);
         return getRootNode(artifact);
     }
 
-    public Node getRootNode(Artifact artifact) throws ArtifactNotFoundException {
+    public Node getRootNode(Artifact artifact) {
         String key = Node.createNodeId(artifact);
         Node node = nodes.get(key);
         if (node == null) {
-            //node = getResolver().resolve(artifact);
+            // node = getResolver().resolve(artifact);
             node = new Node(this, null, artifact, key);
             nodes.put(node.getId(), node);
             roots.add(node);
@@ -151,11 +152,11 @@ public class Graph {
         return node;
     }
 
-    public Node getNode(Artifact artifact) throws ArtifactNotFoundException {
+    public Node getNode(Artifact artifact) {
         String key = Node.createNodeId(artifact);
         Node node = nodes.get(key);
         if (node == null) {
-            //node = getResolver().resolve(artifact);
+            // node = getResolver().resolve(artifact);
             node = new Node(this, null, artifact, key);
             nodes.put(node.getId(), node);
         }
@@ -184,7 +185,8 @@ public class Graph {
         }
         for (Node node : nodes) {
             Artifact arti = node.getArtifact();
-            if (ad.artifactId != null && !ad.artifactId.equals(arti.getArtifactId())) {
+            if (ad.artifactId != null
+                    && !ad.artifactId.equals(arti.getArtifactId())) {
                 continue;
             }
             if (ad.groupId != null && !ad.groupId.equals(arti.getGroupId())) {
@@ -196,37 +198,39 @@ public class Graph {
             if (ad.type != null && !ad.type.equals(arti.getType())) {
                 continue;
             }
-            //            if (ad.classifier != null && !ad.classifier.equals(arti.getClassifier())) {
-            //                continue;
-            //            }
+            // if (ad.classifier != null &&
+            // !ad.classifier.equals(arti.getClassifier())) {
+            // continue;
+            // }
             return node;
         }
 
         return null;
     }
 
-
     public MavenProject loadPom(Artifact artifact) {
-        if ("system".equals(artifact.getScope())) return null;
+        if ("system".equals(artifact.getScope()))
+            return null;
         try {
             return maven.getProjectBuilder().buildFromRepository(
                     // this create another Artifact instance whose type is 'pom'
-                    maven.getArtifactFactory().createProjectArtifact(artifact.getGroupId(),artifact.getArtifactId(), artifact.getVersion()),
-                    maven.getRemoteRepositories(),
-                    maven.getLocalRepository());
+                    maven.getArtifactFactory().createProjectArtifact(
+                            artifact.getGroupId(), artifact.getArtifactId(),
+                            artifact.getVersion()),
+                    maven.getRemoteRepositories(), maven.getLocalRepository());
         } catch (Exception e) {
-            e.printStackTrace();
+            MavenClientFactory.getLog().error(e.getMessage(), e);
             return null;
         }
     }
 
-
     public static void main(String[] args) throws Exception {
-        TreeMap<String,String> map = new TreeMap<String, String>(new Comparator<String>() {
-            public int compare(String o1, String o2) {
-                return o1.compareTo(o2);
-            }
-        });
+        TreeMap<String, String> map = new TreeMap<String, String>(
+                new Comparator<String>() {
+                    public int compare(String o1, String o2) {
+                        return o1.compareTo(o2);
+                    }
+                });
         map.put("org.nuxeo:core:", "org.nuxeo:core");
         map.put("org.nuxeo:core:e", "org.nuxeo:coree");
         map.put("org.nuxeo:coree", "org.nuxeo:core:test");
@@ -240,11 +244,11 @@ public class Graph {
 
         map.put("b", "b");
         System.out.println(map);
-        SortedMap<String, String> smap = map.subMap("org.nuxeo:core:", "org.nuxeo:core:\0");
-        System.out.println(smap.size()+" - "+smap);
-//        System.out.println(smap.firstKey());
-//        System.out.println(smap.lastKey());
-
+        SortedMap<String, String> smap = map.subMap("org.nuxeo:core:",
+                "org.nuxeo:core:\0");
+        System.out.println(smap.size() + " - " + smap);
+        // System.out.println(smap.firstKey());
+        // System.out.println(smap.lastKey());
 
     }
 }

@@ -62,14 +62,14 @@ public class ProfilesDialog extends JDialog implements ActionListener {
 
     protected JRootPane createRootPane() {
         KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-        JRootPane rootPane = new JRootPane();
-        rootPane.registerKeyboardAction(new ActionListener() {
+        JRootPane newRootPane = new JRootPane();
+        newRootPane.registerKeyboardAction(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 ProfilesDialog.this.setVisible(false);
                 ProfilesDialog.this.dispose();
             }
         }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-        return rootPane;
+        return newRootPane;
       }
 
     protected Container createContentPane() {

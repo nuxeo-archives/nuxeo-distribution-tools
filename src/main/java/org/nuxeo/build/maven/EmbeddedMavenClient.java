@@ -213,7 +213,7 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
                             mavenRepo, artifactRepositoryFactory,
                             getPlexusEmbedder().getContainer());
                 } catch (InvalidRepositoryException e) {
-                    throw new Exception("Faield to build profile repositories",
+                    throw new Exception("Failed to build profile repositories",
                             e);
                 }
                 repos.add(artifactRepo);
@@ -232,7 +232,7 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
                         mavenRepo, artifactRepositoryFactory,
                         getPlexusEmbedder().getContainer());
             } catch (InvalidRepositoryException e) {
-                throw new Exception("Faield to build profile repositories",
+                throw new Exception("Failed to build profile repositories",
                         e);
             }
             repos.add(artifactRepo);

@@ -21,6 +21,7 @@ package org.nuxeo.build.ant.artifact;
 
 import java.io.File;
 
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -82,23 +83,29 @@ public class AttachArtifactTask extends Task {
         }
 
         log("Attaching " + file + " to " + target, Project.MSG_INFO);
-        if (classifier != null) {
+        try {
+            if (classifier != null) {
 
-            if (type == null) {
-                maven.getProjectHelper().attachArtifact(node.getPom(), file,
-                        classifier);
+                if (type == null) {
+                    maven.getProjectHelper().attachArtifact(node.getPom(),
+                            file, classifier);
+                } else {
+                    maven.getProjectHelper().attachArtifact(node.getPom(),
+                            type, classifier, file);
+                }
+            } else if (type == null) {
+                type = getExtension(file.getName());
+                maven.getProjectHelper().attachArtifact(node.getPom(), type,
+                        file);
+                log(
+                        "Attached artifacts must define at least a type or a classifier, guessing type: "
+                                + type, Project.MSG_WARN);
             } else {
                 maven.getProjectHelper().attachArtifact(node.getPom(), type,
-                        classifier, file);
+                        file);
             }
-        } else if (type == null) {
-            type = getExtension(file.getName());
-            maven.getProjectHelper().attachArtifact(node.getPom(), type, file);
-            log(
-                    "Attached artifacts must define at least a type or a classifier, guessing type: "
-                            + type, Project.MSG_WARN);
-        } else {
-            maven.getProjectHelper().attachArtifact(node.getPom(), type, file);
+        } catch (ArtifactNotFoundException e) {
+            throw new BuildException(e);
         }
     }
 

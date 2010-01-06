@@ -55,11 +55,11 @@ public class FreemarkerEngine {
     }
 
     protected Configuration getDefaultConfiguration() {
-        Configuration cfg = new Configuration();
-        cfg.setWhitespaceStripping(true);
-        cfg.setLocalizedLookup(false);
-        cfg.setClassicCompatible(true);
-        return cfg;
+        Configuration configuration = new Configuration();
+        configuration.setWhitespaceStripping(true);
+        configuration.setLocalizedLookup(false);
+        configuration.setClassicCompatible(true);
+        return configuration;
     }
 
     @SuppressWarnings("unchecked")

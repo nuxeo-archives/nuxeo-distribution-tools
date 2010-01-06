@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, jcarsique
  */
 
 /*
@@ -326,14 +326,14 @@ public class MavenEmbedder {
                 localRepository, profileManager);
     }
 
-    public List collectProjects(File basedir, String[] includes,
+    public List<MavenProject> collectProjects(File basedir, String[] includes,
             String[] excludes) throws MojoExecutionException {
-        List projects = new ArrayList();
+        List<MavenProject> projects = new ArrayList<MavenProject>();
 
-        List poms = getPomFiles(basedir, includes, excludes);
+        List<File> poms = getPomFiles(basedir, includes, excludes);
 
-        for (Iterator i = poms.iterator(); i.hasNext();) {
-            File pom = (File) i.next();
+        for (Iterator<File> i = poms.iterator(); i.hasNext();) {
+            File pom = i.next();
 
             try {
                 MavenProject p = readProject(pom);
@@ -364,18 +364,19 @@ public class MavenEmbedder {
                 artifactId, version, type, classifier);
     }
 
-    public void resolve(Artifact artifact, List remoteRepositories,
-            ArtifactRepository localRepository)
+    public void resolve(Artifact artifact, List<?> remoteRepositories,
+            ArtifactRepository localRepositoryToResolveFrom)
             throws ArtifactResolutionException, ArtifactNotFoundException {
-        artifactResolver.resolve(artifact, remoteRepositories, localRepository);
+        artifactResolver.resolve(artifact, remoteRepositories,
+                localRepositoryToResolveFrom);
     }
 
     // ----------------------------------------------------------------------
     // Plugins
     // ----------------------------------------------------------------------
 
-    public List getAvailablePlugins() {
-        List plugins = new ArrayList();
+    public List<SummaryPluginDescriptor> getAvailablePlugins() {
+        List<SummaryPluginDescriptor> plugins = new ArrayList<SummaryPluginDescriptor>();
 
         plugins.add(makeMockPlugin("org.apache.maven.plugins",
                 "maven-jar-plugin", "Maven Jar Plug-in"));
@@ -419,7 +420,7 @@ public class MavenEmbedder {
     // TODO: transfer listener
     // TODO: logger
 
-    public void execute(MavenProject project, List goals,
+    public void execute(MavenProject project, List<?> goals,
             EventMonitor eventMonitor, TransferListener transferListener,
             Properties properties, File executionRootDirectory)
             throws CycleDetectedException, LifecycleExecutionException,
@@ -428,11 +429,11 @@ public class MavenEmbedder {
                 transferListener, properties, executionRootDirectory);
     }
 
-    public void execute(List projects, List goals, EventMonitor eventMonitor,
-            TransferListener transferListener, Properties properties,
-            File executionRootDirectory) throws CycleDetectedException,
-            LifecycleExecutionException, BuildFailureException,
-            DuplicateProjectException {
+    public void execute(List<MavenProject> projects, List<?> goals,
+            EventMonitor eventMonitor, TransferListener transferListener,
+            Properties properties, File executionRootDirectory)
+            throws CycleDetectedException, LifecycleExecutionException,
+            BuildFailureException, DuplicateProjectException {
         ReactorManager rm = new ReactorManager(projects);
 
         EventDispatcher eventDispatcher = new DefaultEventDispatcher();
@@ -464,7 +465,7 @@ public class MavenEmbedder {
         // ----------------------------------------------------------------------
 
         if (properties != null) {
-            for (Iterator i = properties.keySet().iterator(); i.hasNext();) {
+            for (Iterator<?> i = properties.keySet().iterator(); i.hasNext();) {
                 String key = (String) i.next();
 
                 String value = properties.getProperty(key);
@@ -480,8 +481,8 @@ public class MavenEmbedder {
     // Lifecycle information
     // ----------------------------------------------------------------------
 
-    public List getLifecyclePhases() throws MavenEmbedderException {
-        List phases = new ArrayList();
+    public List<String> getLifecyclePhases() throws MavenEmbedderException {
+        List<String> phases = new ArrayList<String>();
 
         ComponentDescriptor descriptor = embedder.getContainer().getComponentDescriptor(
                 LifecycleExecutor.ROLE);
@@ -517,20 +518,18 @@ public class MavenEmbedder {
 
     public static final String DEFAULT_LAYOUT_ID = "default";
 
-    public ArtifactRepository createLocalRepository(File localRepository)
-            throws ComponentLookupException {
-        return createLocalRepository(localRepository.getAbsolutePath(),
+    public ArtifactRepository createLocalRepository(File repository) {
+        return createLocalRepository(repository.getAbsolutePath(),
                 DEFAULT_LOCAL_REPO_ID);
     }
 
-    public ArtifactRepository createLocalRepository(Settings settings)
-            throws ComponentLookupException {
+    public ArtifactRepository createLocalRepository() {
         return createLocalRepository(settings.getLocalRepository(),
                 DEFAULT_LOCAL_REPO_ID);
     }
 
     public ArtifactRepository createLocalRepository(String url,
-            String repositoryId) throws ComponentLookupException {
+            String repositoryId) {
         if (!url.startsWith("file:")) {
             url = "file://" + url;
         }
@@ -538,8 +537,7 @@ public class MavenEmbedder {
         return createRepository(url, repositoryId);
     }
 
-    public ArtifactRepository createRepository(String url, String repositoryId)
-            throws ComponentLookupException {
+    public ArtifactRepository createRepository(String url, String repositoryId) {
         // snapshots vs releases
         // offline = to turning the update policy off
 
@@ -565,7 +563,7 @@ public class MavenEmbedder {
     // Internal utility code
     // ----------------------------------------------------------------------
 
-    private RuntimeInfo createRuntimeInfo(Settings settings) {
+    private RuntimeInfo createRuntimeInfo() {
         RuntimeInfo runtimeInfo = new RuntimeInfo(settings);
 
         runtimeInfo.setPluginUpdateOverride(Boolean.FALSE);
@@ -573,7 +571,8 @@ public class MavenEmbedder {
         return runtimeInfo;
     }
 
-    private List getPomFiles(File basedir, String[] includes, String[] excludes) {
+    private List<File> getPomFiles(File basedir, String[] includes,
+            String[] excludes) {
         DirectoryScanner scanner = new DirectoryScanner();
 
         scanner.setBasedir(basedir);
@@ -584,7 +583,7 @@ public class MavenEmbedder {
 
         scanner.scan();
 
-        List poms = new ArrayList();
+        List<File> poms = new ArrayList<File>();
 
         for (int i = 0; i < scanner.getIncludedFiles().length; i++) {
             poms.add(new File(basedir, scanner.getIncludedFiles()[i]));
@@ -635,7 +634,8 @@ public class MavenEmbedder {
 
             pluginDescriptorBuilder = new PluginDescriptorBuilder();
 
-            profileManager = new DefaultProfileManager(embedder.getContainer());
+            profileManager = new DefaultProfileManager(embedder.getContainer(),
+                    (Properties) null);
 
             mavenProjectBuilder = (MavenProjectBuilder) embedder.lookup(MavenProjectBuilder.ROLE);
 
@@ -660,7 +660,7 @@ public class MavenEmbedder {
 
             profileManager.loadSettingsProfiles(settings);
 
-            localRepository = createLocalRepository(settings);
+            localRepository = createLocalRepository();
         } catch (PlexusContainerException e) {
             throw new MavenEmbedderException("Cannot start Plexus embedder.", e);
         } catch (DuplicateRealmException e) {
@@ -720,7 +720,7 @@ public class MavenEmbedder {
 
             settings.setLocalRepository(localRepositoryDirectory.getAbsolutePath());
 
-            settings.setRuntimeInfo(createRuntimeInfo(settings));
+            settings.setRuntimeInfo(createRuntimeInfo());
 
             settings.setOffline(offline);
 

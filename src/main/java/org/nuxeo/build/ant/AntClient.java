@@ -98,8 +98,8 @@ public class AntClient {
     }
 
     public void run(File buildFile, List<String> targets) throws BuildException {
-        PrintStream err = System.err;
-        PrintStream out = System.out;
+        PrintStream previousErr = System.err;
+        PrintStream previousOut = System.out;
         InputStream in = System.in;
 
         project = new Project();
@@ -151,8 +151,8 @@ public class AntClient {
             project.fireBuildFinished(e);
             throw e;
         } finally {
-            System.setOut(out);
-            System.setErr(err);
+            System.setOut(previousOut);
+            System.setErr(previousErr);
             System.setIn(in);
         }
 
@@ -203,17 +203,17 @@ public class AntClient {
     }
 
     public static void copyToFile(InputStream in, File file) throws IOException {
-        OutputStream out = null;
+        OutputStream os = null;
         try {
-            out = new FileOutputStream(file);
+            os = new FileOutputStream(file);
             byte[] buffer = createBuffer(in.available());
             int read;
             while ((read = in.read(buffer)) != -1) {
-                out.write(buffer, 0, read);
+                os.write(buffer, 0, read);
             }
         } finally {
-            if (out != null) {
-                out.close();
+            if (os != null) {
+                os.close();
             }
         }
     }

@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, jcarsique
  */
 package org.nuxeo.build.maven.graph;
 
@@ -28,6 +28,7 @@ import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.tools.ant.BuildException;
+import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.Filter;
 
 /**
@@ -103,7 +104,11 @@ public class Node {
     }
 
     public File getFile() {
-        resolveIfNeeded();
+        try {
+            resolveIfNeeded();
+        } catch (ArtifactNotFoundException e) {
+            throw new BuildException(e);
+        }
         File file = artifact.getFile();
         if (file != null) {
             graph.file2artifacts.put(file.getName(), artifact);
@@ -112,7 +117,11 @@ public class Node {
     }
 
     public File getFile(String classifier) {
-        resolveIfNeeded();
+        try {
+            resolveIfNeeded();
+        } catch (ArtifactNotFoundException e) {
+            throw new BuildException(e);
+        }
         Artifact ca = graph.maven.getArtifactFactory().createArtifactWithClassifier(
                 artifact.getGroupId(), artifact.getArtifactId(),
                 artifact.getVersion(), artifact.getType(), classifier);
@@ -153,7 +162,7 @@ public class Node {
         edgesOut.add(edge);
     }
 
-    public MavenProject getPom() {
+    public MavenProject getPom() throws ArtifactNotFoundException {
         resolveIfNeeded();
         return pom;
     }
@@ -171,20 +180,22 @@ public class Node {
             return;
         }
         isExpanded = true;
-        resolveIfNeeded();
+        try {
+            resolveIfNeeded();
+        } catch (ArtifactNotFoundException e) {
+            MavenClientFactory.getLog().warn(
+                    "Artifact not found: " + artifact.getId(), e);
+        }
         if (pom == null) {
             return;
         }
         if (recurse > 0) {
-            loadDependencies(recurse - 1, pom.getDependencies(), filter);
-            // if ("pom".equals(artifact.getType())) {
-            // loadDependencies(recurse-1,
-            // (List<Dependency>)pom.getDependencyManagement().getDependencies(),
-            // filter);
-            // } else {
-            // loadDependencies(recurse-1,
-            // (List<Dependency>)pom.getDependencies(), filter);
-            // }
+            try {
+                loadDependencies(recurse - 1, pom.getDependencies(), filter);
+            } catch (ArtifactNotFoundException e) {
+                MavenClientFactory.getLog().warn(
+                        "Artifact not found: " + artifact.getId(), e);
+            }
         }
     }
 
@@ -208,25 +219,21 @@ public class Node {
         return path;
     }
 
-    public void resolveIfNeeded() {
-        try {
-            graph.getResolver().resolve(this);
-        } catch (ArtifactNotFoundException e) {
-            throw new BuildException("Artifact not found: " + artifact.getId(),
-                    e);
-        }
+    public void resolveIfNeeded() throws ArtifactNotFoundException {
+        graph.getResolver().resolve(this);
     }
 
     protected void loadDependencies(int recurse, List<Dependency> deps,
-            Filter filter) {
-        resolveIfNeeded();
+            Filter filter) throws ArtifactNotFoundException {
+        // resolveIfNeeded();
         ArtifactFactory factory = graph.getMaven().getArtifactFactory();
-        MavenProject pom = getPom();
-        if (pom == null) {
+        if (getPom() == null) {
             return;
         }
         for (Dependency d : deps) {
-            if (filter != null && !filter.accept(d)) {
+            // Workaround to always ignore test scope dependencies
+            if ("test".equalsIgnoreCase(d.getScope())
+                    || (filter != null && !filter.accept(d))) {
                 continue;
             }
             // the last boolean parameter is redundant, but the version that
@@ -240,12 +247,7 @@ public class Node {
             // from dependency
             assert a.getScope().equals(d.getScope());
             Node newNode = null;
-            try {
-                newNode = graph.getNode(a);
-            } catch (ArtifactNotFoundException e) {
-                throw new RuntimeException("Unable to find dependency: " + a
-                        + ". Trail: " + getTrail(), e);
-            }
+            newNode = graph.getNode(a);
             Edge edge = new Edge(this, newNode, d.getScope(), d.isOptional());
             addEdgeOut(edge);
             newNode.addEdgeIn(edge);
