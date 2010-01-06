@@ -84,22 +84,13 @@ public class AttachArtifactTask extends Task {
 
         log("Attaching " + file + " to " + target, Project.MSG_INFO);
         try {
-            if (classifier != null) {
-
-                if (type == null) {
-                    maven.getProjectHelper().attachArtifact(node.getPom(),
-                            file, classifier);
-                } else {
-                    maven.getProjectHelper().attachArtifact(node.getPom(),
-                            type, classifier, file);
-                }
-            } else if (type == null) {
+            if (type == null) {
                 type = getExtension(file.getName());
+                log("Unspecified type, guessing is: " + type, Project.MSG_WARN);
+            }
+            if (classifier != null) {
                 maven.getProjectHelper().attachArtifact(node.getPom(), type,
-                        file);
-                log(
-                        "Attached artifacts must define at least a type or a classifier, guessing type: "
-                                + type, Project.MSG_WARN);
+                        classifier, file);
             } else {
                 maven.getProjectHelper().attachArtifact(node.getPom(), type,
                         file);
