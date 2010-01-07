@@ -102,7 +102,7 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
                 node = MavenClientFactory.getInstance().getGraph().findNode(ad);
             }
             if (node == null) {
-                throw new BuildException("Artifact with pattern "+key+" was not found in graph");
+                throw new BuildException("Artifact with pattern "+(key!=null?key:ad.getNodeKeyPattern())+" was not found in graph");
             }
             if (ad.classifier != null) {
                 // we need to create a virtual node that points to the attachment
