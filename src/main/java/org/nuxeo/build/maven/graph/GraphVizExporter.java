@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.nuxeo.build.util.IOUtils;
+import org.nuxeo.build.util.FileUtils;
 
 /**
  * Generates a dependency diagram by using GraphViz.
@@ -177,9 +177,9 @@ public class GraphVizExporter extends AbstractGraphVisitor {
             public void run() {
                 try {
                     try {
-                        IOUtils.copy(proc.getInputStream(), out);
+                        FileUtils.copy(proc.getInputStream(), out);
                     } finally {
-                        IOUtils.safeClose(out);
+                        FileUtils.safeClose(out);
                     }
                 } catch (IOException e) {
                     throw new Error(e);
@@ -193,7 +193,7 @@ public class GraphVizExporter extends AbstractGraphVisitor {
         new Thread() {
             public void run() {
                 try {
-                    IOUtils.copy(proc.getErrorStream(), System.err);
+                    FileUtils.copy(proc.getErrorStream(), System.err);
                 } catch (IOException e) {
                     throw new Error(e);
                 }

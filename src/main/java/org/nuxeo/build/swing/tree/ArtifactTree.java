@@ -51,7 +51,7 @@ import org.nuxeo.build.maven.EmbeddedMavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Node;
-import org.nuxeo.build.util.IOUtils;
+import org.nuxeo.build.util.FileUtils;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -102,7 +102,7 @@ public class ArtifactTree extends JSplitPane {
                     if (r == JFileChooser.APPROVE_OPTION) {
                         File file = fc.getSelectedFile();
                         try {
-                            IOUtils.copy(e.getURL(), file);
+                            FileUtils.copy(e.getURL(), file);
                         } catch (Exception ee) {
                             JOptionPane.showMessageDialog(ArtifactTree.this, "Unable to copy url to file: "+file, "Error",
                                     JOptionPane.ERROR_MESSAGE);
