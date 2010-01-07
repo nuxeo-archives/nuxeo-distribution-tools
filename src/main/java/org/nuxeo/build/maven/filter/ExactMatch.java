@@ -28,8 +28,8 @@ public class ExactMatch extends SegmentMatch {
         this.segment = segment;
     }
 
-    public boolean match(String segment) {
-        return this.segment.equals(segment);
+    public boolean match(String segmentToMatch) {
+        return this.segment.equals(segmentToMatch);
     }
 
     @Override

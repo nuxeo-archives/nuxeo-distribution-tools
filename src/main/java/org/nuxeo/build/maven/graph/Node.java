@@ -23,12 +23,9 @@ import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.tools.ant.BuildException;
-import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.Filter;
 
 /**
@@ -104,11 +101,7 @@ public class Node {
     }
 
     public File getFile() {
-        try {
-            resolveIfNeeded();
-        } catch (ArtifactNotFoundException e) {
-            throw new BuildException(e);
-        }
+        resolve();
         File file = artifact.getFile();
         if (file != null) {
             graph.file2artifacts.put(file.getName(), artifact);
@@ -117,11 +110,7 @@ public class Node {
     }
 
     public File getFile(String classifier) {
-        try {
-            resolveIfNeeded();
-        } catch (ArtifactNotFoundException e) {
-            throw new BuildException(e);
-        }
+        resolve();
         Artifact ca = graph.maven.getArtifactFactory().createArtifactWithClassifier(
                 artifact.getGroupId(), artifact.getArtifactId(),
                 artifact.getVersion(), artifact.getType(), classifier);
@@ -162,8 +151,8 @@ public class Node {
         edgesOut.add(edge);
     }
 
-    public MavenProject getPom() throws ArtifactNotFoundException {
-        resolveIfNeeded();
+    public MavenProject getPom() {
+        resolve();
         return pom;
     }
 
@@ -180,12 +169,7 @@ public class Node {
             return;
         }
         isExpanded = true;
-        try {
-            resolveIfNeeded();
-        } catch (ArtifactNotFoundException e) {
-            MavenClientFactory.getLog().warn(
-                    "Artifact not found: " + artifact.getId(), e);
-        }
+        resolve();
         if (pom == null) {
             return;
         }
@@ -222,13 +206,12 @@ public class Node {
         return path;
     }
 
-    public void resolveIfNeeded() throws ArtifactNotFoundException {
+    public void resolve() {
         graph.getResolver().resolve(this);
     }
 
     protected void loadDependencies(int recurse, List<Dependency> deps,
-            Filter filter) throws ArtifactNotFoundException {
-        // resolveIfNeeded();
+            Filter filter) {
         ArtifactFactory factory = graph.getMaven().getArtifactFactory();
         if (getPom() == null) {
             return;
