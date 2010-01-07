@@ -68,7 +68,7 @@ public class Resolver {
                             artifact.getType());
                     MavenClientFactory.getLog().info(
                             "Artifact " + orig + " was relocated to:  "
-                                    + artifact);
+                                    + node.artifact);
                     resolve(node);
                 }
             }
