@@ -26,6 +26,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.versioning.OverConstrainedVersionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.tools.ant.BuildException;
 import org.nuxeo.build.ant.artifact.GraphTask;
@@ -70,15 +71,15 @@ public class Graph {
         return file2artifacts.get(fileName);
     }
 
-    public void collectNodes(Collection<Node> nodes) {
+    public void collectNodes(Collection<Node> nodesToCollect) {
         for (Node node : roots) {
-            node.collectNodes(nodes);
+            node.collectNodes(nodesToCollect);
         }
     }
 
-    public void collectNodes(Collection<Node> nodes, Filter filter) {
+    public void collectNodes(Collection<Node> nodesToCollect, Filter filter) {
         for (Node node : roots) {
-            node.collectNodes(nodes, filter);
+            node.collectNodes(nodesToCollect, filter);
         }
     }
 
@@ -175,37 +176,44 @@ public class Graph {
         return lookup(Node.createNodeId(artifact));
     }
 
+    @SuppressWarnings("unchecked")
     public Node findNode(ArtifactDescriptor ad) {
         String key = ad.getNodeKeyPattern();
-        Collection<Node> nodes = null;
+        Collection<Node> nodesToParse = null;
         if (key == null) {
-            nodes = getNodes();
+            nodesToParse = getNodes();
         } else {
-            nodes = find(key);
+            nodesToParse = find(key);
         }
-        for (Node node : nodes) {
-            Artifact arti = node.getArtifact();
+        Node returnNode = null;
+        for (Node node : nodesToParse) {
+            Artifact artifact = node.getArtifact();
             if (ad.artifactId != null
-                    && !ad.artifactId.equals(arti.getArtifactId())) {
+                    && !ad.artifactId.equals(artifact.getArtifactId())) {
                 continue;
             }
-            if (ad.groupId != null && !ad.groupId.equals(arti.getGroupId())) {
+            if (ad.groupId != null && !ad.groupId.equals(artifact.getGroupId())) {
                 continue;
             }
-            if (ad.version != null && !ad.version.equals(arti.getVersion())) {
+            if (ad.version != null && !ad.version.equals(artifact.getVersion())) {
                 continue;
             }
-            if (ad.type != null && !ad.type.equals(arti.getType())) {
+            if (ad.type != null && !ad.type.equals(artifact.getType())) {
                 continue;
             }
-            // if (ad.classifier != null &&
-            // !ad.classifier.equals(arti.getClassifier())) {
-            // continue;
-            // }
-            return node;
+            try {
+                if (returnNode != null
+                        && artifact.getSelectedVersion().compareTo(
+                                returnNode.getArtifact().getSelectedVersion()) < 0) {
+                    continue;
+                }
+            } catch (OverConstrainedVersionException e) {
+                MavenClientFactory.getLog().error(
+                        "Versions comparison failed on " + artifact, e);
+            }
+            returnNode = node;
         }
-
-        return null;
+        return returnNode;
     }
 
     public MavenProject loadPom(Artifact artifact) {
