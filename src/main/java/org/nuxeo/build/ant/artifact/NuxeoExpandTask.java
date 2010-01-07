@@ -20,9 +20,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.nuxeo.build.maven.MavenClientFactory;
-import org.nuxeo.build.maven.filter.AndFilter;
 import org.nuxeo.build.maven.filter.DependencyFilter;
-import org.nuxeo.build.maven.filter.NodeFilter;
 import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 
