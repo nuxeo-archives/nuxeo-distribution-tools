@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.dev.ConfigurationReader.SectionReader;
 
 /**
@@ -31,9 +32,8 @@ public class ConfigurationLoader {
     protected Set<String> bundles;
     protected Set<String> libs;
     protected ConfigurationReader reader;
-    protected String template; //template is not yet used
-    protected String profile;
-    protected String version; // version of nuxeo-dev-tools (which contain distrib configs)
+    protected ArtifactDescriptor config;
+    protected String configPath;
     
     public ConfigurationLoader() {
         bundles = new HashSet<String>();
@@ -56,23 +56,13 @@ public class ConfigurationLoader {
     public Set<String> getLibs() {
         return libs;
     }
-    
-    public String getProfile() {
-        return profile;
+
+    public ArtifactDescriptor getConfig() {
+        return config;
     }
     
-    public String getVersion() {
-        return version;
-    }
-    
-    public String getTemplate() {
-        if (template == null) {
-            if (profile == null) {
-                throw new IllegalArgumentException("Neither profile or template was defined in config section");
-            }
-            template = "org.nuxeo.ecm.distribution:nuxeo-distribution-config::zip:"+profile;
-        }
-        return template;
+    public String getConfigPath() {
+        return configPath;
     }
     
     class ArtifactReader implements SectionReader {
@@ -106,12 +96,10 @@ public class ConfigurationLoader {
             }
             String key = line.substring(0, p).trim();
             String value = line.substring(p+1).trim();
-            if ("profile".equals(key)) {
-                profile = value;
-            } else if ("template".equals(key)) {
-                template = value;
-            } else if ("version".equals(key)) {
-                version = value;
+            if ("path".equals(key)) {
+                configPath = value;
+            } else if ("artifact".equals(key)) {
+                config = new ArtifactDescriptor(value);
             } else {
                 throw new IOException("Unknown configuration property: "+key);
             }

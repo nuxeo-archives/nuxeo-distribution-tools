@@ -19,6 +19,7 @@ package org.nuxeo.dev;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URL;
@@ -120,16 +121,27 @@ public class NuxeoApp {
         return platformVersion;
     }
     
+
+    public void build(URL config, String platformVersion) throws Exception {
+        build(config, platformVersion, false);
+    }
     
     public void build(String profile, String platformVersion) throws Exception {
         build(profile, platformVersion, false);
     }
     
     public void build(String profile, String platformVersion, boolean enableCache) throws Exception {
+        URL url = NuxeoApp.class.getResource(profile+".cfg");
+        if (url == null) {
+            throw new IllegalArgumentException("profile is not known: "+profile);
+        }
+        build(url, platformVersion, enableCache);
+    }
+    
+    public void build(URL url, String platformVersion, boolean enableCache) throws Exception {
         this.platformVersion = platformVersion;
         initProperties();
         initializeGraph();
-        URL url = NuxeoApp.class.getResource(profile+".cfg");
         if (enableCache) {
             File cacheFile = new File(home, "tmp/build.cache");
             if (cacheFile.isFile()) {
@@ -180,7 +192,7 @@ public class NuxeoApp {
         Graph graph = maven.getGraph();
         ClassLoaderDelegate delegate = bootstrap.getLoader();
         // first unzip the configuration over the home directory        
-        copyTemplateFiles(loader.getProfile(), home);
+        copyTemplateFiles(loader.getConfig(), loader.getConfigPath(), home);
         
         StringBuilder cache = new StringBuilder();
         // second build a map with symbolicName -> url from all bundles in the classpath
@@ -438,31 +450,17 @@ public class NuxeoApp {
     }
     
     
-    protected void copyTemplateFiles(String profile, File targetDir) throws Exception {
-//      String template = loader.getTemplate();
-//      if (template != null) {
-//          ArtifactDescriptor ad = new ArtifactDescriptor(template);
-//          if (ad.version == null || ad.version.length() == 0) {
-//              ad.version = platformVersion;
-//          }            
-//          Artifact artifact = ad.classifier == null ? ad.toBuildArtifact() : ad.toArtifactWithClassifier();
-//          maven.resolve(artifact);
-//          File file = artifact.getFile();
-//          if (file == null) {
-//              throw new FileNotFoundException("No such artifact file: "+file);
-//          }
-//          ZipUtils.unzip(file, home);
-//      }
-
-        File file = findJarFile(version);
-        if (file.isDirectory()) {
-            file = new File(file, profile);
-            for (File f : file.listFiles()) {
-                FileUtils.copyTree(f, new File(targetDir, f.getName()));
-            }
-        } else { // a jar
-            ZipUtils.unzip("org/nuxeo/dev/"+profile+"/", file, targetDir);
-        }
+    protected void copyTemplateFiles(ArtifactDescriptor config, String configPath, File targetDir) throws Exception {
+          if (config.version == null || config.version.length() == 0) {
+              config.version = platformVersion;
+          }            
+          Artifact artifact = config.classifier == null ? config.toBuildArtifact() : config.toArtifactWithClassifier();
+          maven.resolve(artifact);
+          File file = artifact.getFile();
+          if (file == null) {
+              throw new FileNotFoundException("No such artifact file: "+file);
+          }
+          ZipUtils.unzip(configPath, file, home);
     }
     
     protected File findJarFile(String version) throws Exception {
