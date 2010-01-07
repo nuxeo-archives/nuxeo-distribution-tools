@@ -33,6 +33,7 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.embedder.MavenEmbedderConsoleLogger;
 import org.apache.maven.embedder.MavenEmbedderException;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Profile;
@@ -68,6 +69,7 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
 
     protected AntProfileManager profileMgr = new AntProfileManager();
 
+    protected Logger mylogger;
 
     public EmbeddedMavenClient() {
         this (null);
@@ -79,9 +81,11 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
             if (loader == null) {
                 loader = EmbeddedMavenClient.class.getClassLoader();
             }
-        }
+        }        
         setClassLoader(loader);
         graph = new Graph(this);
+        mylogger = new MyLogger();
+        logger = new MavenEmbedderConsoleLogger();
     }
 
     public List<Profile> getActiveProfiles() {
@@ -285,5 +289,49 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
                     "Parse error reading POM. Reason: " + e.getMessage(), e );
         }
     }
+
+    
+    public Logger getCommonLogger() {
+        return new MyLogger();
+    }
+        
+    class MyLogger implements Logger {
+
+            public void debug(String message) {
+                logger.debug(message);
+            }
+
+            public void debug(String message, Throwable error) {
+                logger.debug(message, error);
+            }
+
+            public void error(String message) {
+                logger.error(message);
+            }
+
+            public void error(String message, Throwable error) {
+                logger.error(message, error);
+            }
+
+            public void info(String message) {
+                logger.info(message);
+            }
+
+            public void info(String message, Throwable error) {
+                logger.info(message, error);
+            }
+
+            public void warn(String message) {
+                logger.warn(message);
+            }
+
+            public void warn(String message, Throwable error) {
+                logger.warn(message, error);
+            }
+
+            public boolean isDebugEnabled() {
+                return logger.isDebugEnabled();
+            }
+        }
 
 }

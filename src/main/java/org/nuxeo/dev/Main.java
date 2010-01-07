@@ -32,8 +32,7 @@ public class Main {
         File home = null;
         String version = "5.3.1-SNAPSHOT";
         String profile = NuxeoApp.CORE_SERVER;
-        String host = "localhost:8080";
-        String h = "localhost";
+        String host = "localhost";
         int port = 8080;
         String opt = null;
         for (String arg : args) {
@@ -45,7 +44,13 @@ public class Main {
                 } else if ("-p".equals(opt)) {
                     profile = arg;
                 } else if ("-h".equals(opt)) {
-                    host = arg;
+                    int p = arg.indexOf(':');
+                    if (p != -1) {
+                        host = arg.substring(0, p);
+                        port = Integer.parseInt(arg.substring(p+1));
+                    } else {
+                        host = arg;
+                    }
                 }
             } else { // the home directory
                 home = arg.startsWith("/") ? new File(arg) : new File(".", arg);
@@ -56,13 +61,6 @@ public class Main {
         if (home == null) {
             System.err.println("Syntax error: You must specify a home directory to be used by the nuxeo server.");
             System.exit(1);
-        }
-        if (host != null) {            
-            int p = host.indexOf(':');
-            if (p != -1) {
-                h = host.substring(0, p);
-                p = Integer.parseInt(host.substring(p+1));
-            }
         }
 
         home = home.getCanonicalFile();
@@ -77,7 +75,7 @@ public class Main {
         //FileUtils.deleteTree(home);
         final NuxeoApp app = new NuxeoApp(home);
         app.build(profile, version, true);
-        NuxeoApp.setHttpServerAddress(h, port);
+        NuxeoApp.setHttpServerAddress(host, port);
         Runtime.getRuntime().addShutdownHook(new Thread("Nuxeo Server Shutdown") {
             @Override
             public void run() {

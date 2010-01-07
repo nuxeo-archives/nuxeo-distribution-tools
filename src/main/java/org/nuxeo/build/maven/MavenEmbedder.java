@@ -235,48 +235,6 @@ public class MavenEmbedder {
         return localRepository;
     }
 
-    public Logger getCommonLogger() {
-        return new Logger() {
-
-            public void debug(String message) {
-                logger.debug(message);
-            }
-
-            public void debug(String message, Throwable error) {
-                logger.debug(message, error);
-            }
-
-            public void error(String message) {
-                logger.error(message);
-            }
-
-            public void error(String message, Throwable error) {
-                logger.error(message, error);
-            }
-
-            public void info(String message) {
-                logger.info(message);
-            }
-
-            public void info(String message, Throwable error) {
-                logger.info(message, error);
-            }
-
-            public void warn(String message) {
-                logger.warn(message);
-            }
-
-            public void warn(String message, Throwable error) {
-                logger.warn(message, error);
-            }
-
-            public boolean isDebugEnabled() {
-                return logger.isDebugEnabled();
-            }
-
-        };
-    }
-
     public MavenEmbedderLogger getLogger() {
         return logger;
     }
