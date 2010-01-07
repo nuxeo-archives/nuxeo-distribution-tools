@@ -174,15 +174,12 @@ public class Node {
             return;
         }
         if (recurse > 0) {
-            try {
-                if ("pom".equals(artifact.getType()) && graph.shouldLoadDependencyManagement()) {
-                    loadDependencies(recurse-1, (List<Dependency>)pom.getDependencyManagement().getDependencies(), filter);
-                }
-                loadDependencies(recurse - 1, (List<Dependency>)pom.getDependencies(), filter);
-            } catch (ArtifactNotFoundException e) {
-                MavenClientFactory.getLog().warn(
-                        "Artifact not found: " + artifact.getId(), e);
+            if ("pom".equals(artifact.getType())
+                    && graph.shouldLoadDependencyManagement()) {
+                loadDependencies(recurse - 1,
+                        pom.getDependencyManagement().getDependencies(), filter);
             }
+            loadDependencies(recurse - 1, pom.getDependencies(), filter);
         }
     }
 
