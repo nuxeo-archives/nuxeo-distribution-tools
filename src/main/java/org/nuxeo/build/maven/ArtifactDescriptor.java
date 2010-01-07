@@ -109,6 +109,10 @@ public class ArtifactDescriptor {
                 groupId, artifactId, version, type);
     }
     
+    public Artifact toArtifactWithClassifier() {
+        return MavenClientFactory.getInstance().getArtifactFactory().createArtifactWithClassifier(groupId, artifactId, version, type, classifier);
+    }
+    
     public String getNodeKeyPattern() {
         if (groupId != null) {
              StringBuilder buf = new StringBuilder();

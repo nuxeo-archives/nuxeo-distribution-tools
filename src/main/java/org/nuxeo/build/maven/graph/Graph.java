@@ -50,8 +50,19 @@ public class Graph {
 
     protected Map<String, Artifact> file2artifacts = new HashMap<String, Artifact>();
 
+    protected boolean shouldLoadDependencyManagement;
+    
     public Graph(MavenClient maven) {
         this.maven = maven;
+    }
+    
+    public void setShouldLoadDependencyManagement(
+            boolean shouldLoadDependencyManagement) {
+        this.shouldLoadDependencyManagement = shouldLoadDependencyManagement;
+    }
+    
+    public boolean shouldLoadDependencyManagement() {
+        return shouldLoadDependencyManagement;
     }
 
     public MavenClient getMaven() {
