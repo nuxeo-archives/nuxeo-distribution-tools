@@ -190,7 +190,7 @@ public class ManifestBundleCategoryFilter implements Filter {
         return accept;
     }
 
-    public boolean accept(Dependency dep) {
+    public boolean accept(Node parent, Dependency dep) {
         throw new UnsupportedOperationException("Not supported");
     }
 

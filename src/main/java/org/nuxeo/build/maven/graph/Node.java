@@ -26,6 +26,7 @@ import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
+import org.nuxeo.build.maven.filter.DependencyFilter;
 import org.nuxeo.build.maven.filter.Filter;
 
 /**
@@ -164,7 +165,7 @@ public class Node {
         return isExpanded;
     }
 
-    public void expand(int recurse, Filter filter) {
+    public void expand(int recurse, DependencyFilter filter) {
         if (isExpanded) {
             return;
         }
@@ -183,11 +184,11 @@ public class Node {
         }
     }
 
-    public void expand(Filter filter) {
+    public void expand(DependencyFilter filter) {
         expand(0, filter);
     }
 
-    public void expandAll(Filter filter) {
+    public void expandAll(DependencyFilter filter) {
         expand(Integer.MAX_VALUE, filter);
     }
 
@@ -208,7 +209,7 @@ public class Node {
     }
 
     protected void loadDependencies(int recurse, List<Dependency> deps,
-            Filter filter) {
+            DependencyFilter filter) {
         ArtifactFactory factory = graph.getMaven().getArtifactFactory();
         if (getPom() == null) {
             return;
@@ -216,7 +217,7 @@ public class Node {
         for (Dependency d : deps) {
             // Workaround to always ignore test scope dependencies
             if ("test".equalsIgnoreCase(d.getScope())
-                    || (filter != null && !filter.accept(d))) {
+                    || (filter != null && !filter.accept(this, d))) {
                 continue;
             }
             // the last boolean parameter is redundant, but the version that

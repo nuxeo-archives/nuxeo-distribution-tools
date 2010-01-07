@@ -49,7 +49,7 @@ public class DependsOnCategoryPatternFilter implements Filter {
 
     }
 
-    public boolean accept(Dependency dep) {
+    public boolean accept(Node parent, Dependency dep) {
         throw new UnsupportedOperationException("Not supported");
     }
 

@@ -46,7 +46,7 @@ public class GroupIdFilter implements Filter {
         return matcher.match(segment);
     }
 
-    public boolean accept(Dependency dep) {
+    public boolean accept(Node parent, Dependency dep) {
         return matcher.match(dep.getGroupId());
     }
 

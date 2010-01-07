@@ -31,7 +31,7 @@ public class AnyFilter implements Filter {
         return true;
     }
 
-    public boolean accept(Dependency dep) {
+    public boolean accept(Node parent, Dependency dep) {
         return true;
     }
 

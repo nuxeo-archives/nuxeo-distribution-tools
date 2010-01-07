@@ -46,7 +46,7 @@ public class ClassifierFilter implements Filter {
         return matcher.match(segment);
     }
 
-    public boolean accept(Dependency dep) {
+    public boolean accept(Node parent, Dependency dep) {
         String classifier = dep.getClassifier();
         if (classifier == null) {
             return matcher == SegmentMatch.ANY;
