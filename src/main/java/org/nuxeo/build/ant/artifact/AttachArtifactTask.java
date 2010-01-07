@@ -21,7 +21,6 @@ package org.nuxeo.build.ant.artifact;
 
 import java.io.File;
 
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -83,20 +82,16 @@ public class AttachArtifactTask extends Task {
         }
 
         log("Attaching " + file + " to " + target, Project.MSG_INFO);
-        try {
-            if (type == null) {
-                type = getExtension(file.getName());
-                log("Unspecified type, guessing is: " + type, Project.MSG_WARN);
-            }
-            if (classifier != null) {
-                maven.getProjectHelper().attachArtifact(node.getPom(), type,
-                        classifier, file);
-            } else {
-                maven.getProjectHelper().attachArtifact(node.getPom(), type,
-                        file);
-            }
-        } catch (ArtifactNotFoundException e) {
-            throw new BuildException(e);
+        if (type == null) {
+            type = getExtension(file.getName());
+            log("Unspecified type, guessing is: " + type, Project.MSG_WARN);
+        }
+        if (classifier != null) {
+            maven.getProjectHelper().attachArtifact(node.getPom(), type,
+                    classifier, file);
+        } else {
+            maven.getProjectHelper().attachArtifact(node.getPom(), type,
+                    file);
         }
     }
 

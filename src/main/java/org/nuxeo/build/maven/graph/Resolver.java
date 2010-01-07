@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, jcarsique
  */
 package org.nuxeo.build.maven.graph;
 
@@ -21,6 +21,7 @@ import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.Relocation;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectBuildingException;
 import org.nuxeo.build.maven.MavenClientFactory;
 
 /**
@@ -39,49 +40,57 @@ public class Resolver {
         return graph;
     }
 
-    public void resolve(Node node) throws ArtifactNotFoundException {
+    public void resolve(Node node) {
         if (node.pom != null || node.artifact.isResolved()) {
             return;
         }
-        Artifact artifact = node.artifact;
-        MavenProject pom = loadPom(artifact);
-        if (pom != null) {
-            DistributionManagement dm = pom.getDistributionManagement();
-            if (dm != null) {
-                Relocation reloc = dm.getRelocation(); // handle pom relocation
-                if (reloc != null) {
-                    Artifact orig = artifact;
-                    String artifactId = reloc.getArtifactId();
-                    String groupId = reloc.getGroupId();
-                    String version = reloc.getVersion();
-                    if (artifactId == null) {
-                        artifactId = artifact.getArtifactId();
-                    }
-                    if (groupId == null) {
-                        groupId = artifact.getGroupId();
-                    }
-                    if (version == null) {
-                        version = artifact.getVersion();
-                    }
-                    node.artifact = graph.maven.getArtifactFactory().createArtifact(
-                            groupId, artifactId, version, artifact.getScope(),
-                            artifact.getType());
-                    MavenClientFactory.getLog().info(
-                            "Artifact " + orig + " was relocated to:  "
-                                    + node.artifact);
-                    resolve(node);
-                }
-            }
+        MavenProject pom = loadPom(node.artifact);
+        if (pom == null) {
+            return;
         }
+        pom = checkRelocation(node, pom);
         try {
-            if (!artifact.isResolved()) {
-                graph.maven.resolve(artifact); // TODO remote repos from pom
+            if (!node.artifact.isResolved()) {
+                MavenClientFactory.getLog().debug(
+                        "Resolve again (?!) " + node.getArtifact());
+                // TODO remote repos from pom
+                graph.maven.resolve(node.artifact);
             }
         } catch (ArtifactNotFoundException e) {
             MavenClientFactory.getLog().warn(e.getMessage());
         }
-        node.artifact = artifact;
         node.pom = pom;
+    }
+
+    private MavenProject checkRelocation(Node node, MavenProject pom) {
+        DistributionManagement dm = pom.getDistributionManagement();
+        if (dm != null) {
+            Relocation reloc = dm.getRelocation(); // handle pom relocation
+            if (reloc != null) {
+                Artifact artifact = node.artifact;
+                Artifact orig = artifact;
+                String artifactId = reloc.getArtifactId();
+                String groupId = reloc.getGroupId();
+                String version = reloc.getVersion();
+                if (artifactId == null) {
+                    artifactId = artifact.getArtifactId();
+                }
+                if (groupId == null) {
+                    groupId = artifact.getGroupId();
+                }
+                if (version == null) {
+                    version = artifact.getVersion();
+                }
+                node.artifact = graph.maven.getArtifactFactory().createArtifact(
+                        groupId, artifactId, version, artifact.getScope(),
+                        artifact.getType());
+                MavenClientFactory.getLog().info(
+                        "Artifact " + orig + " was relocated to:  "
+                                + node.artifact);
+                pom = loadPom(node.artifact);
+            }
+        }
+        return pom;
     }
 
     public MavenProject loadPom(Artifact artifact) {
@@ -95,8 +104,9 @@ public class Resolver {
                             artifact.getVersion()),
                     graph.maven.getRemoteRepositories(),
                     graph.maven.getLocalRepository());
-        } catch (Exception e) {
-            MavenClientFactory.getLog().error(e.getMessage(), e);
+        } catch (ProjectBuildingException e) {
+            MavenClientFactory.getLog().error(
+                    "Error loading POM of " + artifact, e);
             return null;
         }
     }
