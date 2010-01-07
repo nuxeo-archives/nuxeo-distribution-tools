@@ -40,6 +40,7 @@ import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 import org.nuxeo.build.util.FileUtils;
+import org.nuxeo.build.util.ZipUtils;
 
 
 
@@ -460,7 +461,7 @@ public class NuxeoApp {
                 FileUtils.copyTree(f, new File(targetDir, f.getName()));
             }
         } else { // a jar
-            org.nuxeo.build.util.ZipUtils.unzip("/org/nuxeo/dev/"+profile, file, targetDir);
+            ZipUtils.unzip("org/nuxeo/dev/"+profile+"/", file, targetDir);
         }
     }
     
