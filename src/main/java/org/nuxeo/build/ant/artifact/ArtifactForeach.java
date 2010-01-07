@@ -19,14 +19,15 @@ package org.nuxeo.build.ant.artifact;
 import java.io.IOException;
 
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Sequential;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
  * Iterate through a artifact set and do action on it
  * 
- * It should be used like that : <artifact:foreach setref="bundles"
- * artifactJarPathProperty="path" > </artifact:foreach>
+ * Usage: <artifact:foreach setref="bundles" artifactJarPathProperty="path" >
+ * (...) </artifact:foreach>
  * 
  * @author Sun Seng David TAN
  * 
@@ -67,22 +68,26 @@ public class ArtifactForeach extends Sequential {
     @Override
     public void execute() throws BuildException {
         for (Node node : artifactSet.getNodes()) {
+            String canonicalPath = null;
             try {
-                String canonialPath = null;
-
-                try {
-                    canonialPath = node.getFile().getCanonicalPath();
-                } catch (IOException e) {
-                    log("An error occured while getting artifact file canonial path", e, 1);
-                }
-                getProject().setProperty(property + ".file.path", canonialPath);
-                getProject().setProperty(property + ".archetypeId", node.getArtifact().getArtifactId());
-                getProject().setProperty(property + ".groupId", node.getArtifact().getGroupId());
-                getProject().setProperty(property + ".version", node.getArtifact().getBaseVersion());
+                canonicalPath = node.getFile().getCanonicalPath();
+            } catch (IOException e) {
+                log(
+                        "An error occured while getting artifact file canonical path",
+                        e, Project.MSG_WARN);
+            }
+            getProject().setProperty(property + ".file.path", canonicalPath);
+            getProject().setProperty(property + ".archetypeId",
+                    node.getArtifact().getArtifactId());
+            getProject().setProperty(property + ".groupId",
+                    node.getArtifact().getGroupId());
+            getProject().setProperty(property + ".version",
+                    node.getArtifact().getBaseVersion());
+            try {
                 super.execute();
             } catch (Throwable e) {
-                log("Coulnd't execute the task for artifact " + node.getId(), e, 2);
-                e.printStackTrace();
+                log("Couldn't execute the task for artifact " + node.getId(),
+                        e, Project.MSG_INFO);
             }
         }
 
