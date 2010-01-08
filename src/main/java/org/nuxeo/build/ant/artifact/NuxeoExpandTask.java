@@ -36,7 +36,7 @@ public class NuxeoExpandTask extends Task {
                 return false;
             }
             String depScope = dep.getScope();
-            if ("compile".equals(depScope) || "runtime".equals(depScope)) {
+            if ("compile".equals(depScope) || "runtime".equals(depScope) || "provided".equals(depScope)) {
                 return true;
             }
             return false;
