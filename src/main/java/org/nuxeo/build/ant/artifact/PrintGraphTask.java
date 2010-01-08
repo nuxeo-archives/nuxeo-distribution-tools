@@ -38,7 +38,7 @@ public class PrintGraphTask extends Task {
         HashSet<Node> colectedNodes = new HashSet<Node>();
         Graph graph = MavenClientFactory.getInstance().getGraph();
         for (Node node : graph.getRoots()) {
-            print("* ", node, colectedNodes);
+            print(" ", node, colectedNodes);
         }
     }
     
@@ -49,7 +49,7 @@ public class PrintGraphTask extends Task {
         }
         collectedNodes.add(node);
         for (Edge edge : node.getEdgesOut()) {
-            print(tabs+"    ", edge.dst, collectedNodes);
+            print(tabs+" |-- ", edge.dst, collectedNodes);
         }
     }
     
