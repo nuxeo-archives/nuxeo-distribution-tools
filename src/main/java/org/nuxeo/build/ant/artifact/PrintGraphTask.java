@@ -12,10 +12,14 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, jcarsique
  */
 package org.nuxeo.build.ant.artifact;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,31 +30,44 @@ import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 
-
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class PrintGraphTask extends Task {
+
+    private OutputStream output = System.out;
 
     @Override
     public void execute() throws BuildException {
         HashSet<Node> colectedNodes = new HashSet<Node>();
         Graph graph = MavenClientFactory.getInstance().getGraph();
         for (Node node : graph.getRoots()) {
-            print(" ", node, colectedNodes);
+            try {
+                print(" ", node, colectedNodes);
+            } catch (IOException e) {
+                throw new BuildException(e);
+            }
         }
     }
-    
-    protected void print(String tabs, Node node, Set<Node> collectedNodes) {
-        System.out.println(tabs+""+node.toString());
+
+    protected void print(String tabs, Node node, Set<Node> collectedNodes)
+            throws IOException {
+        print(tabs + "" + node.toString()+System.getProperty("line.separator"));
         if (collectedNodes.contains(node)) {
             return;
         }
         collectedNodes.add(node);
         for (Edge edge : node.getEdgesOut()) {
-            print(tabs+" |-- ", edge.dst, collectedNodes);
+            print(tabs + " |-- ", edge.dst, collectedNodes);
         }
     }
-    
+
+    public void setOutput(String output) throws FileNotFoundException {
+        this.output = new FileOutputStream(output);
+    }
+
+    private void print(String message) throws IOException {
+        output.write(message.getBytes());
+    }
 }
