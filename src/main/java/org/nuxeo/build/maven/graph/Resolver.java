@@ -51,8 +51,6 @@ public class Resolver {
         pom = checkRelocation(node, pom);
         try {
             if (!node.artifact.isResolved()) {
-                MavenClientFactory.getLog().debug(
-                        "Resolve again (?!) " + node.getArtifact());
                 // TODO remote repos from pom
                 graph.maven.resolve(node.artifact);
             }
