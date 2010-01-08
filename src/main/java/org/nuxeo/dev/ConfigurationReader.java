@@ -33,7 +33,7 @@ public class ConfigurationReader {
         public void readLine(String section, String line) throws IOException;
     }
 
-    private static class NullReader implements SectionReader {
+    protected static class NullReader implements SectionReader {
         public void readLine(String section, String line) throws IOException {
             return;
         }

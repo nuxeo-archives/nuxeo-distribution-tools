@@ -188,7 +188,7 @@ public class Node {
         expand(0, filter);
     }
 
-    public void expandAll(DependencyFilter filter) {
+    public void expandAll(Filter filter) {
         expand(Integer.MAX_VALUE, filter);
     }
 
@@ -217,7 +217,7 @@ public class Node {
         for (Dependency d : deps) {
             // Workaround to always ignore test scope dependencies
             if ("test".equalsIgnoreCase(d.getScope())
-                    || (filter != null && !filter.accept(this, d))) {
+                    || (filter != null && !filter.accept(this,d))) {
                 continue;
             }
             // the last boolean parameter is redundant, but the version that
