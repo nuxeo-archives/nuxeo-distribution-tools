@@ -36,7 +36,7 @@ public class NuxeoExpandTask extends Task {
                 return false;
             }
             String depScope = dep.getScope();
-            if ("compile".equals(depScope)) {
+            if ("compile".equals(depScope) || "runtime".equals(depScope)) {
                 return true;
             }
             return false;
@@ -48,7 +48,7 @@ public class NuxeoExpandTask extends Task {
         Graph graph = MavenClientFactory.getInstance().getGraph();
         for (Node node : graph.getRoots()) {
             if (node.getArtifact().getGroupId().startsWith("org.nuxeo")) {
-                node.expand(1, filter);                
+                node.expandAll(filter);                
             }
         }
     }
