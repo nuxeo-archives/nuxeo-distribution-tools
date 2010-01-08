@@ -54,6 +54,12 @@ public class ResolveFile extends FileResource {
         MavenClient maven = MavenClientFactory.getInstance();
         ArtifactDescriptor ad = new ArtifactDescriptor(key);
         Artifact arti = null;
+        if (ad.version == null) {
+            ad.version = maven.getGraph().getVersionManagement().getVersion(ad);
+            if (ad.version == null) {
+                throw new BuildException("Version is required since not found in dependency management: "+ ad);
+            }
+        }
         if (classifier != null) {
             arti = maven.getArtifactFactory().createArtifactWithClassifier(
                 ad.groupId, ad.artifactId, ad.version, ad.type, classifier);

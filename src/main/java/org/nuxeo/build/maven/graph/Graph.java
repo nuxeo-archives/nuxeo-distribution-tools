@@ -34,6 +34,7 @@ import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.Filter;
+import org.nuxeo.build.maven.filter.VersionManagement;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -51,10 +52,17 @@ public class Graph {
 
     protected Map<String, Artifact> file2artifacts = new HashMap<String, Artifact>();
 
+    protected VersionManagement vmgr; // manage versions from dependency management -> lazy initialized when required. (by calling artifact:resolveFile withpout a version)
+    
     protected boolean shouldLoadDependencyManagement;
     
     public Graph(MavenClient maven) {
         this.maven = maven;
+        this.vmgr = new VersionManagement();
+    }
+    
+    public VersionManagement getVersionManagement() {
+        return vmgr;
     }
     
     public void setShouldLoadDependencyManagement(
