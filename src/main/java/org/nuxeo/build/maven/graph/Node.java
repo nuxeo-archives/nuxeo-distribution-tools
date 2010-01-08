@@ -188,7 +188,7 @@ public class Node {
         expand(0, filter);
     }
 
-    public void expandAll(Filter filter) {
+    public void expandAll(DependencyFilter filter) {
         expand(Integer.MAX_VALUE, filter);
     }
 
