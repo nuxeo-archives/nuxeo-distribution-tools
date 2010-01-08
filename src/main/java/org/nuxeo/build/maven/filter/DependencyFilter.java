@@ -17,6 +17,7 @@
 package org.nuxeo.build.maven.filter;
 
 import org.apache.maven.model.Dependency;
+import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -24,6 +25,6 @@ import org.apache.maven.model.Dependency;
  */
 public interface DependencyFilter {
 
-    boolean accept(Dependency dep);
+    boolean accept(Node parent, Dependency dep);
 
 }

@@ -37,9 +37,9 @@ public class AndFilter extends CompositeFilter {
         super(filters);
     }
 
-    public boolean accept(Dependency dep) {
+    public boolean accept(Node parent, Dependency dep) {
         for (Filter filter : filters) {
-            if (!filter.accept(dep)) {
+            if (!filter.accept(parent, dep)) {
                 if (MavenClientFactory.getLog().isDebugEnabled()) {
                     MavenClientFactory.getLog().debug(
                             "Filtering - " + filter + " refused "

@@ -33,8 +33,8 @@ public class NotFilter implements Filter {
         this.filter = filter;
     }
 
-    public boolean accept(Dependency dep) {
-        return !filter.accept(dep);
+    public boolean accept(Node parent, Dependency dep) {
+        return !filter.accept(parent, dep);
     }
 
     public boolean accept(Edge edge) {

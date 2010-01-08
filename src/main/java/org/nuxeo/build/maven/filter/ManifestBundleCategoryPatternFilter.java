@@ -104,7 +104,7 @@ public class ManifestBundleCategoryPatternFilter implements Filter {
         return accept(node.getArtifact());
     }
 
-    public boolean accept(Dependency dep) {
+    public boolean accept(Node parent, Dependency dep) {
         throw new UnsupportedOperationException("Not supported");
     }
 
