@@ -25,6 +25,7 @@ import org.apache.tools.ant.types.resources.FileResource;
 import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
+import org.nuxeo.build.maven.filter.VersionManagement;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -53,22 +54,23 @@ public class ResolveFile extends FileResource {
     protected File resolveFile() throws ArtifactNotFoundException {
         MavenClient maven = MavenClientFactory.getInstance();
         ArtifactDescriptor ad = new ArtifactDescriptor(key);
-        Artifact arti = null;
         if (ad.version == null) {
-            ad.version = maven.getGraph().getVersionManagement().getVersion(ad);
+            VersionManagement versionManagement = maven.getGraph().getVersionManagement();
+            ad.version = versionManagement.getVersion(ad);
             if (ad.version == null) {
                 throw new BuildException("Version is required since not found in dependency management: "+ ad);
             }
         }
+        Artifact artifact;
         if (classifier != null) {
-            arti = maven.getArtifactFactory().createArtifactWithClassifier(
+            artifact = maven.getArtifactFactory().createArtifactWithClassifier(
                 ad.groupId, ad.artifactId, ad.version, ad.type, classifier);
         } else {
-            arti = maven.getArtifactFactory().createArtifact(
+            artifact = maven.getArtifactFactory().createArtifact(
                     ad.groupId, ad.artifactId, ad.version, ad.scope, ad.type);
         }
-        MavenClientFactory.getInstance().resolve(arti);
-        return arti.getFile();
+        MavenClientFactory.getInstance().resolve(artifact);
+        return artifact.getFile();
     }
     
     @Override
