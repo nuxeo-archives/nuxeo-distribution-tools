@@ -16,6 +16,9 @@
  */
 package org.nuxeo.build.ant.artifact;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.nuxeo.build.maven.MavenClientFactory;
@@ -32,16 +35,21 @@ public class PrintGraphTask extends Task {
 
     @Override
     public void execute() throws BuildException {
+        HashSet<Node> colectedNodes = new HashSet<Node>();
         Graph graph = MavenClientFactory.getInstance().getGraph();
         for (Node node : graph.getRoots()) {
-            print("* ", node);
+            print("* ", node, colectedNodes);
         }
     }
     
-    protected void print(String tabs, Node node) {
+    protected void print(String tabs, Node node, Set<Node> collectedNodes) {
         System.out.println(tabs+""+node.toString());
+        if (collectedNodes.contains(node)) {
+            return;
+        }
+        collectedNodes.add(node);
         for (Edge edge : node.getEdgesOut()) {
-            print(tabs+"    ", edge.dst);
+            print(tabs+"    ", edge.dst, collectedNodes);
         }
     }
     
