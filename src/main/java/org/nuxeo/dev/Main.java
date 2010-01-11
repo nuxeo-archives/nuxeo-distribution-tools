@@ -17,6 +17,7 @@
 package org.nuxeo.dev;
 
 import java.io.File;
+import java.net.URL;
 
 /**
  * This is a sample of how to use NuxeoApp.
@@ -34,6 +35,7 @@ public class Main {
         String profile = NuxeoApp.CORE_SERVER;
         String host = "localhost";
         int port = 8080;
+        String config = null;
         String opt = null;
         for (String arg : args) {
             if (arg.startsWith("-")) {
@@ -51,10 +53,13 @@ public class Main {
                     } else {
                         host = arg;
                     }
+                } else if ("-c".equals(opt)) {
+                    config = arg;
                 }
+                opt = null;
             } else { // the home directory
                 home = arg.startsWith("/") ? new File(arg) : new File(".", arg);
-                
+                opt = null;
             }
         }
         
@@ -66,7 +71,7 @@ public class Main {
         home = home.getCanonicalFile();
         
         System.out.println("+---------------------------------------------------------");
-        System.out.println("| Nuxeo Server Profile: "+profile+"; version: "+version);
+        System.out.println("| Nuxeo Server Profile: "+(profile==null?"custom":profile)+"; version: "+version);
         System.out.println("| Home Directory: "+home);
         System.out.println("| HTTP server at: "+host+":"+port);
         System.out.println("+---------------------------------------------------------\n");
@@ -74,7 +79,11 @@ public class Main {
         
         //FileUtils.deleteTree(home);
         final NuxeoApp app = new NuxeoApp(home);
-        app.build(profile, version, true);
+        if (config != null) {
+            app.build(makeUrl(config), version, true);
+        } else {
+            app.build(profile, version, true);
+        }
         NuxeoApp.setHttpServerAddress(host, port);
         Runtime.getRuntime().addShutdownHook(new Thread("Nuxeo Server Shutdown") {
             @Override
@@ -92,6 +101,39 @@ public class Main {
         //System.out.println("Hello!!");
         //app.shutdown();
     }
+
     
+    protected static URL makeUrl(String spec) {
+        try {
+        if (spec.indexOf(':') > -1) {
+            if (spec.startsWith("java:")) {
+                spec = spec.substring(5);
+                ClassLoader cl = getContextClassLoader();
+                URL url = cl.getResource(spec);
+                if (url == null) {
+                    fail("Canot found java resource: "+spec);
+                }
+                return url;
+            } else {
+                return new URL(spec);
+            }
+        } else {
+            return new File(spec).toURI().toURL();
+        }
+        } catch (Exception e) {
+            fail("Invalid config file soecification. Not a valid URL or file: "+spec);
+            return null;
+        }
+    }
+    
+    protected static void fail(String msg) {
+        System.err.println(msg);
+        System.exit(2);
+    }
+    
+    protected static ClassLoader getContextClassLoader() {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        return cl == null ? Main.class.getClassLoader() : cl;
+    }
 
 }
