@@ -72,7 +72,8 @@ public class VersionManagement {
     
     private final String makeKey(String groupId, String artifactId, String type, String classifier) {
         if (artifactId == null || groupId == null) {
-            throw new IllegalArgumentException("Both aritfactId and groupId are required when requesting a version from dependency management");
+            throw new IllegalArgumentException("Cannot make key from "+groupId+":"+artifactId+":"+type+":"+classifier+
+                    "\nBoth artifactId and groupId are required when requesting a version from dependency management.");
         }
         if (type == null) {
             type = "";
