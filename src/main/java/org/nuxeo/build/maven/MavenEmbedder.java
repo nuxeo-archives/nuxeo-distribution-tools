@@ -81,6 +81,7 @@ import org.apache.maven.profiles.ProfileManager;
 import org.apache.maven.project.DuplicateProjectException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.MissingProjectException;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.settings.MavenSettingsBuilder;
 import org.apache.maven.settings.RuntimeInfo;
@@ -382,7 +383,7 @@ public class MavenEmbedder {
             EventMonitor eventMonitor, TransferListener transferListener,
             Properties properties, File executionRootDirectory)
             throws CycleDetectedException, LifecycleExecutionException,
-            BuildFailureException, DuplicateProjectException {
+            BuildFailureException, DuplicateProjectException, MissingProjectException {
         execute(Collections.singletonList(project), goals, eventMonitor,
                 transferListener, properties, executionRootDirectory);
     }
@@ -391,7 +392,7 @@ public class MavenEmbedder {
             EventMonitor eventMonitor, TransferListener transferListener,
             Properties properties, File executionRootDirectory)
             throws CycleDetectedException, LifecycleExecutionException,
-            BuildFailureException, DuplicateProjectException {
+            BuildFailureException, DuplicateProjectException, MissingProjectException {
         ReactorManager rm = new ReactorManager(projects);
 
         EventDispatcher eventDispatcher = new DefaultEventDispatcher();
