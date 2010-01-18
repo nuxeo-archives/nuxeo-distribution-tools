@@ -108,7 +108,7 @@ public class SettingsTask extends Sequential {
             policy.setEnabled(repo.snapshotsPolicy.enabled);
             policy.setChecksumPolicy(repo.snapshotsPolicy.checksumPolicy);
             policy.setUpdatePolicy(repo.snapshotsPolicy.udpatePolicy);
-            policy.setModelEncoding(repo.snapshotsPolicy.modelEncoding);
+//            policy.setModelEncoding(repo.snapshotsPolicy.modelEncoding);
         }
         r.setSnapshots(policy);
 
@@ -119,7 +119,7 @@ public class SettingsTask extends Sequential {
             policy.setEnabled(repo.releasesPolicy.enabled);
             policy.setChecksumPolicy(repo.releasesPolicy.checksumPolicy);
             policy.setUpdatePolicy(repo.releasesPolicy.udpatePolicy);
-            policy.setModelEncoding(repo.releasesPolicy.modelEncoding);
+//            policy.setModelEncoding(repo.releasesPolicy.modelEncoding);
         }
         r.setReleases(policy);
         return r;
