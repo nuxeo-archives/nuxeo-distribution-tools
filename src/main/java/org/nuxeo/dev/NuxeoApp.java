@@ -64,7 +64,6 @@ public class NuxeoApp {
     protected EmbeddedMavenClient maven;
     protected Map<String, File> bundles;
     protected String platformVersion;
-    protected String version; 
     
     protected List<String> bundlePatterns;
     protected MyFrameworkBootstrap bootstrap;
@@ -87,8 +86,6 @@ public class NuxeoApp {
         bundlePatterns.add("nuxeo-");
         bundles = new HashMap<String, File>(); // map symName to bundle file path
         this.bootstrap = new MyFrameworkBootstrap(this, cl == null ? findContextClassLoader() : cl);
-        maven = new EmbeddedMavenClient();
-        MavenClientFactory.setInstance(maven);
         initializeMaven();
     }
     
@@ -99,15 +96,7 @@ public class NuxeoApp {
     public void addBundlePattern(String pattern) {
         bundlePatterns.add(pattern);
     }
-    
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-        
+            
     public EmbeddedMavenClient getMaven() {
         return maven;
     }
@@ -120,7 +109,7 @@ public class NuxeoApp {
     public String getPlatformVersion() {
         return platformVersion;
     }
-    
+        
 
     public void build(URL config, String platformVersion) throws Exception {
         build(config, platformVersion, false);
@@ -140,8 +129,6 @@ public class NuxeoApp {
     
     public void build(URL url, String platformVersion, boolean enableCache) throws Exception {
         this.platformVersion = platformVersion;
-        initProperties();
-        initializeGraph();
         if (enableCache) {
             File cacheFile = new File(home, "tmp/build.cache");
             if (cacheFile.isFile()) {
@@ -169,7 +156,7 @@ public class NuxeoApp {
             loadConfiguration(in);
         } finally {
             in.close();
-        }        
+        }
     }
     
     protected boolean acceptClassPathBundle(URL url) {
@@ -183,6 +170,8 @@ public class NuxeoApp {
 
     public void loadConfiguration(InputStream in) throws Exception {
         System.out.println("Building Application ...");
+        initializeGraph();
+
         double s = System.currentTimeMillis();
         
         //load configuration
@@ -265,8 +254,9 @@ public class NuxeoApp {
         // write build cache
         File cacheFile = new File(home, "tmp/build.cache");
         cacheFile.getParentFile().mkdirs();
-        FileUtils.writeFile(cacheFile, cache.toString());
+        FileUtils.writeFile(cacheFile, cache.toString());        
         System.out.println("Build took: "+(System.currentTimeMillis()-s)/1000);
+        buildDone();
     }   
     
     public void loadConfigurationFromCache(File cacheFile) throws Exception {
@@ -302,11 +292,38 @@ public class NuxeoApp {
     }
 
     public void start() throws Exception {
-        bootstrap.start();        
-//        System.out.println(System.getProperties().remove("jetty.home"));
-//        System.out.println(System.getProperties().remove("jetty.logs"));
+        aboutToStartFramework();
+        bootstrap.start();
+        frameworkStarted();
 
     }
+    
+    protected void aboutToStartFramework() throws Exception {
+        String h2 = System.getProperty("h2.baseDir");
+        if (h2 == null) {
+            h2 = new File(home, "data/h2").getAbsolutePath();
+            System.setProperty("h2.baseDir", h2);
+        }
+        String homePath = home.getAbsolutePath();
+        System.setProperty("nuxeo.home", homePath);
+        if (System.getProperty("jetty.home") == null) {
+            System.setProperty("jetty.home", homePath);
+        }
+        if (System.getProperty("jetty.logs") == null) {
+            System.setProperty("jetty.logs", homePath + "/log");
+        }
+        if (System.getProperty("derby.system.home") == null) {
+            System.setProperty("derby.system.home",
+                    homePath+"/data/derby");
+        }
+    }
+    
+    protected void frameworkStarted() throws Exception {
+//      System.out.println(System.getProperties().remove("jetty.home"));
+//      System.out.println(System.getProperties().remove("jetty.logs"));
+        // do nothing
+    }
+    
     
     public static ClassLoader findContextClassLoader() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -322,7 +339,8 @@ public class NuxeoApp {
      * @throws Exception
      */
     protected void initializeMaven() throws Exception {
-        maven = MavenClientFactory.getEmbeddedMaven();
+        maven = new EmbeddedMavenClient();
+        MavenClientFactory.setInstance(maven);
         maven.start();
         maven.getGraph().setShouldLoadDependencyManagement(true);
 
@@ -396,15 +414,61 @@ public class NuxeoApp {
     }
     
     protected void initializeGraph() throws Exception {
-        maven.getGraph().addRootNode("org.nuxeo:nuxeo-ecm:"+platformVersion+":pom").expand(1, null);
-        maven.getGraph().addRootNode("org.nuxeo.ecm.distribution:nuxeo-distribution:"+platformVersion+":pom").expand(1, null);
-        //maven.getGraph().addRootNode()
-//        maven.getGraph().addRootNode("org.nuxeo.common:nuxeo-common:"+coreVersion);
-//        maven.getGraph().addRootNode("org.nuxeo.runtime:nuxeo-runtime:"+coreVersion);
-//        maven.getGraph().addRootNode("org.nuxeo.core:nuxeo-core:"+coreVersion);
-//        maven.getGraph().addRootNode("org.nuxeo.runtime:nuxeo-runtime:"+coreVersion);
+        addPom("org.nuxeo", "nuxeo-ecm", platformVersion);
+//        addPom("org.nuxeo.ecm.distribution", "nuxeo-distribution", platformVersion);        
+        Node node = addPom("org.nuxeo.ecm.platform", "nuxeo-services-parent", platformVersion);
+        // find the core version corresponding to services pom
+        String coreVersion = node.getPom().getProperties().getProperty("nuxeo.core.version");
+        addPom("org.nuxeo.common", "nuxeo-common", coreVersion, 1);
+        addPom("org.nuxeo.runtime", "nuxeo-runtime-parent", coreVersion, 1);
+        addPom("org.nuxeo.ecm.core", "nuxeo-core-parent", coreVersion, 1);
+        node.expand(1, null); // now we have all the core dependencies -> expand the services pom
+        addPom("org.nuxeo.ecm.platform", "nuxeo-features-parent", platformVersion, 1);
+        addPom("org.nuxeo.ecm.webengine", "nuxeo-webengine-parent", platformVersion, 1);
+        // the other poms are not included by default - you can include them by overriding this method
+        //addPom("org.nuxeo.theme", "nuxeo-theme-parent", platformVersion, 1);
     }
 
+    protected Node addPom(String groupId, String artifactId, String version) {
+        return addArtifact(groupId, artifactId, version, "pom", null, 0);
+    }
+
+    protected Node addPom(String groupId, String artifactId, String version, int expandDepth) {
+        return addArtifact(groupId, artifactId, version, "pom", null, expandDepth);
+    }
+
+    protected Node addArtifact(String groupId, String artifactId, String version) {
+        return addArtifact(groupId, artifactId, version, null, null, 0);   
+    }
+
+    protected Node addArtifact(String groupId, String artifactId, String version, String type) {
+        return addArtifact(groupId, artifactId, version, type, null, 0);
+    }
+
+    protected Node addArtifact(String groupId, String artifactId, String version, String type, String classifier) {
+        return addArtifact(groupId, artifactId, version, type, classifier, 0);
+    }
+
+    protected Node addArtifact(String groupId, String artifactId, String version, String type, String classifier, int expandDepth) {
+        if (groupId == null || artifactId == null || version == null) {
+            throw new IllegalArgumentException("You must specify at least the groupId, artifactId and version when explicitelly adding an artifact to the graph");
+        }
+        String key = groupId+":"+artifactId+":"+version;
+        if (type != null) {
+            key = key+":"+type;
+        } 
+        if (classifier != null) {
+            if (type == null) {
+                type = "jar";
+            }
+            key = key+":"+classifier;
+        }
+        Node node = maven.getGraph().addRootNode(key);
+        if (expandDepth > 0) {
+            node.expand(expandDepth, null);
+        }
+        return node;
+    }
 
     /**
      * Must be called to diable the http server. Has effect only when called
@@ -424,25 +488,8 @@ public class NuxeoApp {
     }
 
     
-    protected void initProperties() {
-        String h2 = System.getProperty("h2.baseDir");
-        if (h2 == null) {
-            h2 = new File(home, "data/h2").getAbsolutePath();
-            System.setProperty("h2.baseDir", h2);
-        }
-        String homePath = home.getAbsolutePath();
-        System.setProperty("nuxeo.home", homePath);
-        if (System.getProperty("jetty.home") == null) {
-            System.setProperty("jetty.home", homePath);
-        }
-        if (System.getProperty("jetty.logs") == null) {
-            System.setProperty("jetty.logs", homePath + "/log");
-        }
-        if (System.getProperty("derby.system.home") == null) {
-            System.setProperty("derby.system.home",
-                    homePath+"/data/derby");
-        }
-        
+    protected void buildDone() {
+        // do nothing
     }
 
     public void shutdown() throws Exception {

@@ -31,7 +31,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         File home = null;
-        String version = "5.3.1-SNAPSHOT";
+        String platformVersion = "5.3.1-SNAPSHOT";
         String profile = NuxeoApp.CORE_SERVER;
         String host = "localhost";
         int port = 8080;
@@ -42,7 +42,7 @@ public class Main {
                 opt = arg;
             } else if (opt != null) {
                 if ("-v".equals(opt)) {
-                    version = arg;
+                    platformVersion = arg;
                 } else if ("-p".equals(opt)) {
                     profile = arg;
                 } else if ("-h".equals(opt)) {
@@ -71,7 +71,7 @@ public class Main {
         home = home.getCanonicalFile();
         
         System.out.println("+---------------------------------------------------------");
-        System.out.println("| Nuxeo Server Profile: "+(profile==null?"custom":profile)+"; version: "+version);
+        System.out.println("| Nuxeo Server Profile: "+(profile==null?"custom":profile)+"; version: "+platformVersion);
         System.out.println("| Home Directory: "+home);
         System.out.println("| HTTP server at: "+host+":"+port);
         System.out.println("+---------------------------------------------------------\n");
@@ -80,9 +80,9 @@ public class Main {
         //FileUtils.deleteTree(home);
         final NuxeoApp app = new NuxeoApp(home);
         if (config != null) {
-            app.build(makeUrl(config), version, true);
+            app.build(makeUrl(config), platformVersion, true);
         } else {
-            app.build(profile, version, true);
+            app.build(profile, platformVersion, true);
         }
         NuxeoApp.setHttpServerAddress(host, port);
         Runtime.getRuntime().addShutdownHook(new Thread("Nuxeo Server Shutdown") {
