@@ -17,7 +17,9 @@
 package org.nuxeo.dev;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.nuxeo.build.maven.ArtifactDescriptor;
@@ -31,18 +33,32 @@ public class ConfigurationLoader {
 
     protected Set<String> bundles;
     protected Set<String> libs;
+    protected Set<String> poms;
     protected ConfigurationReader reader;
-    protected ArtifactDescriptor config;
-    protected String configPath;
+    protected ArtifactDescriptor templateArtifact;
+    protected String templatePrefix;
+    
+    protected Map<String, String> props;
     
     public ConfigurationLoader() {
+        poms = new HashSet<String>();
         bundles = new HashSet<String>();
         libs = new HashSet<String>();
+        props = new HashMap<String, String>();
         reader = new ConfigurationReader();
         reader.addReader("bundles", new ArtifactReader(bundles));
         reader.addReader("libs", new ArtifactReader(libs));
         reader.addReader("properties", new PropertiesReader());
-        reader.addReader("config", new ConfigReader());
+        reader.addReader("template", new TemplateReader());
+        reader.addReader("poms", new ArtifactReader(poms));
+    }
+    
+    public Map<String, String> getProperties() {
+        return props;
+    }
+    
+    public Set<String> getPoms() {
+        return poms;
     }
     
     public ConfigurationReader getReader() {
@@ -57,12 +73,12 @@ public class ConfigurationLoader {
         return libs;
     }
 
-    public ArtifactDescriptor getConfig() {
-        return config;
+    public ArtifactDescriptor getTemplateArtifact() {
+        return templateArtifact;
     }
     
-    public String getConfigPath() {
-        return configPath;
+    public String getTemplatePrefix() {
+        return templatePrefix;
     }
     
     class ArtifactReader implements SectionReader {
@@ -71,7 +87,7 @@ public class ConfigurationLoader {
             this.result = result;
         }
         public void readLine(String section, String line) throws IOException {
-            result.add(line);
+            result.add(expandVars(line, props));
         }
     }
     
@@ -84,11 +100,11 @@ public class ConfigurationLoader {
             }
             String key = line.substring(0, p).trim();
             String value = line.substring(p+1).trim();
-            System.setProperty(key, value);
+            props.put(key, value);
         }
     }
 
-    class ConfigReader implements SectionReader {
+    class TemplateReader implements SectionReader {
         public void readLine(String section, String line) throws IOException {
             int p = line.indexOf('=');
             if (p == -1) {
@@ -97,13 +113,82 @@ public class ConfigurationLoader {
             String key = line.substring(0, p).trim();
             String value = line.substring(p+1).trim();
             if ("path".equals(key)) {
-                configPath = value;
+                templatePrefix =  expandVars(value, props);
             } else if ("artifact".equals(key)) {
-                config = new ArtifactDescriptor(value);
+                templateArtifact = new ArtifactDescriptor(expandVars(value, props));
             } else {
                 throw new IOException("Unknown configuration property: "+key);
             }
         }
     }
     
+    
+    /**
+     * Expands any variable found in the given expression with the values in the
+     * given map.
+     * <p>
+     * The variable format is ${property_key}.
+     *
+     * @param expression the expression to expand
+     * @param properties a map containing variables
+     * @return
+     */
+    public static String expandVars(String expression,
+            Map<?, ?> properties) {
+        int p = expression.indexOf("${");
+        if (p == -1) {
+            return expression; // do not expand if not needed
+        }
+
+        char[] buf = expression.toCharArray();
+        StringBuilder result = new StringBuilder(buf.length);
+        if (p > 0) {
+            result.append(expression.substring(0, p));
+        }
+        StringBuilder varBuf = new StringBuilder();
+        boolean dollar = false;
+        boolean var = false;
+        for (int i = p; i < buf.length; i++) {
+            char c = buf[i];
+            switch (c) {
+            case '$' :
+                dollar = true;
+                break;
+            case '{' :
+                if (dollar) {
+                    dollar = false;
+                    var = true;
+                } else {
+                    result.append(c);
+                }
+                break;
+            case '}':
+                if (var) {
+                    var = false;
+                    String varName = varBuf.toString();
+                    varBuf.setLength(0);
+                    // get the variable value
+                    Object varValue = properties.get(varName);
+                    if (varValue != null) {
+                        result.append(varValue.toString());
+                    } else { // let the variable as is
+                        result.append("${").append(varName).append('}');
+                    }
+                } else {
+                    result.append(c);
+                }
+                break;
+            default:
+                if (var) {
+                  varBuf.append(c);
+                } else {
+                    result.append(c);
+                }
+                break;
+            }
+        }
+        return result.toString();
+    }
+
+
 }

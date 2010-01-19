@@ -1,6 +1,6 @@
 <projectDescription>
   <name>nuxeo-distribution-tools</name>
-  <comment>Nuxeo Distribution tools</comment>
+  <comment>Assemble Nuxeo distributions</comment>
   <projects/>
   <buildSpec>
     <buildCommand>

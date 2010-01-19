@@ -31,20 +31,24 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         File home = null;
-        String platformVersion = "5.3.1-SNAPSHOT";
-        String profile = NuxeoApp.CORE_SERVER;
+        String profile = NuxeoApp.CORE_SERVER_531;
         String host = "localhost";
         int port = 8080;
         String config = null;
+        String updatePolicy = "daily";
         String opt = null;
+        boolean noCache = true;
         for (String arg : args) {
+            if (arg.equals("--nocache")) {
+                noCache = false;
+            }
             if (arg.startsWith("-")) {
                 opt = arg;
             } else if (opt != null) {
-                if ("-v".equals(opt)) {
-                    platformVersion = arg;
-                } else if ("-p".equals(opt)) {
+                if ("-p".equals(opt)) {
                     profile = arg;
+                } else if ("-u".equals(opt)) {
+                    updatePolicy = arg;
                 } else if ("-h".equals(opt)) {
                     int p = arg.indexOf(':');
                     if (p != -1) {
@@ -71,18 +75,21 @@ public class Main {
         home = home.getCanonicalFile();
         
         System.out.println("+---------------------------------------------------------");
-        System.out.println("| Nuxeo Server Profile: "+(profile==null?"custom":profile)+"; version: "+platformVersion);
+        System.out.println("| Nuxeo Server Profile: "+(profile==null?"custom":profile));
         System.out.println("| Home Directory: "+home);
         System.out.println("| HTTP server at: "+host+":"+port);
+        System.out.println("| Use cache: "+!noCache+"; Snapshot update policy: "+updatePolicy);
         System.out.println("+---------------------------------------------------------\n");
         
         
         //FileUtils.deleteTree(home);
         final NuxeoApp app = new NuxeoApp(home);
+        app.setVerbose(true);
+        app.setUpdatePolicy(updatePolicy);
         if (config != null) {
-            app.build(makeUrl(config), platformVersion, true);
+            app.build(makeUrl(config), !noCache);
         } else {
-            app.build(profile, platformVersion, true);
+            app.build(profile, !noCache);
         }
         NuxeoApp.setHttpServerAddress(host, port);
         Runtime.getRuntime().addShutdownHook(new Thread("Nuxeo Server Shutdown") {

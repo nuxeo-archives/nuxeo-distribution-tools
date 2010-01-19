@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -56,17 +55,21 @@ import org.nuxeo.build.util.ZipUtils;
 public class NuxeoApp {
     
 
-    public final static String CORE_SERVER = "core";
-    public final static String EP_SERVER = "ep";
+    public final static String CORE_SERVER_531 = "core-5.3.1-SNAPSHOT";
+    public final static String CORE_SERVER_530 = "core-5.3.0";
     
     
     protected File home;
     protected EmbeddedMavenClient maven;
     protected Map<String, File> bundles;
-    protected String platformVersion;
     
     protected List<String> bundlePatterns;
     protected MyFrameworkBootstrap bootstrap;
+    protected boolean isVerbose;
+    
+    protected ConfigurationLoader loader;
+    
+    protected String updatePolicy = "daily";
     
     
     public static NuxeoApp createTestNuxeoApp() throws Exception {
@@ -89,6 +92,10 @@ public class NuxeoApp {
         initializeMaven();
     }
     
+    public void setUpdatePolicy(String updatePolicy) {
+        this.updatePolicy = updatePolicy;
+    }
+    
     public void clearBundlePatterns() {
         bundlePatterns.clear();
     }
@@ -105,30 +112,24 @@ public class NuxeoApp {
         return home;
     }
     
-       
-    public String getPlatformVersion() {
-        return platformVersion;
-    }
-        
 
-    public void build(URL config, String platformVersion) throws Exception {
-        build(config, platformVersion, false);
+    public void build(URL config) throws Exception {
+        build(config, false);
     }
     
-    public void build(String profile, String platformVersion) throws Exception {
-        build(profile, platformVersion, false);
+    public void build(String profile) throws Exception {
+        build(profile, false);
     }
     
-    public void build(String profile, String platformVersion, boolean enableCache) throws Exception {
+    public void build(String profile, boolean enableCache) throws Exception {
         URL url = NuxeoApp.class.getResource(profile+".cfg");
         if (url == null) {
             throw new IllegalArgumentException("profile is not known: "+profile);
         }
-        build(url, platformVersion, enableCache);
+        build(url, enableCache);
     }
     
-    public void build(URL url, String platformVersion, boolean enableCache) throws Exception {
-        this.platformVersion = platformVersion;
+    public void build(URL url, boolean enableCache) throws Exception {
         if (enableCache) {
             File cacheFile = new File(home, "tmp/build.cache");
             if (cacheFile.isFile()) {
@@ -168,20 +169,30 @@ public class NuxeoApp {
         return false;
     }
 
+    /**
+     * When creating the graph the build will print on console any resolved artifact   
+     * @param isVerbose
+     */
+    public void setVerbose(boolean isVerbose) {
+        this.isVerbose = isVerbose;
+    }
+    
+    
     public void loadConfiguration(InputStream in) throws Exception {
         System.out.println("Building Application ...");
-        initializeGraph();
 
         double s = System.currentTimeMillis();
         
         //load configuration
-        ConfigurationLoader loader = new ConfigurationLoader();
+        loader = new ConfigurationLoader();
         loader.getReader().read(in);        
 
+        initializeGraph();
+        
         Graph graph = maven.getGraph();
         ClassLoaderDelegate delegate = bootstrap.getLoader();
         // first unzip the configuration over the home directory        
-        copyTemplateFiles(loader.getConfig(), loader.getConfigPath(), home);
+        copyTemplateFiles(loader.getTemplateArtifact(), loader.getTemplatePrefix(), home);
         
         StringBuilder cache = new StringBuilder();
         // second build a map with symbolicName -> url from all bundles in the classpath
@@ -214,6 +225,9 @@ public class NuxeoApp {
             }
             if (node == null) {
                 throw new RuntimeException("Failed to lookup artifact in graph: "+key);
+            }
+            if (isVerbose) {
+                System.out.println("Resolving artifact: "+node);
             }
             File jar = node.getFile();
             if (jar != null) {
@@ -257,6 +271,7 @@ public class NuxeoApp {
         FileUtils.writeFile(cacheFile, cache.toString());        
         System.out.println("Build took: "+(System.currentTimeMillis()-s)/1000);
         buildDone();
+        loader = null;
     }   
     
     public void loadConfigurationFromCache(File cacheFile) throws Exception {
@@ -299,6 +314,9 @@ public class NuxeoApp {
     }
     
     protected void aboutToStartFramework() throws Exception {
+        // avoid redirecting logs -> maven comes with a JCL to JUL redirection that will generate infintie loops.
+        // this was also fixed by excluding from eclipse dependencies the sl4j-jdk14 jar.
+        System.setProperty("org.nuxeo.runtime.redirectJUL", "false");
         String h2 = System.getProperty("h2.baseDir");
         if (h2 == null) {
             h2 = new File(home, "data/h2").getAbsolutePath();
@@ -369,30 +387,31 @@ public class NuxeoApp {
         repo.setReleases(policy);
         policy = new RepositoryPolicy();
         policy.setEnabled(true);
-        policy.setUpdatePolicy("always");
+        policy.setUpdatePolicy(updatePolicy);
         policy.setChecksumPolicy("fail");
         repo.setSnapshots(policy);
         maven.addRemoteRepository(repo);
     }
     
     protected void initializeGraph() throws Exception {
-        addPom("org.nuxeo", "nuxeo-ecm", platformVersion);
-//        addPom("org.nuxeo.ecm.distribution", "nuxeo-distribution", platformVersion);        
-        Node node = addPom("org.nuxeo.ecm.platform", "nuxeo-services-parent", platformVersion);
-        // find the core version corresponding to services pom
-        String coreVersion = node.getPom().getProperties().getProperty("nuxeo.core.version");
-        addPom("org.nuxeo.common", "nuxeo-common", coreVersion, 1);
-        addPom("org.nuxeo.runtime", "nuxeo-runtime-parent", coreVersion, 1);
-        addPom("org.nuxeo.ecm.core", "nuxeo-core-parent", coreVersion, 1);
-        node.expand(1, null); // now we have all the core dependencies -> expand the services pom
-        addPom("org.nuxeo.ecm.platform", "nuxeo-features-parent", platformVersion, 1);
-        addPom("org.nuxeo.ecm.webengine", "nuxeo-webengine-parent", platformVersion, 1);
-        // the other poms are not included by default - you can include them by overriding this method
-        //addPom("org.nuxeo.theme", "nuxeo-theme-parent", platformVersion, 1);
+        for (String pom : loader.getPoms()) {
+            addPom(pom);
+        }
+//        addPom("org.nuxeo", "nuxeo-ecm", platformVersion);
+//        Node node = addPom("org.nuxeo.ecm.platform", "nuxeo-services-parent", platformVersion);
+//        // find the core version corresponding to services pom
+//        String coreVersion = node.getPom().getProperties().getProperty("nuxeo.core.version");
+//        addPom("org.nuxeo.common", "nuxeo-common", coreVersion, 1);
+//        addPom("org.nuxeo.runtime", "nuxeo-runtime-parent", coreVersion, 1);
+//        addPom("org.nuxeo.ecm.core", "nuxeo-core-parent", coreVersion, 1);
+//        node.expand(1, null); // now we have all the core dependencies -> expand the services pom
+//        addPom("org.nuxeo.ecm.platform", "nuxeo-features-parent", platformVersion, 1);
+//        addPom("org.nuxeo.ecm.webengine", "nuxeo-webengine-parent", platformVersion, 1);
+//        // the other poms are not included by default - you can include them by overriding this method
     }
 
     protected Node addPom(String groupId, String artifactId, String version) {
-        return addArtifact(groupId, artifactId, version, "pom", null, 0);
+        return addArtifact(groupId, artifactId, version, "pom", null, 1);
     }
 
     protected Node addPom(String groupId, String artifactId, String version, int expandDepth) {
@@ -425,6 +444,19 @@ public class NuxeoApp {
             }
             key = key+":"+classifier;
         }
+        return addArtifact(key, expandDepth);
+    }
+    
+    
+    protected Node addPom(String key) {
+        return addArtifact(key, 1);
+    }
+    
+    protected Node addArtifact(String key) {
+        return addArtifact(key, 0);
+    }
+    
+    protected Node addArtifact(String key, int expandDepth) {
         Node node = maven.getGraph().addRootNode(key);
         if (expandDepth > 0) {
             node.expand(expandDepth, null);
@@ -459,74 +491,19 @@ public class NuxeoApp {
     }
     
     
-    protected void copyTemplateFiles(ArtifactDescriptor config, String configPath, File targetDir) throws Exception {
-          if (config.version == null || config.version.length() == 0) {
-              config.version = platformVersion;
-          }            
-          Artifact artifact = config.classifier == null ? config.toBuildArtifact() : config.toArtifactWithClassifier();
-          maven.resolve(artifact);
-          File file = artifact.getFile();
-          if (file == null) {
-              throw new FileNotFoundException("No such artifact file: "+file);
-          }
-          ZipUtils.unzip(configPath, file, home);
+    protected void copyTemplateFiles(ArtifactDescriptor template, String templatePrefix, File targetDir) throws Exception {
+        if (template.version == null) {
+            throw new IllegalArgumentException("template artifact version cannot be null");
+        }
+        Artifact artifact = template.classifier == null ? template.toBuildArtifact() : template.toArtifactWithClassifier();
+        maven.resolve(artifact);
+        File file = artifact.getFile();
+        if (file == null) {
+            throw new FileNotFoundException("No such artifact file: "+file);
+        }
+        ZipUtils.unzip(templatePrefix, file, home);
     }
     
-    protected File findJarFile(String version) throws Exception {
-        // lookup in the maven generated files (works only when using the packaged jar)
-        ArtifactDescriptor ad = new ArtifactDescriptor("org.nuxeo.build", "nuxeo-distribution-tools", version, "jar", null);
-        if (version == null) {
-            String path = "META-INF/maven/"+ad.groupId+"/"+ad.artifactId+"/pom.properties";
-            InputStream in = NuxeoApp.class.getClassLoader().getResourceAsStream(path);
-            if (in == null) {
-                in = NuxeoApp.class.getClassLoader().getResourceAsStream("/"+path);
-            }
-            if (in != null) {
-                try {
-                    Properties p = new Properties();
-                    p.load(in);
-                    ad.version = p.getProperty("version");
-                } finally {
-                    in.close();
-                }
-            }
-        }
-        File file = null;
-        if (ad.version != null) {
-            file = resolveArtifactFile(ad);
-            if (file != null && file.exists()) {
-                return file;
-            }
-        }
-        
-        // may be in dev. mode -> get version from pom.xml
-        URL url = NuxeoApp.class.getClassLoader().getResource("org/nuxeo/dev/core.cfg");
-        if (url == null) {
-            url = NuxeoApp.class.getClassLoader().getResource("/org/nuxeo/dev/core.cfg");
-        }
-        if (url == null) {
-            throw new Exception("Could not find the nuxeo-distribution-tools jar file");    
-        }
-        
-        String path = url.getPath();
-        if (path.startsWith("file:")) {
-            file = FileUtils.urlToFile(path);
-        } else if (path.indexOf(':') == -1) {
-            file = new File(path);
-        }
-        file = file.getParentFile();
-        if (file != null && file.isDirectory()) {
-            return file;
-        }
-        
-        throw new Exception("Could not find the nuxeo-distribution-tools jar file");
-    }
-
-    public File resolveArtifactFile(ArtifactDescriptor ad) throws Exception {
-        Artifact artifact = ad.classifier == null ? ad.toBuildArtifact() : ad.toArtifactWithClassifier();
-        maven.resolve(artifact);
-        return artifact.getFile();        
-    }
     
 
     public static Manifest getManifest(File file) {
