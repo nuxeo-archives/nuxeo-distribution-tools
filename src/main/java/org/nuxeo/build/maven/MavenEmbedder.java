@@ -152,7 +152,7 @@ public class MavenEmbedder {
 
     protected ArtifactRepository localRepository;
 
-    protected File localRepositoryDirectory;
+    protected File localRepositoryDirectory = new File(userHome, ".m2/repository"); // the default local repository
 
     protected ClassLoader classLoader;
 
@@ -641,6 +641,11 @@ public class MavenEmbedder {
             alignWithUserInstallation = true;
         }
     }
+    
+    protected void createM2WorkingDir() {
+        
+        new File(userHome, ".m2/repository").mkdirs();
+    }
 
     /**
      * Create the Settings that will be used with the embedder. If we are
@@ -672,8 +677,9 @@ public class MavenEmbedder {
             }
         } else {
             if (localRepository == null) {
-                throw new IllegalArgumentException(
-                        "When not aligning with a user install you must specify a local repository location using the setLocalRepositoryDirectory( File ) method.");
+                localRepository = createLocalRepository(localRepositoryDirectory);
+//                throw new IllegalArgumentException(
+//                        "When not aligning with a user install you must specify a local repository location using the setLocalRepositoryDirectory( File ) method.");
             }
 
             settings = new Settings();
