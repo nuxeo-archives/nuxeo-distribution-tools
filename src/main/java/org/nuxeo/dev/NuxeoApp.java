@@ -24,7 +24,7 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +66,7 @@ public class NuxeoApp {
     protected List<String> bundlePatterns;
     protected MyFrameworkBootstrap bootstrap;
     protected boolean isVerbose;
-    
+    protected boolean isOffline;
     protected ConfigurationLoader loader;
     
     protected String updatePolicy = "daily";
@@ -87,9 +87,8 @@ public class NuxeoApp {
         this.home = home;
         bundlePatterns = new ArrayList<String>();
         bundlePatterns.add("nuxeo-");
-        bundles = new HashMap<String, File>(); // map symName to bundle file path
-        this.bootstrap = new MyFrameworkBootstrap(this, cl == null ? findContextClassLoader() : cl);
-        initializeMaven();
+        bundles = new LinkedHashMap<String, File>(); // map symName to bundle file path
+        this.bootstrap = new MyFrameworkBootstrap(this, cl == null ? findContextClassLoader() : cl);        
     }
     
     public void setUpdatePolicy(String updatePolicy) {
@@ -112,6 +111,13 @@ public class NuxeoApp {
         return home;
     }
     
+    public void setOffline(boolean isOffline) {
+        this.isOffline = isOffline;
+    }
+    
+    public boolean isOffline() {
+        return isOffline;
+    }
 
     public void build(URL config) throws Exception {
         build(config, false);
@@ -182,6 +188,8 @@ public class NuxeoApp {
         System.out.println("Building Application ...");
 
         double s = System.currentTimeMillis();
+        
+        initializeMaven();
         
         //load configuration
         loader = new ConfigurationLoader();
@@ -352,16 +360,21 @@ public class NuxeoApp {
     }
     
 
+    protected EmbeddedMavenClient createEmbeddedMaven() {
+        return new EmbeddedMavenClient();
+    }
+    
     /**
      * TODO put configuration in a resource file?
      * @throws Exception
      */
     protected void initializeMaven() throws Exception {
-        maven = new EmbeddedMavenClient();
+        maven = createEmbeddedMaven();
         MavenClientFactory.setInstance(maven);
+        maven.setOffline(isOffline);
         maven.start();
         maven.getGraph().setShouldLoadDependencyManagement(true);
-
+        
         Repository repo = new Repository();
         repo.setId("public");
         repo.setName("Nuxeo Public Repository");

@@ -84,6 +84,7 @@ import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MissingProjectException;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.settings.MavenSettingsBuilder;
+import org.apache.maven.settings.Proxy;
 import org.apache.maven.settings.RuntimeInfo;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.wagon.events.TransferListener;
@@ -684,9 +685,24 @@ public class MavenEmbedder {
             settings.setOffline(offline);
 
             settings.setInteractiveMode(interactiveMode);
+            
         }
+                
+        //bs: correctly init wagon 
+        initWagonFromSettings();
+        // end bs
     }
 
+    // bs: init wagon manager from user settings 
+    protected void initWagonFromSettings() {
+        wagonManager.setOnline(!isOffline());
+        Proxy proxy = settings.getActiveProxy();
+        if (proxy != null) {
+            wagonManager.addProxy(proxy.getProtocol(), proxy.getHost(), proxy.getPort(), proxy.getUsername(), proxy.getPassword(), proxy.getNonProxyHosts());
+        }
+    }
+    // end bs 
+    
     // ----------------------------------------------------------------------
     // Lifecycle
     // ----------------------------------------------------------------------

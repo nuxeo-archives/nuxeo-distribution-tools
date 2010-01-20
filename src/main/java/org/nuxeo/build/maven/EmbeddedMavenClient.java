@@ -46,6 +46,7 @@ import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectUtils;
 import org.apache.maven.settings.MavenSettingsBuilder;
+import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.BuildException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.embed.Embedder;
@@ -136,6 +137,10 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
         this.settingsFile = settingsFile;
     }
 
+    public Settings getSettings() {
+        return settings;
+    }
+    
     /**
      * Default implementation is not flexible enough
      */

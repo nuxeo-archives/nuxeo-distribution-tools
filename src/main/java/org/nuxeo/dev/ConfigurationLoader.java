@@ -18,7 +18,7 @@ package org.nuxeo.dev;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,9 +41,9 @@ public class ConfigurationLoader {
     protected Map<String, String> props;
     
     public ConfigurationLoader() {
-        poms = new HashSet<String>();
-        bundles = new HashSet<String>();
-        libs = new HashSet<String>();
+        poms = new LinkedHashSet<String>();
+        bundles = new LinkedHashSet<String>();
+        libs = new LinkedHashSet<String>();
         props = new HashMap<String, String>();
         reader = new ConfigurationReader();
         reader.addReader("bundles", new ArtifactReader(bundles));

@@ -28,6 +28,7 @@ import java.net.URL;
  *
  */
 public class Main {
+    
 
     public static void main(String[] args) throws Exception {
         File home = null;
@@ -36,13 +37,15 @@ public class Main {
         int port = 8080;
         String config = null;
         String updatePolicy = "daily";
+        boolean offline = false;
         String opt = null;
-        boolean noCache = true;
+        boolean noCache = false;
         for (String arg : args) {
-            if (arg.equals("--nocache")) {
-                noCache = false;
-            }
-            if (arg.startsWith("-")) {
+            if (arg.equals("-o")) {
+                offline = true;
+            } else if (arg.equals("--nocache")) {
+                noCache = true;
+            } else if (arg.startsWith("-")) {
                 opt = arg;
             } else if (opt != null) {
                 if ("-p".equals(opt)) {
@@ -78,13 +81,14 @@ public class Main {
         System.out.println("| Nuxeo Server Profile: "+(profile==null?"custom":profile));
         System.out.println("| Home Directory: "+home);
         System.out.println("| HTTP server at: "+host+":"+port);
-        System.out.println("| Use cache: "+!noCache+"; Snapshot update policy: "+updatePolicy);
+        System.out.println("| Use cache: "+!noCache+"; Snapshot update policy: "+updatePolicy+"; offline: "+offline);
         System.out.println("+---------------------------------------------------------\n");
         
         
         //FileUtils.deleteTree(home);
         final NuxeoApp app = new NuxeoApp(home);
         app.setVerbose(true);
+        app.setOffline(offline);
         app.setUpdatePolicy(updatePolicy);
         if (config != null) {
             app.build(makeUrl(config), !noCache);
