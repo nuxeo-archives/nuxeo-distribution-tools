@@ -44,14 +44,18 @@ public class ClassLoaderDelegate implements MutableClassLoader {
         Class<?> clazz = cl.getClass();
         do {
             try {
-                addURL = clazz.getDeclaredMethod("addURL", URL.class);
-                getURLs = clazz.getDeclaredMethod("getURLs");
+                if (addURL == null) {
+                    addURL = clazz.getDeclaredMethod("addURL", URL.class);
+                }
+                if (getURLs == null) {
+                    getURLs = clazz.getDeclaredMethod("getURLs");
+                }
             } catch (NoSuchMethodException e) {
                 clazz = clazz.getSuperclass();
             } catch (Exception e) {
                 throw new IllegalArgumentException("Failed to adapt class loader: "+cl.getClass(), e);    
             }
-        } while (addURL == null && clazz != null);
+        } while ((addURL == null || getURLs == null) && clazz != null);
         if (addURL == null) { //try parent
             ClassLoader parent = cl.getParent();
             if (parent != null) {
