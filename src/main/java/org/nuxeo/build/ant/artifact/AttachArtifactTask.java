@@ -24,6 +24,7 @@ import java.io.File;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
+import org.nuxeo.build.maven.AntBuildMojo;
 import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.graph.Node;
@@ -90,8 +91,9 @@ public class AttachArtifactTask extends Task {
             maven.getProjectHelper().attachArtifact(node.getPom(), type,
                     classifier, file);
         } else {
-            maven.getProjectHelper().attachArtifact(node.getPom(), type,
-                    file);
+            node.getPom().getArtifact().setFile(file);
+            node.getPom().getArtifact().setResolved(true);
+//            maven.getProjectHelper().attachArtifact(node.getPom(), type, file);
         }
     }
 
