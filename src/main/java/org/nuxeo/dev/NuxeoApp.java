@@ -226,9 +226,15 @@ public class NuxeoApp {
         Set<String> builtinBundles = loader.getBundles();
         for (String key : builtinBundles) {
             Node node = null;
+            String classifier = null;
             if (key.startsWith("!")) {
                 node = graph.addRootNode(key.substring(1));
             } else {
+                int p = key.indexOf(';');
+                if (p > -1) {
+                    classifier = key.substring(p+1); 
+                    key = key.substring(0, p);                        
+                }
                 node = graph.findFirst(key);
             }
             if (node == null) {
@@ -237,7 +243,8 @@ public class NuxeoApp {
             if (isVerbose) {
                 System.out.println("Resolving artifact: "+node);
             }
-            File jar = node.getFile();
+            File jar = classifier == null ? 
+                    node.getFile() : node.getFile(classifier);
             if (jar != null) {
                 Manifest mf = getManifest(jar);
                 String symbolicName = getSymbolicName(mf);
@@ -383,7 +390,7 @@ public class NuxeoApp {
         RepositoryPolicy policy = new RepositoryPolicy();
         policy.setEnabled(true);
         policy.setUpdatePolicy("never");
-        policy.setChecksumPolicy("fail");
+        policy.setChecksumPolicy("warn");
         repo.setReleases(policy);
         policy = new RepositoryPolicy();
         policy.setEnabled(false);
@@ -401,7 +408,7 @@ public class NuxeoApp {
         policy = new RepositoryPolicy();
         policy.setEnabled(true);
         policy.setUpdatePolicy(updatePolicy);
-        policy.setChecksumPolicy("fail");
+        policy.setChecksumPolicy("warn");
         repo.setSnapshots(policy);
         maven.addRemoteRepository(repo);
     }
