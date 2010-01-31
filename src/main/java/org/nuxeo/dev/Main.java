@@ -17,6 +17,7 @@
 package org.nuxeo.dev;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.URL;
 
 /**
@@ -36,6 +37,7 @@ public class Main {
         String host = "localhost";
         int port = 8080;
         String config = null;
+        String mainType = null;
         String updatePolicy = "daily";
         boolean offline = false;
         String opt = null;
@@ -62,6 +64,8 @@ public class Main {
                     }
                 } else if ("-c".equals(opt)) {
                     config = arg;
+                } else if ("-e".equals(opt)) {
+                    mainType = arg;
                 }
                 opt = null;
             } else { // the home directory
@@ -76,6 +80,10 @@ public class Main {
         }
 
         home = home.getCanonicalFile();
+        Method mainMethod = null;
+        if (mainType != null) {
+            mainMethod = Class.forName(mainType).getMethod("main", String[].class);
+        }
         
         System.out.println("+---------------------------------------------------------");
         System.out.println("| Nuxeo Server Profile: "+(profile==null?"custom":profile));
@@ -96,21 +104,27 @@ public class Main {
             app.build(profile, !noCache);
         }
         NuxeoApp.setHttpServerAddress(host, port);
-        Runtime.getRuntime().addShutdownHook(new Thread("Nuxeo Server Shutdown") {
-            @Override
-            public void run() {
-                try {
-                    app.shutdown();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
         
         app.start();
-        
-        //System.out.println("Hello!!");
-        //app.shutdown();
+
+        if (mainMethod == null) {
+            Runtime.getRuntime().addShutdownHook(new Thread("Nuxeo Server Shutdown") {
+                @Override
+                public void run() {
+                    try {
+                        app.shutdown();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } else {
+            try {
+                mainMethod.invoke(null, new Object[] {args});
+            } finally {
+                app.shutdown();
+            }
+        }
     }
 
     
