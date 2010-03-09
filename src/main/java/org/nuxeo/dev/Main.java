@@ -18,6 +18,7 @@ package org.nuxeo.dev;
 
 import java.io.File;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 
 /**
  * This is a sample of how to use NuxeoApp.
@@ -31,6 +32,8 @@ public class Main {
     
 
     public static void main(String[] args) throws Exception {
+        System.out.println(new SimpleDateFormat().parse("1265886692178"));
+        
         File home = null;
         String profile = NuxeoApp.CORE_SERVER_531;
         String host = "localhost";

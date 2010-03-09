@@ -217,7 +217,9 @@ public class Node {
         for (Dependency d : deps) {
             // Workaround to always ignore test scope dependencies
             if ("test".equalsIgnoreCase(d.getScope())
-                    || (filter != null && !filter.accept(this,d))) {
+                    || "system".equalsIgnoreCase(d.getScope())
+                    || d.isOptional()
+                    || (filter != null && !filter.accept(this, d))) {
                 continue;
             }
             // the last boolean parameter is redundant, but the version that

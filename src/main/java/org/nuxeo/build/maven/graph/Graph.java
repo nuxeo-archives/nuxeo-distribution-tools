@@ -52,24 +52,26 @@ public class Graph {
 
     protected Map<String, Artifact> file2artifacts = new HashMap<String, Artifact>();
 
-    protected VersionManagement vmgr; // manage versions from dependency management -> lazy initialized when required. (by calling artifact:resolveFile withpout a version)
-    
-    protected boolean shouldLoadDependencyManagement;
-    
+    // manage versions from dependency management -> lazy initialized when
+    // required. (by calling artifact:resolveFile without a version)
+    protected VersionManagement vmgr;
+
+    protected boolean shouldLoadDependencyManagement = false;
+
     public Graph(MavenClient maven) {
         this.maven = maven;
         this.vmgr = new VersionManagement();
     }
-    
+
     public VersionManagement getVersionManagement() {
         return vmgr;
     }
-    
+
     public void setShouldLoadDependencyManagement(
             boolean shouldLoadDependencyManagement) {
         this.shouldLoadDependencyManagement = shouldLoadDependencyManagement;
     }
-    
+
     public boolean shouldLoadDependencyManagement() {
         return shouldLoadDependencyManagement;
     }

@@ -26,31 +26,28 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class NuxeoExpandTask extends Task {
 
     protected DependencyFilter filter = new DependencyFilter() {
         public boolean accept(Node parent, Dependency dep) {
-            if (!parent.getArtifact().getGroupId().startsWith("org.nuxeo")) {
-                return false;
-            }
             String depScope = dep.getScope();
-            if ("compile".equals(depScope) || "runtime".equals(depScope) || "provided".equals(depScope)) {
-                return true;
-            }
-            return false;
+            return "compile".equals(depScope)
+                    || "runtime".equals(depScope)
+                    || ("provided".equals(depScope) && parent.getArtifact().getGroupId().startsWith(
+                            "org.nuxeo"));
         }
     };
-    
+
     @Override
     public void execute() throws BuildException {
         Graph graph = MavenClientFactory.getInstance().getGraph();
         for (Node node : graph.getRoots()) {
             if (node.getArtifact().getGroupId().startsWith("org.nuxeo")) {
-                node.expandAll(filter);                
+                node.expandAll(filter);
             }
         }
     }
-        
+
 }
