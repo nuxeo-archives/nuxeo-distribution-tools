@@ -55,7 +55,7 @@ import org.nuxeo.build.util.ZipUtils;
 public class NuxeoApp {
     
 
-    public final static String CORE_SERVER_531 = "core-5.3.1-SNAPSHOT";
+    public final static String CORE_SERVER_531 = "core-5.3.1";
     public final static String CORE_SERVER_530 = "core-5.3.0";
     
     
