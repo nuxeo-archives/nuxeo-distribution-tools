@@ -25,18 +25,18 @@ import java.text.SimpleDateFormat;
  * This is a sample of how to use NuxeoApp.
  * This sample is building a core server version 5.3.1-SNAPSHOT,
  * and then starts it.
- * 
+ *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  *
  */
 public class Main {
-    
+
 
     public static void main(String[] args) throws Exception {
         System.out.println(new SimpleDateFormat().parse("1265886692178"));
-        
+
         File home = null;
-        String profile = NuxeoApp.CORE_SERVER_531;
+        String profile = NuxeoApp.DEFAULT;
         String host = "localhost";
         int port = 8080;
         String config = null;
@@ -76,7 +76,7 @@ public class Main {
                 opt = null;
             }
         }
-        
+
         if (home == null) {
             System.err.println("Syntax error: You must specify a home directory to be used by the nuxeo server.");
             System.exit(1);
@@ -87,15 +87,15 @@ public class Main {
         if (mainType != null) {
             mainMethod = Class.forName(mainType).getMethod("main", String[].class);
         }
-        
+
         System.out.println("+---------------------------------------------------------");
         System.out.println("| Nuxeo Server Profile: "+(profile==null?"custom":profile));
         System.out.println("| Home Directory: "+home);
         System.out.println("| HTTP server at: "+host+":"+port);
         System.out.println("| Use cache: "+!noCache+"; Snapshot update policy: "+updatePolicy+"; offline: "+offline);
         System.out.println("+---------------------------------------------------------\n");
-        
-        
+
+
         //FileUtils.deleteTree(home);
         final NuxeoApp app = new NuxeoApp(home);
         app.setVerbose(true);
@@ -107,7 +107,7 @@ public class Main {
             app.build(profile, !noCache);
         }
         NuxeoApp.setHttpServerAddress(host, port);
-        
+
         app.start();
 
         if (mainMethod == null) {
@@ -130,7 +130,7 @@ public class Main {
         }
     }
 
-    
+
     protected static URL makeUrl(String spec) {
         try {
         if (spec.indexOf(':') > -1) {
@@ -153,12 +153,12 @@ public class Main {
             return null;
         }
     }
-    
+
     protected static void fail(String msg) {
         System.err.println(msg);
         System.exit(2);
     }
-    
+
     protected static ClassLoader getContextClassLoader() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         return cl == null ? Main.class.getClassLoader() : cl;
