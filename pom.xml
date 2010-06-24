@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -116,6 +117,14 @@
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-jdk14</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-nop</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>jcl-over-slf4j</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -308,7 +317,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-eclipse-plugin</artifactId>
-          <version>2.5</version> <!-- 2.7 is buggy, cf MECLIPSE-576 -->
+          <version>2.5</version><!-- 2.7 is buggy, cf MECLIPSE-576 -->
           <configuration>
             <downloadSources>true</downloadSources>
             <excludes>
@@ -334,7 +343,9 @@
             <configuration>
               <!--finalName>nuxeo-builder-${project.version}</finalName-->
               <createDependencyReducedPom>false</createDependencyReducedPom>
-              <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+              <keepDependenciesWithProvidedScope>
+                true
+              </keepDependenciesWithProvidedScope>
               <shadedArtifactAttached>true</shadedArtifactAttached>
               <shadedClassifierName>all</shadedClassifierName>
               <transformers>
@@ -347,7 +358,9 @@
                   <exclude>jmock:jmock</exclude>
                   <exclude>org.slf4j:slf4j-nop</exclude>
                   <exclude>org.slf4j:slf4j-jdk14</exclude>
-                  <exclude>org.apache.maven.wagon:wagon-webdav-jackrabbit</exclude>
+                  <exclude>
+                    org.apache.maven.wagon:wagon-webdav-jackrabbit
+                  </exclude>
                 </excludes>
               </artifactSet>
             </configuration>
