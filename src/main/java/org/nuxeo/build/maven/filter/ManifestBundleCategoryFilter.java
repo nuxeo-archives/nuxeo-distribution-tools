@@ -76,8 +76,8 @@ public class ManifestBundleCategoryFilter implements Filter {
             }
             return valuesToMatch;
         }
-        // ignore pom files
-        if (file.getName().endsWith(".pom")) {
+        // ignore non jar files
+        if (!file.getName().endsWith(".jar")) {
             return valuesToMatch;
         }
         try {
