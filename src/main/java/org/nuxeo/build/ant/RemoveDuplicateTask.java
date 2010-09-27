@@ -103,7 +103,7 @@ public class RemoveDuplicateTask extends Task {
         for (Entry p : list) {
             if (p != latest) {
                 buf.append(p.file.getName()).append(" ");
-                // p.file.delete();
+                p.file.delete();
             }
         }
         if (buf.length() > 0) {
