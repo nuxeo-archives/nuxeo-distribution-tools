@@ -23,37 +23,39 @@ import org.apache.tools.ant.Task;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class RenameTask extends Task {
 
-    protected String from;
-    protected String to;
-    
-    public void setFrom(String from) {
+    protected File from;
+
+    protected File to;
+
+    public void setFrom(File from) {
         this.from = from;
     }
-    
-    public void setTo(String to) {
+
+    public void setTo(File to) {
         this.to = to;
     }
-    
+
     @Override
     public void execute() throws BuildException {
-        if (from.endsWith("*")) {
-            String prefix = from.substring(0, from.length()-1);
-            File dir = new File(from).getParentFile();
+        String fromName = from.getName();
+        if (fromName.endsWith("*")) {
+            String prefix = fromName.substring(0, fromName.length() - 1);
+            File dir = from.getParentFile();
             File[] files = dir.listFiles();
-            for (int k=0; k<files.length; k++) {
+            for (int k = 0; k < files.length; k++) {
                 File f = files[k];
                 if (f.getAbsolutePath().startsWith(prefix)) {
-                    f.renameTo(new File(to));
+                    f.renameTo(to);
                     return;
                 }
-            }            
+            }
         } else {
-            new File(from).renameTo(new File(to));
+            from.renameTo(to);
         }
     }
-    
+
 }
