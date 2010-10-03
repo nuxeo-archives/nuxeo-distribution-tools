@@ -48,7 +48,7 @@ public class RenameTask extends Task {
             File[] files = dir.listFiles();
             for (int k = 0; k < files.length; k++) {
                 File f = files[k];
-                if (f.getAbsolutePath().startsWith(prefix)) {
+                if (f.getName().startsWith(prefix)) {
                     f.renameTo(to);
                     return;
                 }
