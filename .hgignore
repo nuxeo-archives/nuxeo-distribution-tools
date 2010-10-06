@@ -5,6 +5,7 @@ syntax:glob
 .mylar
 .pmd
 .settings
+.project
 bin
 target
 *~
