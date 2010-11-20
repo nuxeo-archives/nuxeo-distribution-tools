@@ -19,21 +19,17 @@ package org.nuxeo.dev;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 
 /**
- * This is a sample of how to use NuxeoApp.
- * This sample is building a core server version 5.3.1-SNAPSHOT,
- * and then starts it.
- *
+ * This is a sample of how to use NuxeoApp. This sample is building a core
+ * server version 5.3.1-SNAPSHOT, and then starts it.
+ * 
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class Main {
 
-
     public static void main(String[] args) throws Exception {
-        System.out.println(new SimpleDateFormat().parse("1265886692178"));
 
         File home = null;
         String profile = NuxeoApp.DEFAULT;
@@ -61,7 +57,7 @@ public class Main {
                     int p = arg.indexOf(':');
                     if (p != -1) {
                         host = arg.substring(0, p);
-                        port = Integer.parseInt(arg.substring(p+1));
+                        port = Integer.parseInt(arg.substring(p + 1));
                     } else {
                         host = arg;
                     }
@@ -85,18 +81,21 @@ public class Main {
         home = home.getCanonicalFile();
         Method mainMethod = null;
         if (mainType != null) {
-            mainMethod = Class.forName(mainType).getMethod("main", String[].class);
+            mainMethod = Class.forName(mainType).getMethod("main",
+                    String[].class);
         }
 
         System.out.println("+---------------------------------------------------------");
-        System.out.println("| Nuxeo Server Profile: "+(profile==null?"custom":profile));
-        System.out.println("| Home Directory: "+home);
-        System.out.println("| HTTP server at: "+host+":"+port);
-        System.out.println("| Use cache: "+!noCache+"; Snapshot update policy: "+updatePolicy+"; offline: "+offline);
+        System.out.println("| Nuxeo Server Profile: "
+                + (profile == null ? "custom" : profile));
+        System.out.println("| Home Directory: " + home);
+        System.out.println("| HTTP server at: " + host + ":" + port);
+        System.out.println("| Use cache: " + !noCache
+                + "; Snapshot update policy: " + updatePolicy + "; offline: "
+                + offline);
         System.out.println("+---------------------------------------------------------\n");
 
-
-        //FileUtils.deleteTree(home);
+        // FileUtils.deleteTree(home);
         final NuxeoApp app = new NuxeoApp(home);
         app.setVerbose(true);
         app.setOffline(offline);
@@ -111,45 +110,46 @@ public class Main {
         app.start();
 
         if (mainMethod == null) {
-            Runtime.getRuntime().addShutdownHook(new Thread("Nuxeo Server Shutdown") {
-                @Override
-                public void run() {
-                    try {
-                        app.shutdown();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+            Runtime.getRuntime().addShutdownHook(
+                    new Thread("Nuxeo Server Shutdown") {
+                        @Override
+                        public void run() {
+                            try {
+                                app.shutdown();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
         } else {
             try {
-                mainMethod.invoke(null, new Object[] {args});
+                mainMethod.invoke(null, new Object[] { args });
             } finally {
                 app.shutdown();
             }
         }
     }
 
-
     protected static URL makeUrl(String spec) {
         try {
-        if (spec.indexOf(':') > -1) {
-            if (spec.startsWith("java:")) {
-                spec = spec.substring(5);
-                ClassLoader cl = getContextClassLoader();
-                URL url = cl.getResource(spec);
-                if (url == null) {
-                    fail("Canot found java resource: "+spec);
+            if (spec.indexOf(':') > -1) {
+                if (spec.startsWith("java:")) {
+                    spec = spec.substring(5);
+                    ClassLoader cl = getContextClassLoader();
+                    URL url = cl.getResource(spec);
+                    if (url == null) {
+                        fail("Canot found java resource: " + spec);
+                    }
+                    return url;
+                } else {
+                    return new URL(spec);
                 }
-                return url;
             } else {
-                return new URL(spec);
+                return new File(spec).toURI().toURL();
             }
-        } else {
-            return new File(spec).toURI().toURL();
-        }
         } catch (Exception e) {
-            fail("Invalid config file soecification. Not a valid URL or file: "+spec);
+            fail("Invalid config file soecification. Not a valid URL or file: "
+                    + spec);
             return null;
         }
     }
