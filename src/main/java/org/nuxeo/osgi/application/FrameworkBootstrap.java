@@ -33,10 +33,12 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
+import org.nuxeo.dev.ClassLoaderDelegate;
+
 /**
  * @deprecated needs to be kept in sync with the one from nuxeo-runtime-launcher
  *             until they are merged
- *
+ * 
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 public class FrameworkBootstrap implements LoaderConstants {
@@ -60,7 +62,7 @@ public class FrameworkBootstrap implements LoaderConstants {
     protected boolean flushCache = false;
 
     public FrameworkBootstrap(ClassLoader cl, File home) throws IOException {
-        this(new MutableClassLoaderDelegate(cl), home);
+        this(new ClassLoaderDelegate(cl), home);
     }
 
     public FrameworkBootstrap(MutableClassLoader loader, File home)
@@ -184,7 +186,7 @@ public class FrameworkBootstrap implements LoaderConstants {
 
     /**
      * Fills the classloader with all jars found in the defined classpath.
-     *
+     * 
      * @return the list of bundle files.
      */
     protected List<File> buildClassPath() throws IOException {

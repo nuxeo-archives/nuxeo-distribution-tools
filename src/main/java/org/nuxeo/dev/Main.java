@@ -19,6 +19,8 @@ package org.nuxeo.dev;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is a sample of how to use NuxeoApp. This sample is building a core
@@ -41,11 +43,16 @@ public class Main {
         boolean offline = false;
         String opt = null;
         boolean noCache = false;
+        String[] extBundles = null;
+        String[] extLibs = null;
+        boolean sharedcl = false;
         for (String arg : args) {
             if (arg.equals("-o")) {
                 offline = true;
             } else if (arg.equals("--nocache")) {
                 noCache = true;
+            } else if (arg.equals("-shared")) {
+                sharedcl = true;
             } else if (arg.startsWith("-")) {
                 opt = arg;
             } else if (opt != null) {
@@ -65,6 +72,10 @@ public class Main {
                     config = arg;
                 } else if ("-e".equals(opt)) {
                     mainType = arg;
+                } else if ("-bundles".equals(opt)) {
+                    extBundles = splitCp(arg);
+                } else if ("-libs".equals(opt)) {
+                    extLibs = splitCp(arg);
                 }
                 opt = null;
             } else { // the home directory
@@ -96,7 +107,15 @@ public class Main {
         System.out.println("+---------------------------------------------------------\n");
 
         // FileUtils.deleteTree(home);
-        final NuxeoApp app = new NuxeoApp(home);
+        final NuxeoApp app = new NuxeoApp(home, null, !sharedcl);
+        Thread.currentThread().setContextClassLoader(
+                app.bootstrap.getClassLoader());
+        if (extBundles != null) {
+            app.setExternalBundles(extBundles);
+        }
+        if (extLibs != null) {
+            app.setExternalLibs(extLibs);
+        }
         app.setVerbose(true);
         app.setOffline(offline);
         app.setUpdatePolicy(updatePolicy);
@@ -162,6 +181,48 @@ public class Main {
     protected static ClassLoader getContextClassLoader() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         return cl == null ? Main.class.getClassLoader() : cl;
+    }
+
+    protected static String[] splitCp(String expr) {
+        expr = expr.trim();
+        if (expr.startsWith("\"") && expr.endsWith("\"")) {
+            expr = expr.substring(1, expr.length() - 1).trim();
+        }
+        return split(expr, ':', true);
+    }
+
+    public static String[] split(String str, char delimiter, boolean trim) {
+        int s = 0;
+        int e = str.indexOf(delimiter, s);
+        if (e == -1) {
+            if (trim) {
+                str = str.trim();
+            }
+            return new String[] { str };
+        }
+        List<String> ar = new ArrayList<String>();
+        do {
+            String segment = str.substring(s, e);
+            if (trim) {
+                segment = segment.trim();
+            }
+            ar.add(segment);
+            s = e + 1;
+            e = str.indexOf(delimiter, s);
+        } while (e != -1);
+
+        int len = str.length();
+        if (s < len) {
+            String segment = str.substring(s);
+            if (trim) {
+                segment = segment.trim();
+            }
+            ar.add(segment);
+        } else {
+            ar.add("");
+        }
+
+        return ar.toArray(new String[ar.size()]);
     }
 
 }

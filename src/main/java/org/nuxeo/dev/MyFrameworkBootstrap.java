@@ -22,28 +22,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.nuxeo.osgi.application.FrameworkBootstrap;
+import org.nuxeo.osgi.application.MutableClassLoader;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class MyFrameworkBootstrap extends FrameworkBootstrap {
 
     protected NuxeoApp app;
-    
-    public MyFrameworkBootstrap(NuxeoApp app, ClassLoader cl) throws IOException {
-        super(new ClassLoaderDelegate(cl), app.getHome());
+
+    public MyFrameworkBootstrap(NuxeoApp app, MutableClassLoader cl)
+            throws IOException {
+        super(cl, app.getHome());
         this.app = app;
     }
-    
+
     @Override
-    public ClassLoaderDelegate getLoader() {
-        return (ClassLoaderDelegate)super.getLoader();
+    public MutableClassLoader getLoader() {
+        return (MutableClassLoader) super.getLoader();
     }
-    
+
     /**
-     * The class path is built by the build process of the NuxeoApp
-     * Here we simply return the list of bundles detected at build time
+     * The class path is built by the build process of the NuxeoApp Here we
+     * simply return the list of bundles detected at build time
      */
     @Override
     protected List<File> buildClassPath() throws IOException {
