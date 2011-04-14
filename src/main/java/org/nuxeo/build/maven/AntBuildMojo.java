@@ -17,7 +17,7 @@
 package org.nuxeo.build.maven;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,12 +72,19 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     protected File[] buildFiles;
 
     /**
-     * Location of the build file.
+     * Ant target to call on build file(s).
      *
-     * @parameter expression="${target}" default-value=""
-     * @required
+     * @parameter expression="${target}"
      */
     protected String target;
+
+    /**
+     * Ant targets to call on build file(s).
+     *
+     * @since 1.6
+     * @parameter expression="${targets}"
+     */
+    protected String[] targets;
 
     /**
      * How many levels the graph must be expanded before running ant.
@@ -231,6 +238,14 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
             }
             buildFiles = new File[] { buildFile };
         }
+
+        if (target != null && targets != null && targets.length > 0) {
+            throw new MojoExecutionException(
+                    "The configuration parameters 'target' and 'targets' cannot both be used.");
+        }
+        if ((targets == null || targets.length == 0) && target != null) {
+            targets = new String[] { target };
+        }
         for (File file : buildFiles) {
             graph = new Graph(this);
 
@@ -240,10 +255,8 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
             }
 
             try {
-                if (target != null && target.length() > 0) {
-                    ArrayList<String> targets = new ArrayList<String>();
-                    targets.add(target);
-                    ant.run(file, targets);
+                if (targets != null && targets.length > 0) {
+                    ant.run(file, Arrays.asList(targets));
                 } else {
                     ant.run(file);
                 }
