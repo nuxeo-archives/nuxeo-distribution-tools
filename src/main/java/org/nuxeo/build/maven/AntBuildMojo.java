@@ -42,14 +42,14 @@ import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
- * 
+ *
  * @goal build
  * @phase package
- * 
+ *
  * @requiresDependencyResolution runtime
- * 
+ *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * 
+ *
  */
 public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
@@ -59,22 +59,21 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Location of the build file, if unique
-     * 
-     * @parameter expression="${buildFile}" default-value="build.xml"
-     * @deprecated prefer use of buildFiles
+     *
+     * @parameter expression="${buildFile}"
      */
     protected File buildFile;
 
     /**
      * Location of the build files.
-     * 
+     *
      * @parameter expression="${buildFiles}"
      */
-    protected String[] buildFiles;
+    protected File[] buildFiles;
 
     /**
      * Location of the build file.
-     * 
+     *
      * @parameter expression="${target}" default-value=""
      * @required
      */
@@ -82,14 +81,14 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * How many levels the graph must be expanded before running ant.
-     * 
+     *
      * @parameter expression="${expand}" default-value="0"
      */
     protected int expand;
 
     /**
      * Location of the file.
-     * 
+     *
      * @parameter expression="${project}"
      * @required
      */
@@ -97,7 +96,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Maven ProjectHelper
-     * 
+     *
      * @component
      * @readonly
      */
@@ -105,7 +104,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Location of the local repository.
-     * 
+     *
      * @parameter expression="${localRepository}"
      * @readonly
      * @required
@@ -114,7 +113,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * List of Remote Repositories used by the resolver
-     * 
+     *
      * @parameter expression="${project.remoteArtifactRepositories}"
      * @readonly
      * @required
@@ -123,7 +122,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Used to look up Artifacts in the remote repository.
-     * 
+     *
      * @component
      * @required
      * @readonly
@@ -132,7 +131,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Used to look up Artifacts in the remote repository.
-     * 
+     *
      * @component
      * @required
      * @readonly
@@ -140,7 +139,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     protected org.apache.maven.artifact.resolver.ArtifactResolver resolver;
 
     /**
-     * 
+     *
      * @component
      * @readonly
      */
@@ -222,10 +221,17 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
         ant.setGlobalProperties(props);
 
-        if (buildFile != null && (buildFiles == null || buildFiles.length == 0)) {
-            buildFiles = new String[] { buildFile.getPath() };
+        if (buildFile != null && buildFiles != null && buildFiles.length > 0) {
+            throw new MojoExecutionException(
+                    "The configuration parameters 'buildFile' and 'buildFiles' cannot both be used.");
         }
-        for (String file : buildFiles) {
+        if (buildFiles == null || buildFiles.length == 0) {
+            if (buildFile == null) {
+                buildFile = new File("build.xml");
+            }
+            buildFiles = new File[] { buildFile };
+        }
+        for (File file : buildFiles) {
             graph = new Graph(this);
 
             Node root = graph.addRootNode(project);
@@ -237,9 +243,9 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                 if (target != null && target.length() > 0) {
                     ArrayList<String> targets = new ArrayList<String>();
                     targets.add(target);
-                    ant.run(new File(file), targets);
+                    ant.run(file, targets);
                 } else {
-                    ant.run(new File(file));
+                    ant.run(file);
                 }
             } catch (BuildException e) {
                 throw new MojoExecutionException("Failed to run " + file, e);
