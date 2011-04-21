@@ -18,18 +18,22 @@ package org.nuxeo.build.maven;
 
 import org.apache.maven.artifact.Artifact;
 
-
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  *
  */
 public class ArtifactDescriptor {
 
-    public String groupId;
-    public String artifactId;
-    public String version;
+    public String groupId = null;
+
+    public String artifactId = null;
+
+    public String version = null;
+
     public String type = "jar";
-    public String classifier;
+
+    public String classifier = null;
+
     public String scope = "compile";
 
     public static ArtifactDescriptor emptyDescriptor() {
@@ -38,11 +42,12 @@ public class ArtifactDescriptor {
         ad.type = null;
         return ad;
     }
-    
+
     public ArtifactDescriptor() {
     }
 
-    public ArtifactDescriptor(String groupId, String artifactId, String version, String type, String classifier) {
+    public ArtifactDescriptor(String groupId, String artifactId,
+            String version, String type, String classifier) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;
@@ -55,99 +60,64 @@ public class ArtifactDescriptor {
     }
 
     public void parse(String expr) {
-        int p = 0;
-        int q = expr.indexOf(':', p);
-        if (q == -1) {
-            groupId = expr.substring(p);
-            return;
+        String[] result = expr.split(":");
+        if (result.length > 5) {
+            scope = "".equals(result[5]) ? null : result[5];
         }
-        groupId = expr.substring(p, q);
-
-        p = q+1;
-        q = expr.indexOf(':', p);
-        if (q == -1) {
-            artifactId = expr.substring(p);
-            return;
+        if (result.length > 4) {
+            classifier = "".equals(result[4]) ? null : result[4];
         }
-        artifactId = expr.substring(p, q);
-
-        p = q+1;
-        q = expr.indexOf(':', p);
-        if (q == -1) {
-            version = expr.substring(p);
-            return;
+        if (result.length > 3) {
+            type = "".equals(result[3]) ? null : result[3];
         }
-        version = expr.substring(p, q);
-
-        p = q+1;
-        q = expr.indexOf(':', p);
-        if (q == -1) {
-            type = expr.substring(p);
-            return;
+        if (result.length > 2) {
+            version = "".equals(result[2]) ? null : result[2];
         }
-        type = expr.substring(p, q);
-
-        p = q+1;
-        q = expr.indexOf(':', p);
-        if (q == -1) {
-            classifier = expr.substring(p);
-            return;
+        if (result.length > 1) {
+            artifactId = "".equals(result[1]) ? null : result[1];
         }
-        classifier = expr.substring(p, q);
-
-        p = q+1;
-        q = expr.indexOf(':', p);
-        if (q == -1) {
-            scope = expr.substring(p);
-            return;
+        if (result.length > 0) {
+            groupId = "".equals(result[0]) ? null : result[0];
         }
-        scope = expr.substring(p, q);
     }
 
     public Artifact toBuildArtifact() {
         return MavenClientFactory.getInstance().getArtifactFactory().createBuildArtifact(
                 groupId, artifactId, version, type);
     }
-    
+
     public Artifact toArtifactWithClassifier() {
-        return MavenClientFactory.getInstance().getArtifactFactory().createArtifactWithClassifier(groupId, artifactId, version, type, classifier);
+        return MavenClientFactory.getInstance().getArtifactFactory().createArtifactWithClassifier(
+                groupId, artifactId, version, type, classifier);
     }
-    
+
     public String getNodeKeyPattern() {
         if (groupId != null) {
-             StringBuilder buf = new StringBuilder();
-             buf.append(groupId);
-             if (artifactId != null) {
-                 buf.append(':').append(artifactId);
-                 if (version != null) {
-                     buf.append(':').append(version);
-                     if (type != null) {
-                         buf.append(':').append(type);    
-                     }
-                 }
-             }
-             return buf.toString();
+            StringBuilder buf = new StringBuilder();
+            buf.append(groupId);
+            if (artifactId != null) {
+                buf.append(':').append(artifactId);
+                if (version != null) {
+                    buf.append(':').append(version);
+                    if (type != null) {
+                        buf.append(':').append(type);
+                    }
+                }
+            }
+            return buf.toString();
         }
         return null;
     }
 
     @Override
     public String toString() {
-        StringBuilder buf = new StringBuilder(); 
+        StringBuilder buf = new StringBuilder();
         buf.append(groupId).append(':').append(artifactId);
-        if (version != null) {
-            buf.append(':').append(version);
-        }
-        if (type != null) {
-            buf.append(':').append(type);
-        }
-        if (classifier != null) {
-            buf.append(':').append(classifier);
-        }
-        if (scope != null) {
-            buf.append(':').append(scope);
-        }
+        buf.append(':').append(version);
+        buf.append(':').append(type);
+        buf.append(':').append(classifier);
+        buf.append(':').append(scope);
         return buf.toString();
     }
-    
+
 }
