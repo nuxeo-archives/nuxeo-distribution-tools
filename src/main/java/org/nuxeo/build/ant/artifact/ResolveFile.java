@@ -20,6 +20,7 @@ import java.io.File;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.types.resources.FileResource;
 import org.nuxeo.build.maven.ArtifactDescriptor;
@@ -34,45 +35,54 @@ import org.nuxeo.build.maven.filter.VersionManagement;
 public class ResolveFile extends FileResource {
 
     public String key;
+
     public String classifier;
 
     public void setKey(String pattern) {
         int p = pattern.lastIndexOf(';');
         if (p > -1) {
             key = pattern.substring(0, p);
-            classifier = pattern.substring(p+1);
+            classifier = pattern.substring(p + 1);
         } else {
             key = pattern;
         }
     }
 
+    /**
+     * @deprecated since 1.8; put classifier in the key
+     *             ("groupId:artifactId:version:type:classifier:scope")
+     * @param classifier
+     */
     public void setClassifier(String classifier) {
         this.classifier = classifier;
     }
 
-
     protected File resolveFile() throws ArtifactNotFoundException {
         MavenClient maven = MavenClientFactory.getInstance();
         ArtifactDescriptor ad = new ArtifactDescriptor(key);
+        // Sync classifier set from key or from setClassifier()
+        if (ad.classifier != null) {
+            classifier = ad.classifier;
+        } else if (classifier != null) {
+            ad.classifier = classifier;
+        }
         if (ad.version == null) {
             VersionManagement versionManagement = maven.getGraph().getVersionManagement();
             ad.version = versionManagement.getVersion(ad);
             if (ad.version == null) {
-                throw new BuildException("Version is required since not found in dependency management: "+ ad);
+                throw new BuildException(
+                        "Version is required since not found in dependency management: "
+                                + ad);
             }
         }
-        Artifact artifact;
-        if (classifier != null) {
-            artifact = maven.getArtifactFactory().createArtifactWithClassifier(
-                ad.groupId, ad.artifactId, ad.version, ad.type, classifier);
-        } else {
-            artifact = maven.getArtifactFactory().createArtifact(
-                    ad.groupId, ad.artifactId, ad.version, ad.scope, ad.type);
-        }
+        Artifact artifact = maven.getArtifactFactory().createDependencyArtifact(
+                ad.groupId, ad.artifactId,
+                VersionRange.createFromVersion(ad.version), ad.type,
+                ad.classifier, ad.scope);
         MavenClientFactory.getInstance().resolve(artifact);
         return artifact.getFile();
     }
-    
+
     @Override
     public File getFile() {
         if (isReference()) {
@@ -81,14 +91,14 @@ public class ResolveFile extends FileResource {
         try {
             return resolveFile();
         } catch (ArtifactNotFoundException e) {
-            throw new BuildException("Failed to resolve file: "+key+"; classifier: "+classifier, e);
+            throw new BuildException("Failed to resolve file: " + key
+                    + "; classifier: " + classifier, e);
         }
     }
 
     @Override
     public File getBaseDir() {
-        return isReference()
-                ? ((FileResource) getCheckedRef()).getBaseDir()
+        return isReference() ? ((FileResource) getCheckedRef()).getBaseDir()
                 : getFile().getParentFile();
     }
 
