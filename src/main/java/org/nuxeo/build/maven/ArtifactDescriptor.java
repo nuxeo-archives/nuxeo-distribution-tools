@@ -62,13 +62,13 @@ public class ArtifactDescriptor {
     public void parse(String expr) {
         String[] result = expr.split(":");
         if (result.length > 5) {
-            scope = "".equals(result[5]) ? null : result[5];
+            scope = "".equals(result[5]) ? "compile" : result[5];
         }
         if (result.length > 4) {
             classifier = "".equals(result[4]) ? null : result[4];
         }
         if (result.length > 3) {
-            type = "".equals(result[3]) ? null : result[3];
+            type = "".equals(result[3]) ? "jar" : result[3];
         }
         if (result.length > 2) {
             version = "".equals(result[2]) ? null : result[2];
