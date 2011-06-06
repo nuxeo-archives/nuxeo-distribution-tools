@@ -69,9 +69,9 @@ public class AncestorFilter implements Filter {
         }
         return false;
     }
-    
+
     public boolean accept(Node parent, Dependency dep) {
-        throw new UnsupportedOperationException("Ancestor folter cannt be applied on dependency objects");
+        throw new UnsupportedOperationException("Ancestor folder cannot be applied on dependency objects");
     }
 
     public boolean accept(Edge edge) {
@@ -84,7 +84,7 @@ public class AncestorFilter implements Filter {
     }
 
     public boolean accept(Artifact artifact) {
-        throw new UnsupportedOperationException("Ancestor folter cannt be applied on artifact objects");
+        throw new UnsupportedOperationException("Ancestor folder cannot be applied on artifact objects");
     }
-    
+
 }

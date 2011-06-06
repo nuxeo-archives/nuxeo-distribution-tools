@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, jcarsique
  */
 package org.nuxeo.dev;
 
@@ -24,10 +24,10 @@ import java.util.List;
 
 /**
  * This is a sample of how to use NuxeoApp. This sample is building a core
- * server version 5.3.1-SNAPSHOT, and then starts it.
- * 
+ * server version 5.4.2, and then starts it.
+ *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * 
+ *
  */
 public class Main {
 
@@ -157,7 +157,7 @@ public class Main {
                     ClassLoader cl = getContextClassLoader();
                     URL url = cl.getResource(spec);
                     if (url == null) {
-                        fail("Canot found java resource: " + spec);
+                        fail("Cannot found java resource: " + spec);
                     }
                     return url;
                 } else {
@@ -167,7 +167,7 @@ public class Main {
                 return new File(spec).toURI().toURL();
             }
         } catch (Exception e) {
-            fail("Invalid config file soecification. Not a valid URL or file: "
+            fail("Invalid config file specification. Not a valid URL or file: "
                     + spec);
             return null;
         }
