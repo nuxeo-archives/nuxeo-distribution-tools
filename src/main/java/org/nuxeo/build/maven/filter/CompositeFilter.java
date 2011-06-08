@@ -43,10 +43,18 @@ public abstract class CompositeFilter implements Filter {
         filters.add(filter);
     }
 
+    public void removeFilter(Filter filter) {
+        filters.remove(filter);
+    }
+    
     public void addFilters(List<Filter> filtersToAdd) {
         this.filters.addAll(filtersToAdd);
     }
 
+    public void removeFilters(List<Filter> filters) {
+        this.filters.removeAll(filters);
+    }
+ 
     public List<Filter> getFilters() {
         return filters;
     }

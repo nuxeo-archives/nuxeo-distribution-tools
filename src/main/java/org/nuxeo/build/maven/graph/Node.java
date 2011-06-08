@@ -25,7 +25,9 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Exclusion;
 import org.apache.maven.project.MavenProject;
+import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.DependencyFilter;
 import org.nuxeo.build.maven.filter.Filter;
 
@@ -38,6 +40,8 @@ import org.nuxeo.build.maven.filter.Filter;
  */
 @SuppressWarnings("unchecked")
 public class Node {
+
+    protected ArrayList<Exclusion> exclusions = new ArrayList<Exclusion>();
 
     protected Graph graph;
 
@@ -136,6 +140,10 @@ public class Node {
         return id;
     }
 
+    public List<Exclusion> getExclusions() {
+        return exclusions;
+    }
+
     public List<Edge> getEdgesOut() {
         return edgesOut;
     }
@@ -220,6 +228,10 @@ public class Node {
                     || "system".equalsIgnoreCase(d.getScope())
                     || d.isOptional()
                     || (filter != null && !filter.accept(this, d))) {
+                if (MavenClientFactory.getLog().isDebugEnabled()) {
+                    MavenClientFactory.getLog().debug(
+                            "Filtering " + this + "  - refused " + d.toString());
+                }
                 continue;
             }
             // the last boolean parameter is redundant, but the version that
@@ -233,7 +245,7 @@ public class Node {
             // from dependency
             assert a.getScope().equals(d.getScope());
             Node newNode = null;
-            newNode = graph.getNode(a);
+            newNode = graph.getNode(a, d);
             Edge edge = new Edge(this, newNode, d.getScope(), d.isOptional());
             addEdgeOut(edge);
             newNode.addEdgeIn(edge);

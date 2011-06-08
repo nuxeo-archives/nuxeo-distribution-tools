@@ -24,24 +24,31 @@ import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.AndFilter;
 import org.nuxeo.build.maven.filter.CompositeFilter;
+import org.nuxeo.build.maven.filter.MavenExclusionFilter;
+import org.nuxeo.build.maven.filter.Filter;
 import org.nuxeo.build.maven.filter.NotFilter;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class ExpandTask extends Task {
 
     public String key;
-    public int depth = 1;
-    public AndFilter filter;
 
-    
+    public int depth = 1;
+
+    public AndFilter filter = new AndFilter();
+
+    public ExpandTask() {
+        filter.addFilter(new MavenExclusionFilter());
+    }
+
     public void setKey(String key) {
         this.key = key;
     }
-    
+
     public void setDepth(String depth) {
         if ("all".equals(depth)) {
             this.depth = Integer.MAX_VALUE;
@@ -49,7 +56,7 @@ public class ExpandTask extends Task {
             this.depth = Integer.parseInt(depth);
         }
     }
-    
+
     public void addExcludes(Excludes excludes) {
         if (filter == null) {
             filter = new AndFilter();
@@ -64,6 +71,20 @@ public class ExpandTask extends Task {
         filter.addFilter(includes.getFilter());
     }
 
+    protected Filter exclusionFilter = 
+            new MavenExclusionFilter();
+    
+    public void setMavenExclusions(Boolean value) {
+        if (value == Boolean.TRUE) {
+            filter.addFilter(exclusionFilter);
+        } else {
+            filter.removeFilter(exclusionFilter);
+        }
+    }
+
+    protected boolean acceptNode(Node node) {
+        return true;
+    }
 
     @Override
     public void execute() throws BuildException {
@@ -72,9 +93,12 @@ public class ExpandTask extends Task {
         if (key == null) {
             nodes = maven.getGraph().getRoots();
         } else {
-            nodes = maven.getGraph().find(key); 
+            nodes = maven.getGraph().find(key);
         }
         for (Node node : nodes) {
+            if (!acceptNode(node)) {
+                continue;
+            }
             if (filter != null) {
                 node.expand(depth, CompositeFilter.compact(filter));
             } else {
@@ -82,5 +106,5 @@ public class ExpandTask extends Task {
             }
         }
     }
-        
+
 }
