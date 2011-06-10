@@ -27,6 +27,7 @@ import org.nuxeo.build.maven.filter.CompositeFilter;
 import org.nuxeo.build.maven.filter.MavenExclusionFilter;
 import org.nuxeo.build.maven.filter.Filter;
 import org.nuxeo.build.maven.filter.NotFilter;
+import org.nuxeo.build.maven.filter.ScopeFilter;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
@@ -81,7 +82,7 @@ public class ExpandTask extends Task {
             filter.removeFilter(exclusionFilter);
         }
     }
-
+ 
     protected boolean acceptNode(Node node) {
         return true;
     }
