@@ -16,7 +16,17 @@
  */
 package org.nuxeo.build.maven.graph;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.versioning.VersionRange;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Exclusion;
+import org.apache.maven.project.MavenProject;
+import org.nuxeo.build.maven.MavenClientFactory;
+import org.nuxeo.build.maven.filter.DependencyFilter;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -24,24 +34,127 @@ import org.apache.maven.artifact.Artifact;
  */
 public class Edge {
 
-    public Node src;
+    public final Graph graph;
+    
+    public final Edge from;
+    
+    public final Node src;
 
-    public Node dst;
+    public final Node dst;
 
-    public boolean isOptional;
+    public final boolean isOptional;
 
-    public String scope = Artifact.SCOPE_COMPILE;
+    public final String scope;
+    
+    public final List<Exclusion> exclusions;
 
-    public Edge(Node src, Node dst) {
-        this.src= src;
-        this.dst = dst;
+    protected final Dependency dep;
+        
+    public Edge(Node node) {
+        this.graph = node.graph;
+        this.from = null;
+        this.src= node;
+        this.dst = node;
+        this.isOptional = false;
+        this.scope = Artifact.SCOPE_COMPILE;
+        this.exclusions = Collections.emptyList();
+        this.dep = new Dependency();;
     }
 
-    public Edge(Node src, Node dst, String scope, boolean isOptional) {
+    public Edge(Edge from, Node src, Node dst, Dependency d) {
+        this.graph = from.graph;
+        this.from = from;
         this.src= src;
         this.dst = dst;
-        this.scope = scope;
-        this.isOptional = isOptional;
+        this.dep = d;
+        this.scope = d.getScope();
+        this.isOptional = d.isOptional();
+        this.exclusions = Collections.unmodifiableList(d.getExclusions());
     }
 
+
+  @SuppressWarnings("unchecked")
+public void expand(int recurse,
+            DependencyFilter filter) {
+        if (recurse <= 0) {
+            return;
+        }
+        if (dst.isExpanded) {
+            return;
+        }
+        MavenProject pom = dst.getPom();
+        if (pom == null) {
+            return;
+        }
+        final String type = dst.getArtifact().getType();
+        final boolean shouldLoadDependencyManagement = graph.shouldLoadDependencyManagement();
+        if ("pom".equals(type) && shouldLoadDependencyManagement) {
+            expand(recurse,
+                    pom.getDependencyManagement().getDependencies(), filter);
+        }
+        expand(recurse, pom.getDependencies(), filter);
+    }
+    
+    protected void expand(int recurse, 
+            List<Dependency> deps, DependencyFilter filter) {
+        dst.isExpanded = true;
+        ArtifactFactory factory = graph.getMaven().getArtifactFactory();
+        for (Dependency d : deps) {
+            // Workaround to always ignore test scope dependencies
+            // the last boolean parameter is redundant, but the version that
+            // doesn't take this has a bug. See MNG-2524
+            if ("test".equalsIgnoreCase(d.getScope())
+                    || "system".equalsIgnoreCase(d.getScope())
+                    || d.isOptional()
+                    || (filter != null && !filter.accept(this, d))) {
+                if (MavenClientFactory.getLog().isDebugEnabled()) {
+                    MavenClientFactory.getLog().info(
+                            "Filtering " + dst + "  - refused "
+                                    + d.toString());
+                }
+                continue;
+            }
+            Artifact a = factory.createDependencyArtifact(d.getGroupId(),
+                    d.getArtifactId(),
+                    VersionRange.createFromVersion(d.getVersion()),
+                    d.getType(), d.getClassifier(), d.getScope(), false);
+
+            // beware of Maven bug! make sure artifact got the value inherited
+            // from dependency
+            assert a.getScope().equals(d.getScope());
+            Node newNode = graph.getNode(dst, a);
+            if (d.getExclusions().isEmpty() == false && newNode.isExpanded) {
+                newNode.unexpand();
+            }
+            Edge newEdge = new Edge(this, dst, newNode, d);
+            dst.addEdgeOut(newNode, newEdge);
+            newNode.addEdgeIn(dst, newEdge);
+            
+            if (recurse > 0 && newNode.isExpanded == false) {
+                 newEdge.expand(recurse-1, filter);
+            }
+        }
+    }
+
+@Override
+public String toString() {
+    return "edge - " + src + " -> " + dst;
+    }
+
+    public static void print(Edge edge) {
+        recursePrint(edge, 0);
+    }
+
+    protected static int recursePrint(Edge edge, int level) {
+        if (edge == null) {
+            return level;
+        }
+        if (level > 100) {
+            System.out.println("Cutting, maximum depth");
+            return level;
+        }
+        level = recursePrint(edge.from, level+1);
+        System.out.println(String.format("%04d %s", level, edge));
+        return level-1;
+    }
 }

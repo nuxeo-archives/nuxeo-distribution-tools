@@ -70,7 +70,7 @@ public class AncestorFilter implements Filter {
         return false;
     }
 
-    public boolean accept(Node parent, Dependency dep) {
+    public boolean accept(Edge edge, Dependency dep) {
         throw new UnsupportedOperationException("Ancestor folder cannot be applied on dependency objects");
     }
 

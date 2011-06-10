@@ -18,7 +18,7 @@ package org.nuxeo.build.swing.tree;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.util.List;
+import java.util.Collection;
 
 import javax.swing.Icon;
 
@@ -74,7 +74,7 @@ public class ItemProvider {
 
     public String getInfo(Node node) {
         String id = node.getId().substring(0, node.getId().length()-1);
-        List<Edge> edgesIn = node.getEdgesIn();
+        Collection<Edge> edgesIn = node.getEdgesIn();
         String scopes = null;
         if (edgesIn != null && !edgesIn.isEmpty()) {
             scopes="<br>";

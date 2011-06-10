@@ -143,7 +143,7 @@ public class ArtifactSet extends DataType implements ResourceCollection {
         this.src = importFile;
     }
 
-    public void addExpand(@SuppressWarnings("hiding") Expand expand) {
+    public void addExpand(Expand expand) {
         if (isReference()) {
             throw noChildrenAllowed();
         }
@@ -170,7 +170,7 @@ public class ArtifactSet extends DataType implements ResourceCollection {
         artifactSets.add(set);
     }
 
-    public void addIncludes(@SuppressWarnings("hiding") Includes includes) {
+    public void addIncludes(Includes includes) {
         if (isReference()) {
             throw noChildrenAllowed();
         }
@@ -181,7 +181,7 @@ public class ArtifactSet extends DataType implements ResourceCollection {
         this.includes = includes;
     }
 
-    public void addExcludes(@SuppressWarnings("hiding") Excludes excludes) {
+    public void addExcludes(Excludes excludes) {
         if (isReference()) {
             throw noChildrenAllowed();
         }

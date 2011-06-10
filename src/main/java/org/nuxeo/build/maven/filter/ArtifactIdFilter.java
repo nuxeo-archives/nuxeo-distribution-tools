@@ -41,7 +41,7 @@ public class ArtifactIdFilter implements Filter {
         return matcher.match(segment);
     }
 
-    public boolean accept(Node parent, Dependency dep) {
+    public boolean accept(Edge edge, Dependency dep) {
         final boolean match = matcher.match(dep.getArtifactId());
         return match;
     }

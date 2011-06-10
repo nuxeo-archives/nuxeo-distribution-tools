@@ -47,11 +47,11 @@ public class Repository extends DataType {
         this.name = name;
     }
 
-    public void addReleases(@SuppressWarnings("hiding") ReleasesPolicy releasesPolicy) {
+    public void addReleases(ReleasesPolicy releasesPolicy) {
         this.releasesPolicy = releasesPolicy;
     }
 
-    public void addSnapshots(@SuppressWarnings("hiding") SnapshotsPolicy snapshotsPolicy) {
+    public void addSnapshots(SnapshotsPolicy snapshotsPolicy) {
         this.snapshotsPolicy = snapshotsPolicy;
     }
 

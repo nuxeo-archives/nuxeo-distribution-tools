@@ -108,12 +108,11 @@ public abstract class CompositeFilter implements Filter {
      * @param filterClass Filter class implementation to use
      * @param pattern Pattern given to Filter implementation
      */
-    @SuppressWarnings("unchecked")
-    public void addFilter(Class filterClass, String pattern) {
+    public void addFilter(Class<? extends Filter> filterClass, String pattern) {
         if (pattern == null) {
             return;
         }
-        Constructor<Filter> filterConstructor = null;
+        Constructor<? extends Filter> filterConstructor = null;
         try {
             filterConstructor = filterClass.getConstructor(String.class);
             if (pattern.startsWith("!")) {

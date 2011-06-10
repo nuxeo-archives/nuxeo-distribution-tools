@@ -19,7 +19,7 @@
 
 package org.nuxeo.build.maven.filter;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -49,7 +49,7 @@ public class DependsOnCategoryPatternFilter implements Filter {
 
     }
 
-    public boolean accept(Node parent, Dependency dep) {
+    public boolean accept(Edge edge, Dependency dep) {
         throw new UnsupportedOperationException("Not supported");
     }
 
@@ -73,7 +73,7 @@ public class DependsOnCategoryPatternFilter implements Filter {
                             + node.getArtifact() + " on pattern " + pattern
                             + " ...");
         }
-        List<Edge> children = node.getEdgesOut();
+        Collection<Edge> children = node.getEdgesOut();
         if (!accept && children != null) {
             for (Edge childEdge : children) {
                 if (accept(childEdge.dst)) {

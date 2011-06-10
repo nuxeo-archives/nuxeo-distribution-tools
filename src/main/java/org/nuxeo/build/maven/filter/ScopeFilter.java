@@ -47,7 +47,7 @@ public class ScopeFilter implements Filter {
         return matcher.match(segment);
     }
 
-    public boolean accept(Node parent, Dependency dep) {
+    public boolean accept(Edge edge, Dependency dep) {
         String scope = dep.getScope();
         if (scope == null) {
             return matcher == SegmentMatch.ANY;

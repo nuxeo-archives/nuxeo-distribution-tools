@@ -27,7 +27,6 @@ import java.util.TreeMap;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.versioning.OverConstrainedVersionException;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.tools.ant.BuildException;
 import org.nuxeo.build.ant.artifact.GraphTask;
@@ -45,6 +44,8 @@ public class Graph {
 
     protected MavenClient maven;
 
+    protected Node root;
+    
     protected LinkedList<Node> roots = new LinkedList<Node>();
 
     protected TreeMap<String, Node> nodes = new TreeMap<String, Node>();
@@ -175,15 +176,14 @@ public class Graph {
         return node;
     }
 
-    public Node getNode(Artifact artifact, Dependency d) {
-        String key = Node.createNodeId(artifact);
-        Node node = nodes.get(key);
+    public Node getNode(Node parent, Artifact artifact) {
+        String artifactKey = Node.createNodeId(artifact);
+        Node node = nodes.get(artifactKey);
         if (node == null) {
-            // node = getResolver().resolve(artifact);
-            node = new Node(this, null, artifact, key);
+            node = new Node(this, null, artifact, artifactKey);
+//            node = getResolver().resolve(artifact);
             nodes.put(node.getId(), node);
         }
-        node.exclusions.addAll(d.getExclusions());
         return node;
     }
 
@@ -282,4 +282,5 @@ public class Graph {
         // System.out.println(smap.lastKey());
 
     }
+
 }
