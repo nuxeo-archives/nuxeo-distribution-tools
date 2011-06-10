@@ -22,6 +22,7 @@ package org.nuxeo.build.maven.filter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.jar.Attributes;
@@ -137,7 +138,7 @@ public class ManifestBundleCategoryFilter implements Filter {
                 MavenClientFactory.getLog().debug(
                         "Filtering - check children of " + node);
             }
-            List<Edge> children = node.getEdgesOut();
+            Collection<Edge> children = node.getEdgesOut();
             // if (children!=null) {
             for (Edge edge : children) {
                 if (accept(edge.dst, true, false)) {
@@ -153,7 +154,7 @@ public class ManifestBundleCategoryFilter implements Filter {
                 MavenClientFactory.getLog().debug(
                         "Filtering - check parents of " + node);
             }
-            List<Edge> parents = node.getEdgesIn();
+            Collection<Edge> parents = node.getEdgesIn();
             // if (parents!=null) {
             for (Edge edge : parents) {
                 if (accept(edge.src, false, true)) {
@@ -190,7 +191,7 @@ public class ManifestBundleCategoryFilter implements Filter {
         return accept;
     }
 
-    public boolean accept(Node parent, Dependency dep) {
+    public boolean accept(Edge edge, Dependency dep) {
         throw new UnsupportedOperationException("Not supported");
     }
 

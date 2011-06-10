@@ -29,7 +29,6 @@ import org.nuxeo.build.maven.graph.Node;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  *
  */
-@SuppressWarnings("unchecked")
 public class VersionManagement {
 
     protected HashMap<String, String> versions; // key to versions map

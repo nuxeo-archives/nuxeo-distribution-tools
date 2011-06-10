@@ -40,13 +40,13 @@ public class Resolver {
         return graph;
     }
 
-    public void resolve(Node node) {
-        if (node.pom != null || node.artifact.isResolved()) {
-            return;
+    public MavenProject resolve(Node node) {
+        if (node.pom != null) {
+            return node.pom;
         }
         MavenProject pom = loadPom(node.artifact);
         if (pom == null) {
-            return;
+            return null;
         }
         pom = checkRelocation(node, pom);
         try {
@@ -57,7 +57,7 @@ public class Resolver {
         } catch (ArtifactNotFoundException e) {
             MavenClientFactory.getLog().warn(e.getMessage());
         }
-        node.pom = pom;
+        return node.pom = pom;
     }
 
     private MavenProject checkRelocation(Node node, MavenProject pom) {

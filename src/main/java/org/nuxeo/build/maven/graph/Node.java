@@ -19,15 +19,13 @@ package org.nuxeo.build.maven.graph;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Exclusion;
 import org.apache.maven.project.MavenProject;
-import org.nuxeo.build.maven.MavenClientFactory;
+import org.codehaus.plexus.util.StringUtils;
 import org.nuxeo.build.maven.filter.DependencyFilter;
 import org.nuxeo.build.maven.filter.Filter;
 
@@ -38,10 +36,7 @@ import org.nuxeo.build.maven.filter.Filter;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  * 
  */
-@SuppressWarnings("unchecked")
 public class Node {
-
-    protected ArrayList<Exclusion> exclusions = new ArrayList<Exclusion>();
 
     protected Graph graph;
 
@@ -53,7 +48,7 @@ public class Node {
 
     protected List<Edge> edgesOut;
 
-    private boolean isExpanded;
+    protected boolean isExpanded;
 
     /**
      * Point to an artifact pom. When embedded in maven and using the current
@@ -106,7 +101,7 @@ public class Node {
     }
 
     public File getFile() {
-        resolve();
+        graph.getResolver().resolve(this);
         File file = artifact.getFile();
         if (file != null) {
             graph.file2artifacts.put(file.getName(), artifact);
@@ -115,7 +110,7 @@ public class Node {
     }
 
     public File getFile(String classifier) {
-        resolve();
+        graph.getResolver().resolve(this);
         Artifact ca = graph.maven.getArtifactFactory().createArtifactWithClassifier(
                 artifact.getGroupId(), artifact.getArtifactId(),
                 artifact.getVersion(), artifact.getType(), classifier);
@@ -140,28 +135,36 @@ public class Node {
         return id;
     }
 
-    public List<Exclusion> getExclusions() {
-        return exclusions;
-    }
-
-    public List<Edge> getEdgesOut() {
+    public Collection<Edge> getEdgesOut() {
         return edgesOut;
     }
 
-    public List<Edge> getEdgesIn() {
+    
+    protected static String dependencyId(Dependency dep) {
+        final String groupId = StringUtils.defaultString(dep.getGroupId());
+        final String artifactId = StringUtils.defaultString(dep.getArtifactId());
+        final String version = StringUtils.defaultString(dep.getVersion());
+        final String type = StringUtils.defaultString(dep.getType());
+        final String classifier = StringUtils.defaultString(dep.getClassifier());
+        return String.format("%s:%s:%s:%s:%s",groupId,artifactId,version,type, classifier);
+    }
+    
+    public Collection<Edge> getEdgesIn() {
         return edgesIn;
     }
-
-    public void addEdgeIn(Edge edge) {
+    
+    protected void addEdgeIn(Node node, Edge edge) {
         edgesIn.add(edge);
     }
 
-    public void addEdgeOut(Edge edge) {
+    protected void addEdgeOut(Node node, Edge edge) {
         edgesOut.add(edge);
     }
 
     public MavenProject getPom() {
-        resolve();
+        if (pom == null) {
+            graph.getResolver().resolve(this);
+        }
         return pom;
     }
 
@@ -173,23 +176,12 @@ public class Node {
         return isExpanded;
     }
 
-    public void expand(int recurse, DependencyFilter filter) {
+    public void expand( int recurse, DependencyFilter filter) {
         if (isExpanded) {
             return;
         }
-        isExpanded = true;
-        resolve();
-        if (pom == null) {
-            return;
-        }
-        if (recurse > 0) {
-            if ("pom".equals(artifact.getType())
-                    && graph.shouldLoadDependencyManagement()) {
-                loadDependencies(recurse - 1,
-                        pom.getDependencyManagement().getDependencies(), filter);
-            }
-            loadDependencies(recurse - 1, pom.getDependencies(), filter);
-        }
+        Edge edge = new Edge( this);
+        edge.expand(recurse, filter);
     }
 
     public void expand(DependencyFilter filter) {
@@ -212,47 +204,15 @@ public class Node {
         return path;
     }
 
-    public void resolve() {
-        graph.getResolver().resolve(this);
-    }
-
-    protected void loadDependencies(int recurse, List<Dependency> deps,
-            DependencyFilter filter) {
-        ArtifactFactory factory = graph.getMaven().getArtifactFactory();
-        if (getPom() == null) {
-            return;
-        }
-        for (Dependency d : deps) {
-            // Workaround to always ignore test scope dependencies
-            if ("test".equalsIgnoreCase(d.getScope())
-                    || "system".equalsIgnoreCase(d.getScope())
-                    || d.isOptional()
-                    || (filter != null && !filter.accept(this, d))) {
-                if (MavenClientFactory.getLog().isDebugEnabled()) {
-                    MavenClientFactory.getLog().debug(
-                            "Filtering " + this + "  - refused " + d.toString());
-                }
-                continue;
-            }
-            // the last boolean parameter is redundant, but the version that
-            // doesn't take this has a bug. See MNG-2524
-            Artifact a = factory.createDependencyArtifact(d.getGroupId(),
-                    d.getArtifactId(),
-                    VersionRange.createFromVersion(d.getVersion()),
-                    d.getType(), d.getClassifier(), d.getScope(), false);
-
-            // beware of Maven bug! make sure artifact got the value inherited
-            // from dependency
-            assert a.getScope().equals(d.getScope());
-            Node newNode = null;
-            newNode = graph.getNode(a, d);
-            Edge edge = new Edge(this, newNode, d.getScope(), d.isOptional());
-            addEdgeOut(edge);
-            newNode.addEdgeIn(edge);
-            // edge.resolve(); //TODO resolve using pom repos
-            if (recurse > 0) {
-                newNode.expand(recurse, filter);
-            }
+    
+    protected void unexpand() {
+        isExpanded = false;
+        Iterator<Edge> it = edgesOut.iterator();
+        while(it.hasNext()) {
+            Edge e = it.next();
+            it.remove();
+            e.src.edgesIn.remove(e);
+            e.dst.unexpand();
         }
     }
 

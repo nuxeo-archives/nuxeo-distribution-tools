@@ -154,7 +154,6 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     private Logger logger;
 
-    @SuppressWarnings("unchecked")
     public void execute() throws MojoExecutionException, MojoFailureException {
         AntClient ant = new AntClient();
         MavenClientFactory.setInstance(this);
@@ -200,7 +199,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
         // add project properties
         HashMap<String, String> props = new HashMap<String, String>();
-        for (Map.Entry entry : project.getProperties().entrySet()) {
+        for (Map.Entry<Object,Object> entry : project.getProperties().entrySet()) {
             props.put(entry.getKey().toString(), entry.getValue().toString());
         }
         props.put("maven.basedir", project.getBasedir().getAbsolutePath());

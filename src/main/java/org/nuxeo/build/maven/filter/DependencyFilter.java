@@ -17,7 +17,7 @@
 package org.nuxeo.build.maven.filter;
 
 import org.apache.maven.model.Dependency;
-import org.nuxeo.build.maven.graph.Node;
+import org.nuxeo.build.maven.graph.Edge;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -25,6 +25,6 @@ import org.nuxeo.build.maven.graph.Node;
  */
 public interface DependencyFilter {
 
-    boolean accept(Node parent, Dependency dep);
+    boolean accept(Edge edge, Dependency dep);
 
 }

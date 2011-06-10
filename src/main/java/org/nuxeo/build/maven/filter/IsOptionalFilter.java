@@ -33,7 +33,7 @@ public class IsOptionalFilter implements Filter {
         this.isOptional = isOptional;
     }
 
-    public boolean accept(Node parent, Dependency dep) {
+    public boolean accept(Edge parent, Dependency dep) {
         return isOptional == dep.isOptional();
     }
 

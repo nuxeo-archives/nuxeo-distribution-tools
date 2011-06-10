@@ -16,9 +16,6 @@
  */
 package org.nuxeo.build.maven.filter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
@@ -31,11 +28,16 @@ import org.nuxeo.build.maven.graph.Node;
  *
  */
 public class MavenExclusionFilter implements Filter {
-
-    List<Exclusion> exclusions = new ArrayList<Exclusion>();
-            
-    public boolean accept(Node parent, Dependency dep) {
-        for (Exclusion e:parent.getExclusions()) { 
+          
+    protected boolean recurseAccept(Edge edge, Dependency dep) {
+        if (edge == null) {
+           return true;
+        }
+        if (MavenClientFactory.getLog().isDebugEnabled()) {
+            MavenClientFactory.getLog().debug(
+                     "Evaluating Exclusion Filter  - " + edge + " against " + dep.getArtifactId());
+        }
+        for (Exclusion e:edge.exclusions) { 
             String artifactId = e.getArtifactId();
             if (artifactId == null) {
                 artifactId = dep.getArtifactId();
@@ -49,9 +51,12 @@ public class MavenExclusionFilter implements Filter {
                 return false;
             }
         }
-        return true;
+        return recurseAccept(edge.from, dep);
     }
 
+    public boolean accept(Edge edge, Dependency dep) {
+        return recurseAccept(edge, dep);
+    }
     public boolean accept(Artifact artifact) {
         return true;
     }

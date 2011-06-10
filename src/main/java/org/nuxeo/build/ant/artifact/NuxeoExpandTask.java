@@ -30,11 +30,12 @@ public class NuxeoExpandTask extends ExpandTask {
 
     {
         Filter scopeFilter = new Filter() {
-            public boolean accept(Node parent, Dependency dep) {
-                String depScope = dep.getScope();
+            public boolean accept(Edge edge, Dependency dep) {
+                final String depScope = dep.getScope();
+                final String groupId = edge.dst.getArtifact().getGroupId();
                 return "compile".equals(depScope)
                         || "runtime".equals(depScope)
-                        || ("provided".equals(depScope) && parent.getArtifact().getGroupId().startsWith(
+                        || ("provided".equals(depScope) && groupId.startsWith(
                                 "org.nuxeo"));
             }
 

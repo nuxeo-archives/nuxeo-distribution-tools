@@ -54,7 +54,7 @@ public class GraphTask extends Task {
         src = file;
     }
 
-    public void addExpand(@SuppressWarnings("hiding") Expand expand) {
+    public void addExpand(Expand expand) {
         this.expand = expand;
     }
 

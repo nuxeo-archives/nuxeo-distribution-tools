@@ -66,7 +66,7 @@ public class Resources extends DataType  implements ResourceCollection {
         for (ResourceCollection set : sets) {
             len += set.size();
         }
-        return 0;
+        return len;
     }
 
 
