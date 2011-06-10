@@ -19,6 +19,8 @@ package org.nuxeo.build.ant.artifact;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.nuxeo.build.maven.filter.Filter;
+import org.nuxeo.build.maven.filter.NotFilter;
+import org.nuxeo.build.maven.filter.VersionFilter;
 import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Node;
 
@@ -29,13 +31,15 @@ import org.nuxeo.build.maven.graph.Node;
 public class NuxeoExpandTask extends ExpandTask {
 
     {
+        setDepth("all");
+        setMavenExclusions(Boolean.TRUE);
         Filter scopeFilter = new Filter() {
             public boolean accept(Edge edge, Dependency dep) {
-                final String depScope = dep.getScope();
-                final String groupId = edge.dst.getArtifact().getGroupId();
-                return "compile".equals(depScope)
-                        || "runtime".equals(depScope)
-                        || ("provided".equals(depScope) && groupId.startsWith(
+                String scope = dep.getScope();
+                String groupId = edge.dst.getArtifact().getGroupId();
+                return "compile".equals(scope)
+                        || "runtime".equals(scope)
+                        || ("provided".equals(scope) && groupId.startsWith(
                                 "org.nuxeo"));
             }
 
@@ -52,8 +56,8 @@ public class NuxeoExpandTask extends ExpandTask {
             }
         };
         filter.addFilter(scopeFilter);
-        setDepth("all");
-        setMavenExclusions(Boolean.TRUE);
+        filter.addFilter(new NotFilter(new VersionFilter("[*)")));
+
     }
 
     protected boolean acceptNode(Node node) {

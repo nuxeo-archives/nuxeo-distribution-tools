@@ -207,12 +207,10 @@ public class Node {
     
     protected void unexpand() {
         isExpanded = false;
-        Iterator<Edge> it = edgesOut.iterator();
-        while(it.hasNext()) {
-            Edge e = it.next();
-            it.remove();
-            e.src.edgesIn.remove(e);
-            e.dst.unexpand();
+        for (Edge e:edgesOut) {
+            final Node out = e.dst;
+            out.isExpanded = false;
+            out.unexpand();
         }
     }
 
