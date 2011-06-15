@@ -97,6 +97,7 @@ public class IsolatedClassLoader extends URLClassLoader implements
         return loadFromParent(name);
     }
 
+    @SuppressWarnings("unused")
     private void printDebug(Class<?> c, String cname) {
         printDebug(c, cname, "### FOUND: ");
     }

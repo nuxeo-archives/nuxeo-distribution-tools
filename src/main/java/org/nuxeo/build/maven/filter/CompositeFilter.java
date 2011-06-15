@@ -51,7 +51,7 @@ public abstract class CompositeFilter implements Filter {
         this.filters.addAll(filtersToAdd);
     }
 
-    public void removeFilters(List<Filter> filters) {
+    public void removeFilters(@SuppressWarnings("hiding") List<Filter> filters) {
         this.filters.removeAll(filters);
     }
  

@@ -42,9 +42,9 @@ public class ArtifactCellRenderer extends DefaultTreeCellRenderer {
     }
 
     @Override
-    public Component getTreeCellRendererComponent(JTree tree, Object value,
+    public Component getTreeCellRendererComponent(@SuppressWarnings("hiding") JTree tree, Object value,
             boolean sel, boolean expanded, boolean leaf, int row,
-            boolean hasFocus) {
+            @SuppressWarnings("hiding") boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf,
                 row, hasFocus);
         DefaultMutableTreeNode tn = (DefaultMutableTreeNode)value;

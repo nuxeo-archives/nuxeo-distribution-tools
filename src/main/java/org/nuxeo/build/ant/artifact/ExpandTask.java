@@ -24,10 +24,8 @@ import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.AndFilter;
 import org.nuxeo.build.maven.filter.CompositeFilter;
-import org.nuxeo.build.maven.filter.MavenExclusionFilter;
 import org.nuxeo.build.maven.filter.Filter;
-import org.nuxeo.build.maven.filter.NotFilter;
-import org.nuxeo.build.maven.filter.ScopeFilter;
+import org.nuxeo.build.maven.filter.MavenExclusionFilter;
 import org.nuxeo.build.maven.graph.Node;
 
 /**

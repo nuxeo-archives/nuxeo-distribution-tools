@@ -34,6 +34,7 @@ import org.nuxeo.build.maven.graph.Node;
  */
 public class ArtifactForeach extends Sequential {
 
+    @SuppressWarnings("hiding")
     public String target;
 
     public String property;

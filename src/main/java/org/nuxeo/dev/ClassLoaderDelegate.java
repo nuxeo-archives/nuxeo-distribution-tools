@@ -40,7 +40,7 @@ public class ClassLoaderDelegate implements MutableClassLoader {
         getURLs.setAccessible(true);
     }
     
-    protected void initialize(ClassLoader cl) {
+    protected void initialize(@SuppressWarnings("hiding") ClassLoader cl) {
         Class<?> clazz = cl.getClass();
         do {
             try {

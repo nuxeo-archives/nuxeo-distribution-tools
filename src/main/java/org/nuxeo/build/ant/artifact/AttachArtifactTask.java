@@ -41,6 +41,7 @@ public class AttachArtifactTask extends Task {
 
     private String type;
 
+    @SuppressWarnings("hiding")
     private String target;
 
     /**

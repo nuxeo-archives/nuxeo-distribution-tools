@@ -155,11 +155,11 @@ public class GraphVizExporter extends AbstractGraphVisitor {
         return id;
     }
 
-    public void process(Graph graph, OutputStream out) {
+    public void process(Graph graph, @SuppressWarnings("hiding") OutputStream out) {
         process(graph.getRoots());
     }
 
-    public void process(Collection<Node> nodes, OutputStream out) throws IOException {
+    public void process(Collection<Node> nodes, @SuppressWarnings("hiding") OutputStream out) throws IOException {
         GraphVizExporter viz = GraphVizExporter.createPng(out);
         super.process(nodes);
         viz.close();

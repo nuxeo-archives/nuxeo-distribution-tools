@@ -59,14 +59,14 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
         }
     }
     
-    public void addExcludes(Excludes excludes) {
+    public void addExcludes(@SuppressWarnings("hiding") Excludes excludes) {
         if (this.excludes != null) {
             throw new BuildException("Found an Excludes that is defined more than once in an artifact dependencies");
         }        
         this.excludes = excludes;
     }
     
-    public void addIncludes(Includes includes) {
+    public void addIncludes(@SuppressWarnings("hiding") Includes includes) {
         if (this.includes != null) {
             throw new BuildException("Found an Includes that is defined more than once in an artifact dependencies");
         }

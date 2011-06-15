@@ -31,6 +31,7 @@ import java.util.List;
  */
 public class Main {
 
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) throws Exception {
 
         File home = null;

@@ -141,7 +141,7 @@ public class FrameworkBootstrap implements LoaderConstants {
         stop.invoke(null);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void initializeEnvironment() throws IOException {
         System.setProperty(HOME_DIR, home.getAbsolutePath());
         env = new HashMap<String, Object>();
@@ -157,7 +157,7 @@ public class FrameworkBootstrap implements LoaderConstants {
         FileInputStream in = new FileInputStream(file);
         try {
             p.load(in);
-            env.putAll((Map) p);
+            env.putAll((Map)p);
             String v = (String) env.get(SCAN_FOR_NESTED_JARS);
             if (v != null) {
                 scanForNestedJars = Boolean.parseBoolean(v);

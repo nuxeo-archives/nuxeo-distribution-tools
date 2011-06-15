@@ -60,7 +60,7 @@ public class SettingsTask extends Sequential {
         this.offline = offline;
     }
 
-    public void addRepositories(Repositories repos) {
+    public void addRepositories(@SuppressWarnings("hiding") Repositories repos) {
         this.repos = repos;
     }
 

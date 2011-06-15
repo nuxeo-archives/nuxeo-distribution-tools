@@ -51,7 +51,7 @@ public class Profile {
         return name;
     }
 
-    final void _setActive(boolean isActive) {
+    final void _setActive(@SuppressWarnings("hiding") boolean isActive) {
         this.isActive = isActive;
     }
 

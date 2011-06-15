@@ -230,7 +230,7 @@ public class ArtifactTable extends JPanel {
         return isDirty;
     }
 
-    public void loadFile(File file) throws IOException {
+    public void loadFile(@SuppressWarnings("hiding") File file) throws IOException {
         model.load(file);
         this.file = file;
         setDirty(false);
@@ -271,7 +271,7 @@ public class ArtifactTable extends JPanel {
         setDirty(false);
     }
 
-    public void saveAs(File file) throws IOException {
+    public void saveAs(@SuppressWarnings("hiding") File file) throws IOException {
         model.store(file);
     }
 

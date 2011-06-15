@@ -43,7 +43,7 @@ public class AntProfileManager {
         return result;
     }
 
-    public void addGroup(String[] profiles, String defaultProfile) {
+    public void addGroup(@SuppressWarnings("hiding") String[] profiles, String defaultProfile) {
         groups.add(new ProfileGroup(this, profiles, defaultProfile));
     }
 

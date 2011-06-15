@@ -78,6 +78,7 @@ public class ArtifactTree extends JSplitPane {
         final JComboBox presets = new JComboBox(new String[] {"Default", "Minimal"});
         presets.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                @SuppressWarnings("hiding")
                 ItemProvider provider;
                 if ("Default".equals(presets.getSelectedItem())) {
                     provider = new DefaultNuxeoProvider();
@@ -228,7 +229,7 @@ public class ArtifactTree extends JSplitPane {
         root.removeAllChildren();
         String[] roots = provider.getRoots();
         if (roots != null) {
-            for (String root : roots) {
+            for (@SuppressWarnings("hiding") String root : roots) {
                 try {
                     Node node = maven.getGraph().addRootNode(root);
                     DefaultMutableTreeNode graphRoot = new DefaultMutableTreeNode(node);
