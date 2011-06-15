@@ -42,7 +42,8 @@ public class ArtifactIdFilter implements Filter {
     }
 
     public boolean accept(Edge edge, Dependency dep) {
-        final boolean match = matcher.match(dep.getArtifactId());
+        final String artifactId = dep.getArtifactId();
+        final boolean match = matcher.match(artifactId);
         return match;
     }
 

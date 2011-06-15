@@ -41,11 +41,7 @@ public class ExpandTask extends Task {
     public int depth = 1;
 
     public AndFilter filter = new AndFilter();
-
-    public ExpandTask() {
-        filter.addFilter(new MavenExclusionFilter());
-    }
-
+    
     public void setKey(String key) {
         this.key = key;
     }
@@ -59,16 +55,10 @@ public class ExpandTask extends Task {
     }
 
     public void addExcludes(Excludes excludes) {
-        if (filter == null) {
-            filter = new AndFilter();
-        }
-        filter.addFilter(new NotFilter(excludes.getFilter()));
+        filter.addFilter(excludes.getFilter());
     }
 
     public void addIncludes(Includes includes) {
-        if (filter == null) {
-            filter = new AndFilter();
-        }
         filter.addFilter(includes.getFilter());
     }
 
