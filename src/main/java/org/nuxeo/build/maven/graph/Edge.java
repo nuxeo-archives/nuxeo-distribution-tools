@@ -99,6 +99,9 @@ public void expand(int recurse,
             List<Dependency> deps, DependencyFilter filter) {
         dst.isExpanded = true;
         ArtifactFactory factory = graph.getMaven().getArtifactFactory();
+        
+        // add direct edges
+        
         for (Dependency d : deps) {
             // Workaround to always ignore test scope dependencies
             // the last boolean parameter is redundant, but the version that
@@ -122,16 +125,21 @@ public void expand(int recurse,
             // beware of Maven bug! make sure artifact got the value inherited
             // from dependency
             assert a.getScope().equals(d.getScope());
-            Node newNode = graph.getNode(dst, a);
-            if (d.getExclusions().isEmpty() == false && newNode.isExpanded) {
-                newNode.unexpand();
-            }
-            Edge newEdge = new Edge(this, dst, newNode, d);
-            dst.addEdgeOut(newNode, newEdge);
-            newNode.addEdgeIn(dst, newEdge);
-            
-            if (recurse > 0 && newNode.isExpanded == false) {
-                 newEdge.expand(recurse-1, filter);
+            Node node = graph.getNode(dst, a);
+            Edge newEdge = new Edge(this, dst, node, d);
+            dst.addEdgeOut(newEdge);
+            node.addEdgeIn(newEdge);
+        }
+        
+        // recurse on edges 
+        
+        if (recurse <= 0) {
+            return;
+        }
+        
+        for (Edge e : dst.getEdgesOut()) {
+            if (!e.dst.isExpanded) {
+                e.expand(recurse - 1, filter);
             }
         }
     }

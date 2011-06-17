@@ -19,7 +19,6 @@ package org.nuxeo.build.maven.graph;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
@@ -94,6 +93,7 @@ public class Node {
         this.pom = pom;
         edgesIn = new ArrayList<Edge>();
         edgesOut = new ArrayList<Edge>();
+        graph.getResolver().resolve(this);
     }
 
     public Artifact getArtifact() {
@@ -101,7 +101,6 @@ public class Node {
     }
 
     public File getFile() {
-        graph.getResolver().resolve(this);
         File file = artifact.getFile();
         if (file != null) {
             graph.file2artifacts.put(file.getName(), artifact);
@@ -110,7 +109,6 @@ public class Node {
     }
 
     public File getFile(String classifier) {
-        graph.getResolver().resolve(this);
         Artifact ca = graph.maven.getArtifactFactory().createArtifactWithClassifier(
                 artifact.getGroupId(), artifact.getArtifactId(),
                 artifact.getVersion(), artifact.getType(), classifier);
@@ -153,18 +151,15 @@ public class Node {
         return edgesIn;
     }
     
-    protected void addEdgeIn(Node node, Edge edge) {
+    protected void addEdgeIn(Edge edge) {
         edgesIn.add(edge);
     }
 
-    protected void addEdgeOut(Node node, Edge edge) {
+    protected void addEdgeOut(Edge edge) {
         edgesOut.add(edge);
     }
 
     public MavenProject getPom() {
-        if (pom == null) {
-            graph.getResolver().resolve(this);
-        }
         return pom;
     }
 
@@ -202,16 +197,6 @@ public class Node {
         List<Node> path = edge.src.getTrail();
         path.add(this);
         return path;
-    }
-
-    
-    protected void unexpand() {
-        isExpanded = false;
-        for (Edge e:edgesOut) {
-            final Node out = e.dst;
-            out.isExpanded = false;
-            out.unexpand();
-        }
     }
 
     public void collectNodes(Collection<Node> nodes, Filter filter) {
