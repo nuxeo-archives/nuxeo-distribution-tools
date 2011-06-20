@@ -262,12 +262,14 @@ public class Graph {
             this.maxDepth = maxDepth;
         }
 
+        @Override
         public void testArtifact(Artifact node) {
-            log("testArtifact: artifact=" + node);
+            debug("testArtifact: artifact=" + node);
         }
 
+        @Override
         public void startProcessChildren(Artifact artifact) {
-            log("startProcessChildren: artifact=" + artifact);
+            debug("startProcessChildren: artifact=" + artifact);
 
             if (!currentNode.getArtifact().equals(artifact)) {
                 throw new IllegalStateException("Artifact was expected to be "
@@ -277,10 +279,11 @@ public class Graph {
             parentNodes.push(currentNode);
         }
 
+        @Override
         public void endProcessChildren(Artifact artifact) {
             Node node = (Node) parentNodes.pop();
 
-            log("endProcessChildren: artifact=" + artifact);
+            debug("endProcessChildren: artifact=" + artifact);
 
             if (node == null) {
                 throw new IllegalStateException(
@@ -294,8 +297,9 @@ public class Graph {
             }
         }
 
+        @Override
         public void includeArtifact(Artifact artifact) {
-            log("includeArtifact: artifact=" + artifact);
+            debug("includeArtifact: artifact=" + artifact);
             
             Node node = nodesByArtifact.get(artifact);
 
@@ -306,34 +310,16 @@ public class Graph {
              */
             if (node == null && isCurrentNodeIncluded()) {
                 addNode(artifact);
-            } else if (parentNodes.size() > 0) {  // add edge if not filtered
-                Node parent = parentNodes.peek();
-                
-                if (parent.state == Node.FILTERED) {
-                    return;
-                }
-                
-                if (parentNodes.size() >= maxDepth) {
-                    return;
-                }
-                
-                Edge edge = new Edge(parent, node);
-                if (!filter.accept(edge)) {
-                    return;
-                }
-                
-                node.addEdgeIn(edge);
-                parent.addEdgeOut(edge);
-                node.state = Node.INCLUDED;
             }
         }
 
+        @Override
         public void omitForNearer(Artifact omitted, Artifact kept) {
-            log("omitForNearer: omitted=" + omitted + " kept=" + kept);
+            debug("omitForNearer: omitted=" + omitted + " kept=" + kept);
 
             if (!omitted.getDependencyConflictId().equals(
                     kept.getDependencyConflictId())) {
-                throw new IllegalArgumentException(
+                throw new IllegalArgumentException( 
                         "Omitted artifact dependency conflict id "
                                 + omitted.getDependencyConflictId()
                                 + " differs from kept artifact dependency conflict id "
@@ -349,15 +335,13 @@ public class Graph {
 
             if (omittedNode != null) {
                 removeNode(omitted);
-            } else {
+            } 
+            else {
                 omittedNode = createNode(omitted);
                 currentNode = omittedNode;
-            }
+            } 
 
             omittedNode.state = Node.OMITTED;
-            if (filteredNodes.remove(omittedNode)) {
-                log("Reset filtering " + omittedNode);
-            }
 
             // refresh kept node
             Node keptNode = nodesByArtifact.get(kept);
@@ -368,17 +352,20 @@ public class Graph {
 
         }
 
+        @Override
         public void updateScope(Artifact artifact, String scope) {
-            log("updateScope: artifact=" + artifact + ", scope=" + scope);
+            debug("updateScope: artifact=" + artifact + ", scope=" + scope);
         }
 
+        @Override
         public void manageArtifact(Artifact artifact, Artifact replacement) {
-            log("manageArtifact: artifact=" + artifact + ", replacement="
+            debug("manageArtifact: artifact=" + artifact + ", replacement="
                     + replacement);
         }
 
+        @Override
         public void omitForCycle(Artifact artifact) {
-            log("omitForCycle: artifact=" + artifact);
+            debug("omitForCycle: artifact=" + artifact);
 
             if (isCurrentNodeIncluded()) {
                 Node node = createNode(artifact);
@@ -386,19 +373,22 @@ public class Graph {
             }
         }
 
+        @Override
         public void updateScopeCurrentPom(Artifact artifact, String ignoredScope) {
-            log("updateScopeCurrentPom: artifact=" + artifact
+            warn("updateScopeCurrentPom: artifact=" + artifact
                     + ", scopeIgnored=" + ignoredScope);
         }
 
+        @Override
         public void selectVersionFromRange(Artifact artifact) {
-            throw new UnsupportedOperationException(
+            warn(
                     "selectVersionFromRange: artifact=" + artifact);
         }
 
+        @Override
         public void restrictRange(Artifact artifact, Artifact replacement,
                 VersionRange newRange) {
-            throw new UnsupportedOperationException("restrictRange: artifact="
+           debug("restrictRange: artifact="
                     + artifact + ", replacement=" + replacement
                     + ", versionRange=" + newRange);
         }
@@ -414,7 +404,7 @@ public class Graph {
          * 
          * @param message the message to write to the log
          */
-        private void log(String message) {
+        private void debug(String message) {
 
             if (logger.isDebugEnabled() == false) {
                 return;
@@ -431,6 +421,22 @@ public class Graph {
             buffer.append(message);
 
             logger.debug(buffer.toString());
+        }
+
+        
+        private void warn(String message) {
+
+            int depth = parentNodes.size();
+
+            StringBuffer buffer = new StringBuffer();
+
+            for (int i = 0; i < depth; i++) {
+                buffer.append("  ");
+            }
+
+            buffer.append(message);
+
+            logger.warn(buffer.toString());
         }
 
         private boolean isCurrentNodeIncluded() {
@@ -465,7 +471,9 @@ public class Graph {
         protected void removeNode(Artifact artifact) {
             Node node = nodesByArtifact.remove(artifact);
             nodes.remove(node.id);
-            filteredNodes.remove(node);
+            if (filteredNodes.remove(node)) {
+                debug("Reset filtering " + node);
+            }
             for (Edge out : node.edgesOut) {
                 out.out.edgesIn.remove(out);
             }
@@ -482,28 +490,45 @@ public class Graph {
             MavenProject pom = resolver.load(artifact);
             Node node = new Node(Graph.this, artifact, pom);
 
-            if (parentNodes.isEmpty()) {
-                return node;
-            }
-
-            // setup edge
-            Node parent = (Node) parentNodes.peek();
-            Edge edge = new Edge(parent, node);
-
-            // is edge filtered ?
-            if (parent.state == Node.FILTERED || parentNodes.size() >= maxDepth
-                    || !filter.accept(edge)) {
-                node.state = Node.FILTERED;
-                filteredNodes.add(node);
-                log("Filtering "  + node);
-                return node;
-            }
-
-            // link nodes if not filtered only
-            parent.addEdgeOut(edge);
-            node.addEdgeIn(edge);
+            addEdges(node);
 
             return node;
+        }
+
+        private boolean addEdges(Node out) {
+
+            if (parentNodes.isEmpty()) {
+                return false;
+            }
+            
+            Node in = (Node) parentNodes.peek();
+            Edge edge = new Edge(in, out);
+
+            // is edge filtered ?
+            if (in.state == Node.FILTERED) {
+                out.state = Node.FILTERED;
+                filteredNodes.add(out);
+                debug("Filtering (inherited from parent) :"  + out);
+                return false;
+            }
+            if (parentNodes.size() >= maxDepth) {
+                out.state = Node.FILTERED;
+                filteredNodes.add(out);
+                debug("Filtering (max depth) : " + out);
+                return false;
+            }
+            
+            if (!filter.accept(edge)) {
+                out.state = Node.FILTERED;
+                filteredNodes.add(out);
+                debug("Filtering (filter) : " + out);
+                return false;
+            }
+
+            out.edgesIn.add(edge);
+            in.edgesOut.add(edge);
+
+            return true;
         }
 
     }

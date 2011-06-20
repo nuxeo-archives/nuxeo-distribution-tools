@@ -31,13 +31,6 @@ public class Edge {
     
     public final boolean isOptional;
 
-    public Edge(Node node) {
-        this.in = node;
-        this.out = node;
-        this.scope = node.artifact.getScope();
-        this.isOptional = node.artifact.isOptional();
-    }
-
     public Edge(Node src, Node dst) {
         this.in = src;
         this.out = dst;
