@@ -25,7 +25,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
-import org.nuxeo.build.maven.filter.DependencyFilter;
 import org.nuxeo.build.maven.filter.Filter;
 
 /**
@@ -37,24 +36,22 @@ import org.nuxeo.build.maven.filter.Filter;
  */
 public class Node {
 
-    protected Graph graph;
+    protected final Graph graph;
 
-    protected String id;
+    protected final String id;
+    
+    protected final Artifact artifact;
 
-    protected Artifact artifact;
+    protected final List<Edge> edgesIn = new ArrayList<Edge>();
 
-    protected List<Edge> edgesIn;
-
-    protected List<Edge> edgesOut;
-
-    protected boolean isExpanded;
+    protected final List<Edge> edgesOut = new ArrayList<Edge>();
 
     /**
      * Point to an artifact pom. When embedded in maven and using the current
      * project pom as the root this will be set by the maven loader mojo to
      * point to the current pom
      */
-    protected MavenProject pom;
+    protected final MavenProject pom;
 
     private List<char[]> acceptedCategories;
 
@@ -73,34 +70,36 @@ public class Node {
     }
 
     public Node(Node node) {
-        this.graph = node.graph;
         this.id = node.id;
+        this.graph = node.graph;
         this.artifact = node.artifact;
-        this.edgesIn = node.edgesIn;
-        this.edgesOut = node.edgesOut;
+        this.edgesIn.addAll(node.edgesIn);
+        this.edgesOut.addAll(node.edgesOut);
         this.pom = node.pom;
-        this.isExpanded = node.isExpanded;
     }
 
-    public Node(Graph graph, MavenProject pom, Artifact artifact) {
-        this(graph, pom, artifact, Node.createNodeId(artifact));
-    }
-
-    protected Node(Graph graph, MavenProject pom, Artifact artifact, String id) {
+    protected Node(Graph graph, Artifact artifact, MavenProject pom) {
+        this.id = createNodeId(artifact);
         this.graph = graph;
-        this.id = id;
         this.artifact = artifact;
         this.pom = pom;
-        edgesIn = new ArrayList<Edge>();
-        edgesOut = new ArrayList<Edge>();
-        graph.getResolver().resolve(this);
     }
+
+    protected static final int INCLUDED = 1;
+    protected static final int OMITTED = 2;
+    protected static final int FILTERED = 3;
+
+    protected int state = INCLUDED;
+
 
     public Artifact getArtifact() {
         return artifact;
     }
 
     public File getFile() {
+        if (!artifact.isResolved()) {
+            graph.getResolver().resolve(artifact);
+        }
         File file = artifact.getFile();
         if (file != null) {
             graph.file2artifacts.put(file.getName(), artifact);
@@ -137,20 +136,20 @@ public class Node {
         return edgesOut;
     }
 
-    
     protected static String dependencyId(Dependency dep) {
         final String groupId = StringUtils.defaultString(dep.getGroupId());
         final String artifactId = StringUtils.defaultString(dep.getArtifactId());
         final String version = StringUtils.defaultString(dep.getVersion());
         final String type = StringUtils.defaultString(dep.getType());
         final String classifier = StringUtils.defaultString(dep.getClassifier());
-        return String.format("%s:%s:%s:%s:%s",groupId,artifactId,version,type, classifier);
+        return String.format("%s:%s:%s:%s:%s", groupId, artifactId, version,
+                type, classifier);
     }
-    
+
     public Collection<Edge> getEdgesIn() {
         return edgesIn;
     }
-    
+
     protected void addEdgeIn(Edge edge) {
         edgesIn.add(edge);
     }
@@ -167,26 +166,6 @@ public class Node {
         return pom;
     }
 
-    public boolean isExpanded() {
-        return isExpanded;
-    }
-
-    public void expand( int recurse, DependencyFilter filter) {
-        if (isExpanded) {
-            return;
-        }
-        Edge edge = new Edge( this);
-        edge.expand(recurse, filter);
-    }
-
-    public void expand(DependencyFilter filter) {
-        expand(0, filter);
-    }
-
-    public void expandAll(DependencyFilter filter) {
-        expand(Integer.MAX_VALUE, filter);
-    }
-
     public List<Node> getTrail() {
         if (edgesIn.isEmpty()) {
             ArrayList<Node> result = new ArrayList<Node>();
@@ -194,7 +173,7 @@ public class Node {
             return result;
         }
         Edge edge = edgesIn.get(0);
-        List<Node> path = edge.src.getTrail();
+        List<Node> path = edge.in.getTrail();
         path.add(this);
         return path;
     }
@@ -202,14 +181,14 @@ public class Node {
     public void collectNodes(Collection<Node> nodes, Filter filter) {
         for (Edge edge : edgesOut) {
             if (filter.accept(edge)) {
-                nodes.add(edge.dst);
+                nodes.add(edge.out);
             }
         }
     }
 
     public void collectNodes(Collection<Node> nodes) {
         for (Edge edge : edgesOut) {
-            nodes.add(edge.dst);
+            nodes.add(edge.out);
         }
     }
 
@@ -252,5 +231,9 @@ public class Node {
             }
         }
         return false;
+    }
+
+    public void expand(Filter filter, int depth) {
+        graph.resolveDependencyTree(this, filter,depth);
     }
 }

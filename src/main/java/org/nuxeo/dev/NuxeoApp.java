@@ -37,6 +37,7 @@ import org.apache.maven.model.RepositoryPolicy;
 import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.build.maven.EmbeddedMavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
+import org.nuxeo.build.maven.filter.TrueFilter;
 import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 import org.nuxeo.build.util.FileUtils;
@@ -585,7 +586,7 @@ public class NuxeoApp {
     protected Node addArtifact(String key, int expandDepth) {
         Node node = maven.getGraph().addRootNode(key);
         if (expandDepth > 0) {
-            node.expand(expandDepth, null);
+            node.expand(new TrueFilter(), expandDepth);
         }
         return node;
     }

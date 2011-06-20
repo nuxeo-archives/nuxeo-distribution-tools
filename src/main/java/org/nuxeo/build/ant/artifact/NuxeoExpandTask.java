@@ -19,6 +19,7 @@ package org.nuxeo.build.ant.artifact;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.nuxeo.build.maven.filter.Filter;
+import org.nuxeo.build.maven.filter.GroupIdFilter;
 import org.nuxeo.build.maven.filter.NotFilter;
 import org.nuxeo.build.maven.filter.VersionFilter;
 import org.nuxeo.build.maven.graph.Edge;
@@ -32,32 +33,37 @@ public class NuxeoExpandTask extends ExpandTask {
 
     {
         setDepth("all");
-        setMavenExclusions(Boolean.TRUE);
-        Filter scopeFilter = new Filter() {
-            public boolean accept(Edge edge, Dependency dep) {
-                String scope = dep.getScope();
-                String groupId = edge.dst.getArtifact().getGroupId();
-                return "compile".equals(scope)
-                        || "runtime".equals(scope)
-                        || ("provided".equals(scope) && groupId.startsWith(
-                                "org.nuxeo"));
-            }
-
+        Filter nuxeoFilter = new Filter() {
+            
             public boolean accept(Artifact artifact) {
                 return true;
             }
 
             public boolean accept(Edge edge) {
-                return true;
+               if (edge.isOptional) {
+                    return false;
+                }
+                String scope = edge.scope;
+                if (scope == null) {
+                    scope = "compile";
+                }
+                if ( "compile".equals(scope)) {
+                    return true;
+                }
+                if ( "runtime".equals(scope)) {
+                    return true;
+                }
+                return false;
+
             }
 
             public boolean accept(Node node) {
                 return true;
             }
         };
-        filter.addFilter(scopeFilter);
+        filter.addFilter(nuxeoFilter);
         filter.addFilter(new NotFilter(new VersionFilter("[*)")));
-
+        filter.addFilter(new NotFilter(new GroupIdFilter("org.nuxeo.build")));
     }
 
     protected boolean acceptNode(Node node) {

@@ -21,7 +21,7 @@ package org.nuxeo.build.maven.filter;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  *
  */
-public interface Filter extends DependencyFilter, ArtifactFilter, EdgeFilter, NodeFilter {
+public interface Filter extends  ArtifactFilter, EdgeFilter, NodeFilter {
 
     final static AnyFilter ANY = new AnyFilter();
 

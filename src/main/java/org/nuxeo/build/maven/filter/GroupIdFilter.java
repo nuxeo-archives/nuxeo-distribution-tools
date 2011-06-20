@@ -51,7 +51,7 @@ public class GroupIdFilter implements Filter {
     }
 
     public boolean accept(Edge edge) {
-        return matcher.match(edge.dst.getArtifact().getGroupId());
+        return matcher.match(edge.out.getArtifact().getGroupId());
     }
 
     public boolean accept(Artifact artifact) {

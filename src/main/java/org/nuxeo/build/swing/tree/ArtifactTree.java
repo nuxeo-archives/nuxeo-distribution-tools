@@ -49,6 +49,7 @@ import org.apache.maven.model.Repository;
 import org.apache.maven.model.RepositoryPolicy;
 import org.nuxeo.build.maven.EmbeddedMavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
+import org.nuxeo.build.maven.filter.TrueFilter;
 import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Node;
 import org.nuxeo.build.util.FileUtils;
@@ -190,13 +191,13 @@ public class ArtifactTree extends JSplitPane {
                 if (tn != null && tn.getChildCount() == 0) {
                     Node node = (Node)tn.getUserObject();
                     System.out.println("Lazy load node: "+node);
-                    node.expand(1, null);
+                    node.expand(new TrueFilter(), 1);
                     if (!node.getEdgesOut().isEmpty()) {
                         for (Edge edge : node.getEdgesOut()) {
                             if (provider.accept(edge)) {
                                 DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode();
                                 treeNode.setAllowsChildren(provider.hasChildren(node));
-                                tn.add(new DefaultMutableTreeNode(edge.dst));
+                                tn.add(new DefaultMutableTreeNode(edge.out));
                             }
                         }
                         refresh(tn);

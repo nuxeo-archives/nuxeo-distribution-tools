@@ -56,7 +56,7 @@ public abstract class AbstractGraphVisitor implements GraphVisitor {
     public void visitEdges(Node node) {
         for (Edge edge : node.getEdgesOut()) {
             if (visitEdge(edge)) {
-                visit(edge.dst);
+                visit(edge.out);
             }
         }
     }

@@ -79,7 +79,7 @@ public class ItemProvider {
         if (edgesIn != null && !edgesIn.isEmpty()) {
             scopes="<br>";
             for (Edge edge : edgesIn) {
-                scopes+="&nbsp;&nbsp;<dd>"+edge.src.getArtifact().getArtifactId()+": <strong><i>"+(edge.scope==null?"compile":edge.scope)+"</i></strong></dd><br>";
+                scopes+="&nbsp;&nbsp;<dd>"+edge.in.getArtifact().getArtifactId()+": <strong><i>"+(edge.scope==null?"compile":edge.scope)+"</i></strong></dd><br>";
             }
             //scopes+="</ul>";
         } else {

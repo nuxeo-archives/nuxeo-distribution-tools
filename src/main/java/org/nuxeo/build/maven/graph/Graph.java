@@ -17,20 +17,26 @@
 package org.nuxeo.build.maven.graph;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.Stack;
 import java.util.TreeMap;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.artifact.versioning.OverConstrainedVersionException;
+import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.project.MavenProject;
 import org.apache.tools.ant.BuildException;
 import org.nuxeo.build.ant.artifact.GraphTask;
 import org.nuxeo.build.maven.ArtifactDescriptor;
+import org.nuxeo.build.maven.Logger;
 import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.Filter;
@@ -45,10 +51,10 @@ public class Graph {
     protected MavenClient maven;
 
     protected Node root;
-    
-    protected LinkedList<Node> roots = new LinkedList<Node>();
 
-    protected TreeMap<String, Node> nodes = new TreeMap<String, Node>();
+    protected final TreeMap<String, Node> nodes = new TreeMap<String, Node>();
+
+    protected final LinkedList<Node> roots = new LinkedList<Node>();
 
     protected Resolver resolver = new Resolver(this);
 
@@ -110,10 +116,6 @@ public class Graph {
         return nodes.values().toArray(new Node[nodes.size()]);
     }
 
-    public TreeMap<String, Node> getNodesTree() {
-        return nodes;
-    }
-
     public Node findFirst(String pattern) {
         return findFirst(pattern, false);
     }
@@ -147,15 +149,7 @@ public class Graph {
      */
     public Node addRootNode(MavenProject pom) {
         Artifact artifact = pom.getArtifact();
-        String key = Node.createNodeId(artifact);
-        Node node = nodes.get(key);
-        if (node == null) {
-            // node = getResolver().resolve(artifact);
-            node = new Node(this, pom, artifact, key);
-            nodes.put(node.getId(), node);
-            roots.add(node);
-        }
-        return node;
+        return getRootNode(artifact);
     }
 
     public Node addRootNode(String key) {
@@ -165,24 +159,13 @@ public class Graph {
     }
 
     public Node getRootNode(Artifact artifact) {
-        String key = Node.createNodeId(artifact);
-        Node node = nodes.get(key);
+        MavenProject pom = resolver.load(artifact);
+        Node node = nodes.get(artifact);
         if (node == null) {
-            // node = getResolver().resolve(artifact);
-            node = new Node(this, null, artifact, key);
+            node = new Node(Graph.this, artifact, pom);
             nodes.put(node.getId(), node);
+            nodesByArtifact.put(artifact, node);
             roots.add(node);
-        }
-        return node;
-    }
-
-    public Node getNode(Node parent, Artifact artifact) {
-        String artifactKey = Node.createNodeId(artifact);
-        Node node = nodes.get(artifactKey);
-        if (node == null) {
-            node = new Node(this, null, artifact, artifactKey);
-//            node = getResolver().resolve(artifact);
-            nodes.put(node.getId(), node);
         }
         return node;
     }
@@ -255,32 +238,294 @@ public class Graph {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        TreeMap<String, String> map = new TreeMap<String, String>(
-                new Comparator<String>() {
-                    public int compare(String o1, String o2) {
-                        return o1.compareTo(o2);
-                    }
-                });
-        map.put("org.nuxeo:core:", "org.nuxeo:core");
-        map.put("org.nuxeo:core:e", "org.nuxeo:coree");
-        map.put("org.nuxeo:coree", "org.nuxeo:core:test");
-        map.put("org.nuxeo:common", "org.nuxeo:common");
-        map.put("org.nuxeo:clear", "org.nuxeo:clear");
-        map.put("org.nuxeos", "org.nuxeos");
-        map.put("com", "com");
-        map.put("pom", "pom");
-        map.put("a:b:c:d", "a:b:c:d");
-        map.put("a:b:d", "a:b:d");
+    protected final IdentityHashMap<Artifact, Node> nodesByArtifact = new IdentityHashMap<Artifact, Node>();
 
-        map.put("b", "b");
-        System.out.println(map);
-        SortedMap<String, String> smap = map.subMap("org.nuxeo:core:",
-                "org.nuxeo:core:\0");
-        System.out.println(smap.size() + " - " + smap);
-        // System.out.println(smap.firstKey());
-        // System.out.println(smap.lastKey());
+    protected final HashSet<Node> filteredNodes = new HashSet<Node>();
 
+    protected class NodesInjector implements
+            org.apache.maven.artifact.resolver.ResolutionListener {
+
+        protected final Stack<Node> parentNodes = new Stack<Node>();
+
+        protected final Node rootNode;
+
+        protected final Filter filter;
+
+        protected final int maxDepth;
+
+        protected Node currentNode;
+
+        protected NodesInjector(Node node, Filter filter, int maxDepth) {
+            this.currentNode = node;
+            this.rootNode = node;
+            this.filter = filter;
+            this.maxDepth = maxDepth;
+        }
+
+        public void testArtifact(Artifact node) {
+            log("testArtifact: artifact=" + node);
+        }
+
+        public void startProcessChildren(Artifact artifact) {
+            log("startProcessChildren: artifact=" + artifact);
+
+            if (!currentNode.getArtifact().equals(artifact)) {
+                throw new IllegalStateException("Artifact was expected to be "
+                        + currentNode.getArtifact() + " but was " + artifact);
+            }
+
+            parentNodes.push(currentNode);
+        }
+
+        public void endProcessChildren(Artifact artifact) {
+            Node node = (Node) parentNodes.pop();
+
+            log("endProcessChildren: artifact=" + artifact);
+
+            if (node == null) {
+                throw new IllegalStateException(
+                        "Parent dependency node was null");
+            }
+
+            if (!node.getArtifact().equals(artifact)) {
+                throw new IllegalStateException(
+                        "Parent dependency node artifact was expected to be "
+                                + node.getArtifact() + " but was " + artifact);
+            }
+        }
+
+        public void includeArtifact(Artifact artifact) {
+            log("includeArtifact: artifact=" + artifact);
+            
+            Node node = nodesByArtifact.get(artifact);
+
+            /*
+             * Ignore duplicate includeArtifact calls since omitForNearer can be
+             * called prior to includeArtifact on the same artifact, and we
+             * don't wish to include it twice.
+             */
+            if (node == null && isCurrentNodeIncluded()) {
+                addNode(artifact);
+            } else if (parentNodes.size() > 0) {  // add edge if not filtered
+                Node parent = parentNodes.peek();
+                
+                if (parent.state == Node.FILTERED) {
+                    return;
+                }
+                
+                if (parentNodes.size() >= maxDepth) {
+                    return;
+                }
+                
+                Edge edge = new Edge(parent, node);
+                if (!filter.accept(edge)) {
+                    return;
+                }
+                
+                node.addEdgeIn(edge);
+                parent.addEdgeOut(edge);
+                node.state = Node.INCLUDED;
+            }
+        }
+
+        public void omitForNearer(Artifact omitted, Artifact kept) {
+            log("omitForNearer: omitted=" + omitted + " kept=" + kept);
+
+            if (!omitted.getDependencyConflictId().equals(
+                    kept.getDependencyConflictId())) {
+                throw new IllegalArgumentException(
+                        "Omitted artifact dependency conflict id "
+                                + omitted.getDependencyConflictId()
+                                + " differs from kept artifact dependency conflict id "
+                                + kept.getDependencyConflictId());
+            }
+
+            if (!isCurrentNodeIncluded()) {
+                return;
+            }
+
+            // clear omitted node
+            Node omittedNode = nodesByArtifact.get(omitted);
+
+            if (omittedNode != null) {
+                removeNode(omitted);
+            } else {
+                omittedNode = createNode(omitted);
+                currentNode = omittedNode;
+            }
+
+            omittedNode.state = Node.OMITTED;
+            if (filteredNodes.remove(omittedNode)) {
+                log("Reset filtering " + omittedNode);
+            }
+
+            // refresh kept node
+            Node keptNode = nodesByArtifact.get(kept);
+
+            if (keptNode == null) {
+                keptNode = addNode(kept);
+            }
+
+        }
+
+        public void updateScope(Artifact artifact, String scope) {
+            log("updateScope: artifact=" + artifact + ", scope=" + scope);
+        }
+
+        public void manageArtifact(Artifact artifact, Artifact replacement) {
+            log("manageArtifact: artifact=" + artifact + ", replacement="
+                    + replacement);
+        }
+
+        public void omitForCycle(Artifact artifact) {
+            log("omitForCycle: artifact=" + artifact);
+
+            if (isCurrentNodeIncluded()) {
+                Node node = createNode(artifact);
+                node.state = Node.OMITTED;
+            }
+        }
+
+        public void updateScopeCurrentPom(Artifact artifact, String ignoredScope) {
+            log("updateScopeCurrentPom: artifact=" + artifact
+                    + ", scopeIgnored=" + ignoredScope);
+        }
+
+        public void selectVersionFromRange(Artifact artifact) {
+            throw new UnsupportedOperationException(
+                    "selectVersionFromRange: artifact=" + artifact);
+        }
+
+        public void restrictRange(Artifact artifact, Artifact replacement,
+                VersionRange newRange) {
+            throw new UnsupportedOperationException("restrictRange: artifact="
+                    + artifact + ", replacement=" + replacement
+                    + ", versionRange=" + newRange);
+        }
+
+        /**
+         * The log to write debug messages to.
+         */
+        private final Logger logger = MavenClientFactory.getLog();
+
+        /**
+         * Writes the specified message to the log at debug level with
+         * indentation for the current node's depth.
+         * 
+         * @param message the message to write to the log
+         */
+        private void log(String message) {
+
+            if (logger.isDebugEnabled() == false) {
+                return;
+            }
+
+            int depth = parentNodes.size();
+
+            StringBuffer buffer = new StringBuffer();
+
+            for (int i = 0; i < depth; i++) {
+                buffer.append("  ");
+            }
+
+            buffer.append(message);
+
+            logger.debug(buffer.toString());
+        }
+
+        private boolean isCurrentNodeIncluded() {
+
+            for (Iterator<Node> iterator = parentNodes.iterator(); iterator.hasNext();) {
+                Node node = (Node) iterator.next();
+
+                if (node.state != Node.INCLUDED && node.state != Node.FILTERED) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        protected Node addNode(Artifact artifact) {
+            Node node = createNode(artifact);
+            Node previousNode = (Node) nodesByArtifact.put(artifact, node);
+            nodes.put(node.id, node);
+
+            if (previousNode != null) {
+                throw new IllegalStateException(
+                        "Duplicate node registered for artifact: "
+                                + node.getArtifact());
+            }
+
+            currentNode = node;
+
+            return node;
+        }
+
+        protected void removeNode(Artifact artifact) {
+            Node node = nodesByArtifact.remove(artifact);
+            nodes.remove(node.id);
+            filteredNodes.remove(node);
+            for (Edge out : node.edgesOut) {
+                out.out.edgesIn.remove(out);
+            }
+
+            if (!artifact.equals(node.getArtifact())) {
+                throw new IllegalStateException(
+                        "Removed dependency node artifact was expected to be "
+                                + artifact + " but was " + node.getArtifact());
+            }
+
+        }
+
+        protected Node createNode(Artifact artifact) {
+            MavenProject pom = resolver.load(artifact);
+            Node node = new Node(Graph.this, artifact, pom);
+
+            if (parentNodes.isEmpty()) {
+                return node;
+            }
+
+            // setup edge
+            Node parent = (Node) parentNodes.peek();
+            Edge edge = new Edge(parent, node);
+
+            // is edge filtered ?
+            if (parent.state == Node.FILTERED || parentNodes.size() >= maxDepth
+                    || !filter.accept(edge)) {
+                node.state = Node.FILTERED;
+                filteredNodes.add(node);
+                log("Filtering "  + node);
+                return node;
+            }
+
+            // link nodes if not filtered only
+            parent.addEdgeOut(edge);
+            node.addEdgeIn(edge);
+
+            return node;
+        }
+
+    }
+
+    public void resolveDependencyTree(Node node, Filter filter, int depth) {
+        try {
+            maven.resolveDependencyTree(node.artifact, new ArtifactFilter() {
+
+                public boolean include(Artifact artifact) {
+                    return false;
+                }
+
+            }, new NodesInjector(node, filter, depth));
+        } catch (Exception cause) {
+            throw new Error("Cannot resolve dependency tree for " + node, cause);
+        }
+        // clear filtered nodes
+        for (Node n : filteredNodes) {
+            nodes.remove(n.id);
+            nodesByArtifact.remove(n.artifact);
+        }
+        filteredNodes.clear();
     }
 
 }

@@ -18,8 +18,6 @@ package org.nuxeo.build.maven.graph;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
-import org.apache.maven.model.DistributionManagement;
-import org.apache.maven.model.Relocation;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingException;
 import org.nuxeo.build.maven.MavenClientFactory;
@@ -40,58 +38,19 @@ public class Resolver {
         return graph;
     }
 
-    public MavenProject resolve(Node node) {
-        if (node.pom != null) {
-            return node.pom;
+    public void resolve(Artifact artifact) {
+        if (artifact.isResolved()) {
+            return;
         }
-        MavenProject pom = loadPom(node.artifact);
-        if (pom == null) {
-            return null;
-        }
-        pom = checkRelocation(node, pom);
+        // TODO remote repos from pom
         try {
-            if (!node.artifact.isResolved()) {
-                // TODO remote repos from pom
-                graph.maven.resolve(node.artifact);
-            }
+            graph.maven.resolve(artifact);
         } catch (ArtifactNotFoundException e) {
-            MavenClientFactory.getLog().warn(e.getMessage());
+            MavenClientFactory.getLog().warn("Cannot resolve " + artifact, e);
         }
-        return node.pom = pom;
     }
 
-    private MavenProject checkRelocation(Node node, MavenProject pom) {
-        DistributionManagement dm = pom.getDistributionManagement();
-        if (dm != null) {
-            Relocation reloc = dm.getRelocation(); // handle pom relocation
-            if (reloc != null) {
-                Artifact artifact = node.artifact;
-                Artifact orig = artifact;
-                String artifactId = reloc.getArtifactId();
-                String groupId = reloc.getGroupId();
-                String version = reloc.getVersion();
-                if (artifactId == null) {
-                    artifactId = artifact.getArtifactId();
-                }
-                if (groupId == null) {
-                    groupId = artifact.getGroupId();
-                }
-                if (version == null) {
-                    version = artifact.getVersion();
-                }
-                node.artifact = graph.maven.getArtifactFactory().createArtifact(
-                        groupId, artifactId, version, artifact.getScope(),
-                        artifact.getType());
-                MavenClientFactory.getLog().info(
-                        "Artifact " + orig + " was relocated to:  "
-                                + node.artifact);
-                pom = loadPom(node.artifact);
-            }
-        }
-        return pom;
-    }
-
-    public MavenProject loadPom(Artifact artifact) {
+    public MavenProject load(Artifact artifact) {
         if ("system".equals(artifact.getScope()))
             return null;
         try {

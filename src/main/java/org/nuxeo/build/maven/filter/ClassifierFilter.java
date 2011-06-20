@@ -55,7 +55,7 @@ public class ClassifierFilter implements Filter {
     }
 
     public boolean accept(Edge edge) {
-        return accept(edge.dst.getArtifact());
+        return accept(edge.out.getArtifact());
     }
 
     public boolean accept(Artifact artifact) {

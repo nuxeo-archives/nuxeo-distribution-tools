@@ -29,8 +29,10 @@ import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.AndFilter;
 import org.nuxeo.build.maven.filter.CompositeFilter;
 import org.nuxeo.build.maven.filter.Filter;
+import org.nuxeo.build.maven.filter.TrueFilter;
 import org.nuxeo.build.maven.graph.AttachmentNode;
 import org.nuxeo.build.maven.graph.Edge;
+import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
@@ -39,6 +41,7 @@ import org.nuxeo.build.maven.graph.Node;
  */
 public class ArtifactDependencies extends DataType implements ResourceCollection {
 
+    protected Graph graph = MavenClientFactory.getInstance().getGraph();
     protected Node node;
     protected List<Node> nodes;
     public String key;
@@ -97,9 +100,9 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
     public Node getNode() {
         if (node == null) {
             if (key != null) {
-                node = MavenClientFactory.getInstance().getGraph().findFirst(key);
+                node = graph.findFirst(key);
             } else {
-                node = MavenClientFactory.getInstance().getGraph().findNode(ad);
+                node =graph.findNode(ad);
             }
             if (node == null) {
                 throw new BuildException("Artifact with pattern "+(key!=null?key:ad.getNodeKeyPattern())+" was not found in graph");
@@ -125,18 +128,19 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
                 }
                 filter = CompositeFilter.compact(andf);
             }
-            // make sure node is expanded        
-            getNode().expand(depth, null); // if not already expanded this expand may not be done correctly
+            // make sure node is expanded  
+            
+            graph.resolveDependencyTree(getNode(), new TrueFilter(), Integer.MAX_VALUE); // if not already expanded this expand may not be done correctly
             nodes = new ArrayList<Node>();
             if (filter != null) {
                 for (Edge edge : node.getEdgesOut()) {
-                    if (filter.accept(edge.dst.getArtifact())) {
-                        nodes.add(edge.dst);
+                    if (filter.accept(edge.out.getArtifact())) {
+                        nodes.add(edge.out);
                     }
                 }
             } else {
                 for (Edge edge : node.getEdgesOut()) {
-                    nodes.add(edge.dst);
+                    nodes.add(edge.out);
                 }            
             }            
         }

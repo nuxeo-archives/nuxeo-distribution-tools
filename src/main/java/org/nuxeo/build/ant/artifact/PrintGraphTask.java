@@ -59,7 +59,7 @@ public class PrintGraphTask extends Task {
         }
         collectedNodes.add(node);
         for (Edge edge : node.getEdgesOut()) {
-            print(tabs + " |-- ", edge.dst, collectedNodes);
+            print(tabs + " |-- ", edge.out, collectedNodes);
         }
     }
 

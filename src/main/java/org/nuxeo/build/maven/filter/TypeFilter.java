@@ -52,7 +52,7 @@ public class TypeFilter implements Filter {
     }
 
     public boolean accept(Edge edge) {
-        return matcher.match(edge.dst.getArtifact().getType());
+        return matcher.match(edge.out.getArtifact().getType());
     }
 
     public boolean accept(Artifact artifact) {

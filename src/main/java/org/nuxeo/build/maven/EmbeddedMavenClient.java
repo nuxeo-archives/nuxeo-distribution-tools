@@ -24,15 +24,21 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.InvalidRepositoryException;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactCollector;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.resolver.DefaultArtifactCollector;
+import org.apache.maven.artifact.resolver.ResolutionListener;
+import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.embedder.MavenEmbedderConsoleLogger;
 import org.apache.maven.embedder.MavenEmbedderException;
 import org.apache.maven.model.Model;
@@ -42,8 +48,10 @@ import org.apache.maven.model.RepositoryPolicy;
 import org.apache.maven.profiles.ProfileManager;
 import org.apache.maven.project.DefaultMavenProjectBuilder;
 import org.apache.maven.project.InvalidProjectModelException;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectUtils;
 import org.apache.maven.settings.MavenSettingsBuilder;
 import org.apache.maven.settings.Settings;
@@ -338,5 +346,15 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
                 return logger.isDebugEnabled();
             }
         }
+
+       public void resolveDependencyTree(Artifact artifact, ArtifactFilter filter,
+            ResolutionListener listener) throws ArtifactResolutionException, ProjectBuildingException  {
+           MavenProject project = mavenProjectBuilder.buildFromRepository(artifact, getRemoteRepositories(), localRepository);
+        ArtifactCollector collector = new DefaultArtifactCollector();
+        collector.collect(project.getDependencyArtifacts(),
+                    project.getArtifact(), project.getManagedVersionMap(),
+                    localRepository, project.getRemoteArtifactRepositories(),
+                    artifactMetadataSource, filter, Collections.singletonList(listener));
+    }
 
 }

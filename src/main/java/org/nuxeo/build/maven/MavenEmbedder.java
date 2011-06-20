@@ -51,6 +51,7 @@ import org.apache.maven.BuildFailureException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.manager.WagonManager;
+import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.ArtifactRepositoryFactory;
 import org.apache.maven.artifact.repository.ArtifactRepositoryPolicy;
@@ -141,6 +142,8 @@ public class MavenEmbedder {
     protected ArtifactFactory artifactFactory;
 
     protected ArtifactResolver artifactResolver;
+    
+    protected ArtifactMetadataSource artifactMetadataSource;
 
     protected ArtifactRepositoryLayout defaultArtifactRepositoryLayout;
 
@@ -152,7 +155,8 @@ public class MavenEmbedder {
 
     protected ArtifactRepository localRepository;
 
-    protected File localRepositoryDirectory = new File(userHome, ".m2/repository"); // the default local repository
+    protected File localRepositoryDirectory = new File(userHome,
+            ".m2/repository"); // the default local repository
 
     protected ClassLoader classLoader;
 
@@ -384,7 +388,8 @@ public class MavenEmbedder {
             EventMonitor eventMonitor, TransferListener transferListener,
             Properties properties, File executionRootDirectory)
             throws CycleDetectedException, LifecycleExecutionException,
-            BuildFailureException, DuplicateProjectException, MissingProjectException {
+            BuildFailureException, DuplicateProjectException,
+            MissingProjectException {
         execute(Collections.singletonList(project), goals, eventMonitor,
                 transferListener, properties, executionRootDirectory);
     }
@@ -393,7 +398,8 @@ public class MavenEmbedder {
             EventMonitor eventMonitor, TransferListener transferListener,
             Properties properties, File executionRootDirectory)
             throws CycleDetectedException, LifecycleExecutionException,
-            BuildFailureException, DuplicateProjectException, MissingProjectException {
+            BuildFailureException, DuplicateProjectException,
+            MissingProjectException {
         ReactorManager rm = new ReactorManager(projects);
 
         EventDispatcher eventDispatcher = new DefaultEventDispatcher();
@@ -609,6 +615,8 @@ public class MavenEmbedder {
 
             artifactResolver = (ArtifactResolver) embedder.lookup(ArtifactResolver.ROLE);
 
+            artifactMetadataSource = (ArtifactMetadataSource) embedder.lookup(ArtifactMetadataSource.ROLE);
+
             defaultArtifactRepositoryLayout = (ArtifactRepositoryLayout) embedder.lookup(
                     ArtifactRepositoryLayout.ROLE, DEFAULT_LAYOUT_ID);
 
@@ -641,9 +649,9 @@ public class MavenEmbedder {
             alignWithUserInstallation = true;
         }
     }
-    
+
     protected void createM2WorkingDir() {
-        
+
         new File(userHome, ".m2/repository").mkdirs();
     }
 
@@ -678,8 +686,8 @@ public class MavenEmbedder {
         } else {
             if (localRepository == null) {
                 localRepository = createLocalRepository(localRepositoryDirectory);
-//                throw new IllegalArgumentException(
-//                        "When not aligning with a user install you must specify a local repository location using the setLocalRepositoryDirectory( File ) method.");
+                // throw new IllegalArgumentException(
+                // "When not aligning with a user install you must specify a local repository location using the setLocalRepositoryDirectory( File ) method.");
             }
 
             settings = new Settings();
@@ -691,24 +699,27 @@ public class MavenEmbedder {
             settings.setOffline(offline);
 
             settings.setInteractiveMode(interactiveMode);
-            
+
         }
-                
-        //bs: correctly init wagon 
+
+        // bs: correctly init wagon
         initWagonFromSettings();
         // end bs
     }
 
-    // bs: init wagon manager from user settings 
+    // bs: init wagon manager from user settings
     protected void initWagonFromSettings() {
         wagonManager.setOnline(!isOffline());
         Proxy proxy = settings.getActiveProxy();
         if (proxy != null) {
-            wagonManager.addProxy(proxy.getProtocol(), proxy.getHost(), proxy.getPort(), proxy.getUsername(), proxy.getPassword(), proxy.getNonProxyHosts());
+            wagonManager.addProxy(proxy.getProtocol(), proxy.getHost(),
+                    proxy.getPort(), proxy.getUsername(), proxy.getPassword(),
+                    proxy.getNonProxyHosts());
         }
     }
-    // end bs 
-    
+
+    // end bs
+
     // ----------------------------------------------------------------------
     // Lifecycle
     // ----------------------------------------------------------------------
@@ -726,4 +737,5 @@ public class MavenEmbedder {
             throw new MavenEmbedderException("Cannot stop the embedder.", e);
         }
     }
-}
+
+ }

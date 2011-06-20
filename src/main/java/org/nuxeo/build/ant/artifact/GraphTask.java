@@ -29,6 +29,7 @@ import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.CompositeFilter;
+import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
@@ -88,14 +89,11 @@ public class GraphTask extends Task {
             for (ArtifactKey resolve : resolves) {
                 ArtifactDescriptor ad = new ArtifactDescriptor(resolve.pattern);
                 Artifact arti = readArtifact(ad);
-                Node node = maven.getGraph().getRootNode(arti);
+                final Graph graph = maven.getGraph();
+                Node node = graph.getRootNode(arti);
                 if (expand != null) {
-                    if (expand.filter != null) {
-                        node.expand(expand.depth,
-                                CompositeFilter.compact(expand.filter));
-                    } else {
-                        node.expand(expand.depth, null);
-                    }
+                        graph.resolveDependencyTree(node,
+                                CompositeFilter.compact(expand.filter), expand.depth);
                 }
             }
         }

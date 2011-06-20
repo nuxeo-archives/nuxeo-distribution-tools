@@ -18,16 +18,23 @@ package org.nuxeo.build.maven;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactCollector;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.resolver.DefaultArtifactCollector;
+import org.apache.maven.artifact.resolver.ResolutionListener;
+import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.model.Profile;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -35,21 +42,23 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.maven.project.ProjectBuildingException;
 import org.apache.tools.ant.BuildException;
 import org.nuxeo.build.ant.AntClient;
 import org.nuxeo.build.ant.profile.AntProfileManager;
+import org.nuxeo.build.maven.filter.TrueFilter;
 import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
- *
+ * 
  * @goal build
  * @phase package
- *
+ * 
  * @requiresDependencyResolution runtime
- *
+ * 
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- *
+ * 
  */
 public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
@@ -59,28 +68,28 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Location of the build file, if unique
-     *
+     * 
      * @parameter expression="${buildFile}"
      */
     protected File buildFile;
 
     /**
      * Location of the build files.
-     *
+     * 
      * @parameter expression="${buildFiles}"
      */
     protected File[] buildFiles;
 
     /**
      * Ant target to call on build file(s).
-     *
+     * 
      * @parameter expression="${target}"
      */
     protected String target;
 
     /**
      * Ant targets to call on build file(s).
-     *
+     * 
      * @since 1.6
      * @parameter expression="${targets}"
      */
@@ -88,14 +97,14 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * How many levels the graph must be expanded before running ant.
-     *
+     * 
      * @parameter expression="${expand}" default-value="0"
      */
     protected int expand;
 
     /**
      * Location of the file.
-     *
+     * 
      * @parameter expression="${project}"
      * @required
      */
@@ -103,7 +112,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Maven ProjectHelper
-     *
+     * 
      * @component
      * @readonly
      */
@@ -111,7 +120,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Location of the local repository.
-     *
+     * 
      * @parameter expression="${localRepository}"
      * @readonly
      * @required
@@ -120,7 +129,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * List of Remote Repositories used by the resolver
-     *
+     * 
      * @parameter expression="${project.remoteArtifactRepositories}"
      * @readonly
      * @required
@@ -129,7 +138,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Used to look up Artifacts in the remote repository.
-     *
+     * 
      * @component
      * @required
      * @readonly
@@ -138,7 +147,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Used to look up Artifacts in the remote repository.
-     *
+     * 
      * @component
      * @required
      * @readonly
@@ -146,11 +155,17 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     protected org.apache.maven.artifact.resolver.ArtifactResolver resolver;
 
     /**
-     *
+     * 
      * @component
      * @readonly
      */
     protected MavenProjectBuilder projectBuilder;
+
+    /**
+     * @component
+     * @readonly
+     */
+    protected ArtifactMetadataSource metadataSource;
 
     private Logger logger;
 
@@ -199,7 +214,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
         // add project properties
         HashMap<String, String> props = new HashMap<String, String>();
-        for (Map.Entry<Object,Object> entry : project.getProperties().entrySet()) {
+        for (Map.Entry<Object, Object> entry : project.getProperties().entrySet()) {
             props.put(entry.getKey().toString(), entry.getValue().toString());
         }
         props.put("maven.basedir", project.getBasedir().getAbsolutePath());
@@ -250,7 +265,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
             Node root = graph.addRootNode(project);
             if (expand > 0) {
-                root.expand(expand, null);
+                graph.resolveDependencyTree(root, new TrueFilter(), expand);
             }
 
             try {
@@ -318,6 +333,18 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         } catch (ArtifactNotFoundException e) {
             throw e;
         }
+    }
+
+    public void resolveDependencyTree(Artifact artifact, ArtifactFilter filter,
+            ResolutionListener listener) throws ArtifactResolutionException,
+            ProjectBuildingException {
+        MavenProject project = projectBuilder.buildFromRepository(artifact,
+                remoteRepositories, localRepository);
+        ArtifactCollector collector = new DefaultArtifactCollector();
+        collector.collect(project.getDependencyArtifacts(),
+                project.getArtifact(), project.getManagedVersionMap(),
+                localRepository, project.getRemoteArtifactRepositories(),
+                metadataSource, filter, Collections.singletonList(listener));
     }
 
     public Graph getGraph() {

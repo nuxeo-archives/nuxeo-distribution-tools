@@ -76,7 +76,7 @@ public class DependsOnCategoryPatternFilter implements Filter {
         Collection<Edge> children = node.getEdgesOut();
         if (!accept && children != null) {
             for (Edge childEdge : children) {
-                if (accept(childEdge.dst)) {
+                if (accept(childEdge.out)) {
                     accept = true;
                     break;
                 }
