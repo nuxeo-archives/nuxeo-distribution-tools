@@ -260,6 +260,7 @@ public class Graph {
             this.rootNode = node;
             this.filter = filter;
             this.maxDepth = maxDepth;
+            this.rootNode.state = Node.INCLUDED;
         }
 
         @Override
@@ -300,7 +301,7 @@ public class Graph {
         @Override
         public void includeArtifact(Artifact artifact) {
             debug("includeArtifact: artifact=" + artifact);
-            
+
             Node node = nodesByArtifact.get(artifact);
 
             /*
@@ -314,12 +315,13 @@ public class Graph {
         }
 
         @Override
-        public void omitForNearer(Artifact omitted, Artifact kept) {
+        public void omitForNearer(Artifact kept, Artifact omitted) { 
+            // current implementation is calling this callback with (artifact, replacement), switched args order
             debug("omitForNearer: omitted=" + omitted + " kept=" + kept);
 
             if (!omitted.getDependencyConflictId().equals(
                     kept.getDependencyConflictId())) {
-                throw new IllegalArgumentException( 
+                throw new IllegalArgumentException(
                         "Omitted artifact dependency conflict id "
                                 + omitted.getDependencyConflictId()
                                 + " differs from kept artifact dependency conflict id "
@@ -335,19 +337,21 @@ public class Graph {
 
             if (omittedNode != null) {
                 removeNode(omitted);
-            } 
-            else {
-                omittedNode = createNode(omitted);
-                currentNode = omittedNode;
-            } 
-
-            omittedNode.state = Node.OMITTED;
+            }
 
             // refresh kept node
-            Node keptNode = nodesByArtifact.get(kept);
+            Node keptNode = nodesByArtifact.get(kept); 
+            Node keptNodeById = nodes.get(Node.createNodeId(kept)); // warn, artitfact are not immutable, this cannot works
 
+            if (keptNode == null) { // try using another reference
+                keptNode = keptNodeById;
+            }
+            
             if (keptNode == null) {
                 keptNode = addNode(kept);
+            } else {
+                addEdges(keptNode);
+                currentNode = keptNode;
             }
 
         }
@@ -365,12 +369,7 @@ public class Graph {
 
         @Override
         public void omitForCycle(Artifact artifact) {
-            debug("omitForCycle: artifact=" + artifact);
-
-            if (isCurrentNodeIncluded()) {
-                Node node = createNode(artifact);
-                node.state = Node.OMITTED;
-            }
+            warn("omitForCycle: artifact=" + artifact);
         }
 
         @Override
@@ -381,16 +380,14 @@ public class Graph {
 
         @Override
         public void selectVersionFromRange(Artifact artifact) {
-            warn(
-                    "selectVersionFromRange: artifact=" + artifact);
+            warn("selectVersionFromRange: artifact=" + artifact);
         }
 
         @Override
         public void restrictRange(Artifact artifact, Artifact replacement,
                 VersionRange newRange) {
-           debug("restrictRange: artifact="
-                    + artifact + ", replacement=" + replacement
-                    + ", versionRange=" + newRange);
+            debug("restrictRange: artifact=" + artifact + ", replacement="
+                    + replacement + ", versionRange=" + newRange);
         }
 
         /**
@@ -423,7 +420,6 @@ public class Graph {
             logger.debug(buffer.toString());
         }
 
-        
         private void warn(String message) {
 
             int depth = parentNodes.size();
@@ -444,7 +440,7 @@ public class Graph {
             for (Iterator<Node> iterator = parentNodes.iterator(); iterator.hasNext();) {
                 Node node = (Node) iterator.next();
 
-                if (node.state != Node.INCLUDED && node.state != Node.FILTERED) {
+                if (node.state == Node.UNKNOWN) {
                     return false;
                 }
             }
@@ -495,38 +491,51 @@ public class Graph {
             return node;
         }
 
-        private boolean addEdges(Node out) {
+        protected boolean addEdges(Node out) {
 
             if (parentNodes.isEmpty()) {
                 return false;
             }
-            
+
             Node in = (Node) parentNodes.peek();
             Edge edge = new Edge(in, out);
 
-            // is edge filtered ?
-            if (in.state == Node.FILTERED) {
-                out.state = Node.FILTERED;
-                filteredNodes.add(out);
-                debug("Filtering (inherited from parent) :"  + out);
-                return false;
-            }
-            if (parentNodes.size() >= maxDepth) {
-                out.state = Node.FILTERED;
-                filteredNodes.add(out);
-                debug("Filtering (max depth) : " + out);
-                return false;
-            }
-            
-            if (!filter.accept(edge)) {
-                out.state = Node.FILTERED;
-                filteredNodes.add(out);
-                debug("Filtering (filter) : " + out);
+            if (!accept(edge)) {
+                // filter only not already included nodes
+                if (out.state == Node.UNKNOWN) { 
+                    filteredNodes.add(out);
+                    out.state = Node.FILTERED;
+                }
                 return false;
             }
 
+            if (out.state == Node.FILTERED) {
+                filteredNodes.remove(out);
+            }
+            
             out.edgesIn.add(edge);
             in.edgesOut.add(edge);
+            
+            out.state = Node.INCLUDED;
+            
+            return true;
+        }
+
+        private boolean accept(Edge edge) {
+            // is edge filtered ?
+            if (edge.in.state == Node.FILTERED) {
+                debug("Filtering (inherited from parent) :" + edge.out);
+                return false;
+            }
+            if (parentNodes.size() >= maxDepth) {
+                debug("Filtering (max depth) : " + edge.out);
+                return false;
+            }
+
+            if (!filter.accept(edge)) {
+                debug("Filtering (filter) : " + edge.out);
+                return false;
+            }
 
             return true;
         }

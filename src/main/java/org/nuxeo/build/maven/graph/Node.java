@@ -63,14 +63,11 @@ public class Node {
     }
 
     public static String createNodeId(Artifact artifact) {
-        return new StringBuilder().append(artifact.getGroupId()).append(':').append(
-                artifact.getArtifactId()).append(':').append(
-                artifact.getVersion()).append(':').append(artifact.getType()).append(
-                ':').toString();
+        return artifact.toString();
     }
 
     public Node(Node node) {
-        this.id = node.id;
+        this.id = createNodeId(node.artifact);
         this.graph = node.graph;
         this.artifact = node.artifact;
         this.edgesIn.addAll(node.edgesIn);
@@ -85,11 +82,11 @@ public class Node {
         this.pom = pom;
     }
 
+    protected static final int UNKNOWN = 0;
     protected static final int INCLUDED = 1;
-    protected static final int OMITTED = 2;
-    protected static final int FILTERED = 3;
+    protected static final int FILTERED = 2;
 
-    protected int state = INCLUDED;
+    protected int state = UNKNOWN;
 
 
     public Artifact getArtifact() {
@@ -210,7 +207,7 @@ public class Node {
 
     @Override
     public String toString() {
-        return id;
+        return artifact.toString();
     }
 
     /**
