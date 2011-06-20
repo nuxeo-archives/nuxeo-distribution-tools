@@ -29,11 +29,11 @@ public class CleanNuxeoProvider extends DefaultNuxeoProvider {
 
     @Override
     public boolean accept(Edge edge) {
-        if ("pom".equals(edge.src.getArtifact().getType())) {
+        if ("pom".equals(edge.in.getArtifact().getType())) {
             return true;
         }
-        if (edge.src.getArtifact().getArtifactId().startsWith("nuxeo-")) {
-            return !edge.dst.getArtifact().getArtifactId().startsWith("nuxeo-");
+        if (edge.in.getArtifact().getArtifactId().startsWith("nuxeo-")) {
+            return !edge.out.getArtifact().getArtifactId().startsWith("nuxeo-");
         }
         return true;
     }

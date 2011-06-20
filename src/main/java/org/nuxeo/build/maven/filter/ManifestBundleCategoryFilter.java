@@ -141,7 +141,7 @@ public class ManifestBundleCategoryFilter implements Filter {
             Collection<Edge> children = node.getEdgesOut();
             // if (children!=null) {
             for (Edge edge : children) {
-                if (accept(edge.dst, true, false)) {
+                if (accept(edge.out, true, false)) {
                     accept = true;
                     break;
                 }
@@ -157,7 +157,7 @@ public class ManifestBundleCategoryFilter implements Filter {
             Collection<Edge> parents = node.getEdgesIn();
             // if (parents!=null) {
             for (Edge edge : parents) {
-                if (accept(edge.src, false, true)) {
+                if (accept(edge.in, false, true)) {
                     accept = true;
                     break;
                 }

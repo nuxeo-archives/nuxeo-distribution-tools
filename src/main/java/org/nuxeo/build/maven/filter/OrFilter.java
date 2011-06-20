@@ -48,20 +48,6 @@ public class OrFilter extends CompositeFilter {
         super(filters);
     }
 
-    public boolean accept(Edge edge, Dependency dep) {
-        for (Filter filter : filters) {
-            if (filter.accept(edge, dep)) {
-                if (MavenClientFactory.getLog().isDebugEnabled()) {
-                    MavenClientFactory.getLog().debug(
-                            "Filtering - " + filter + " accepted "
-                                    + dep.getArtifactId());
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
     public boolean accept(Edge edge) {
         for (Filter filter : filters) {
             if (filter.accept(edge)) {

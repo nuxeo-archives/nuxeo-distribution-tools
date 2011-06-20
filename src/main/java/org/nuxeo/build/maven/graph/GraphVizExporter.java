@@ -113,10 +113,10 @@ public class GraphVizExporter extends AbstractGraphVisitor {
         if(edge.isOptional)
             attrs.put("style","dotted");
         attrs.put("color", getEdgeColor(edge));
-        if(edge.src.artifact.getGroupId().equals(edge.dst.artifact.getGroupId()))
+        if(edge.in.artifact.getGroupId().equals(edge.out.artifact.getGroupId()))
             attrs.put("weight","10");
 
-        out.printf("%s -> %s ", id(edge.src), id(edge.dst));
+        out.printf("%s -> %s ", id(edge.in), id(edge.out));
         writeAttributes(attrs);
         return true;
     }

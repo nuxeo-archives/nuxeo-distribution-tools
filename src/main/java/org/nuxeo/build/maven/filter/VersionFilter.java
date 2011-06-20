@@ -51,7 +51,7 @@ public class VersionFilter implements Filter {
     }
 
     public boolean accept(Edge edge) {
-        return matcher.match(edge.dst.getArtifact().getVersion());
+        return matcher.match(edge.out.getArtifact().getVersion());
     }
 
     public boolean accept(Artifact artifact) {

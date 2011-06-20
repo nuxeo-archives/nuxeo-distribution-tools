@@ -368,7 +368,7 @@ public class ArtifactSet extends DataType implements ResourceCollection {
             depth--;
             for (Edge edge : node.getEdgesOut()) {
                 if (filter.accept(edge)) {
-                    collectNodes(nodes, edge.dst, filter, depth);
+                    collectNodes(nodes, edge.out, filter, depth);
                 }
             }
         }
@@ -379,7 +379,7 @@ public class ArtifactSet extends DataType implements ResourceCollection {
         if (depth > 0) {
             depth--;
             for (Edge edge : node.getEdgesOut()) {
-                collectNodes(nodes, edge.dst, depth);
+                collectNodes(nodes, edge.out, depth);
             }
         }
     }

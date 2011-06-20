@@ -37,20 +37,6 @@ public class AndFilter extends CompositeFilter {
         super(filters);
     }
 
-    public boolean accept(Edge edge, Dependency dep) {
-        for (Filter filter : filters) {
-            if (!filter.accept(edge, dep)) {
-                if (MavenClientFactory.getLog().isDebugEnabled()) {
-                    MavenClientFactory.getLog().debug(
-                            "Filtering - " + filter + " refused "
-                                    + dep.getArtifactId());
-                }
-                return false;
-            }
-        }
-        return true;
-    }
-
     public boolean accept(Edge edge) {
         for (Filter filter : filters) {
             if (!filter.accept(edge)) {
@@ -79,7 +65,8 @@ public class AndFilter extends CompositeFilter {
 
     public boolean accept(Node node) {
         for (Filter filter : filters) {
-            if (!filter.accept(node)) {
+            final boolean accept = filter.accept(node);
+            if (!accept) {
                 if (MavenClientFactory.getLog().isDebugEnabled()) {
                     MavenClientFactory.getLog().debug(
                             "Filtering - " + filter + " refused " + node);

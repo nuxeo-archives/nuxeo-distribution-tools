@@ -24,10 +24,7 @@ import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.AndFilter;
 import org.nuxeo.build.maven.filter.CompositeFilter;
-import org.nuxeo.build.maven.filter.MavenExclusionFilter;
-import org.nuxeo.build.maven.filter.Filter;
-import org.nuxeo.build.maven.filter.NotFilter;
-import org.nuxeo.build.maven.filter.ScopeFilter;
+import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
@@ -61,17 +58,6 @@ public class ExpandTask extends Task {
     public void addIncludes(Includes includes) {
         filter.addFilter(includes.getFilter());
     }
-
-    protected Filter exclusionFilter = 
-            new MavenExclusionFilter();
-    
-    public void setMavenExclusions(Boolean value) {
-        if (value == Boolean.TRUE) {
-            filter.addFilter(exclusionFilter);
-        } else {
-            filter.removeFilter(exclusionFilter);
-        }
-    }
  
     protected boolean acceptNode(Node node) {
         return true;
@@ -81,20 +67,17 @@ public class ExpandTask extends Task {
     public void execute() throws BuildException {
         Collection<Node> nodes = null;
         MavenClient maven = MavenClientFactory.getInstance();
+        Graph graph = maven.getGraph();
         if (key == null) {
-            nodes = maven.getGraph().getRoots();
+            nodes = graph.getRoots();
         } else {
-            nodes = maven.getGraph().find(key);
+            nodes = graph.find(key);
         }
         for (Node node : nodes) {
             if (!acceptNode(node)) {
                 continue;
             }
-            if (filter != null) {
-                node.expand(depth, CompositeFilter.compact(filter));
-            } else {
-                node.expand(depth, null);
-            }
+            graph.resolveDependencyTree(node, CompositeFilter.compact(filter), depth);
         }
     }
 
