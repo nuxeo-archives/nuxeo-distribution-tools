@@ -15,4 +15,5 @@ target
 *.iws
 *-orig
 *-bak
+*.rej
 */.DS_Store
