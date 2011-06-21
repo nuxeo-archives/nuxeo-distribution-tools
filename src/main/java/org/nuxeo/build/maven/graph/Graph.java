@@ -29,6 +29,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.resolver.WarningResolutionListener;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.artifact.versioning.OverConstrainedVersionException;
 import org.apache.maven.artifact.versioning.VersionRange;
@@ -320,7 +321,9 @@ public class Graph {
 
         @Override
         public void omitForNearer(Artifact omitted, Artifact kept) {
-            debug("omitForNearer: omitted=" + omitted +"( " + System.identityHashCode(omitted) +") kept=" + kept + "(" + System.identityHashCode(kept) + ")");
+            debug("omitForNearer: omitted=" + omitted + "( "
+                    + System.identityHashCode(omitted) + ") kept=" + kept + "("
+                    + System.identityHashCode(kept) + ")");
 
             if (!omitted.getDependencyConflictId().equals(
                     kept.getDependencyConflictId())) {
@@ -336,36 +339,24 @@ public class Graph {
                 return;
             }
 
-            Node omittedNode = nodesByArtifact.get(omitted);
-
+//            Node omittedNode = nodesByArtifact.get(omitted);
+//
+//            if (omittedNode != null) {
+//                removeNode(omitted);
+//                validateDependencyTree();
+//                omittedNode.state = Node.OMITTED;
+//            }
+            
             Node keptNode = nodesByArtifact.get(kept);
 
-            if (keptNode == null) { // ???
-                if (omittedNode != null) {
-                    warn("exchanging kept  " + System.identityHashCode(kept) + " with omitted " + System.identityHashCode(omitted) + " references :  artifact=" + kept);
-                    addEdges(omittedNode);
-                    currentNode = omittedNode;
-                    return;
-                }
-               warn("kept " + System.identityHashCode(kept) + " and omitted " + System.identityHashCode(omitted) + " references not indexed :  artifact=" + kept);
+            if (keptNode == null) {
                 keptNode = addNode(kept);
+            } else {
                 addEdges(keptNode);
                 currentNode = keptNode;
-//                keptNode = nodes.get(Node.createNodeId(kept));
-//                if (keptNode != null) {
-//                addEdges(keptNode);
-//                currentNode = keptNode;
-//                }
-//                return;
-            } 
-            
-            // clear omitted node
-
-            if (omittedNode != null) {
-                removeNode(omitted);
-                validateDependencyTree();
-                omittedNode.state = Node.OMITTED;
             }
+
+
         }
 
         @Override
@@ -415,9 +406,9 @@ public class Graph {
          */
         protected void debug(String message) {
 
-            // if (logger.isDebugEnabled() == false) {
-            // return;
-            // }
+             if (logger.isDebugEnabled() == false) {
+                 return;
+             }
 
             int depth = parentNodes.size();
 
@@ -429,7 +420,7 @@ public class Graph {
 
             buffer.append(message);
 
-            logger.info(buffer.toString());
+            logger.debug(buffer.toString());
         }
 
         protected void warn(String message) {
@@ -444,7 +435,7 @@ public class Graph {
 
             buffer.append(message);
 
-            logger.warn(buffer.toString());
+            logger.info(buffer.toString());
         }
 
         protected boolean isCurrentNodeIncluded() {
@@ -481,7 +472,9 @@ public class Graph {
         protected void removeNode(Artifact artifact) {
             Node node = nodesByArtifact.remove(artifact);
             if (node == null) {
-                warn("removing not indexed " + System.identityHashCode(artifact) + " : artifact=" + artifact);
+                warn("removing not indexed "
+                        + System.identityHashCode(artifact) + " : artifact="
+                        + artifact);
                 node = nodes.get(Node.createNodeId(artifact));
             }
             nodes.remove(node.id);
@@ -527,23 +520,27 @@ public class Graph {
                 if (!accept(edge)) {
                     filteredNodes.add(out);
                     out.state = Node.FILTERED;
-                } else {
+                    return;
+                } 
+                 out.state = Node.INCLUDED;
+                break;
+            case Node.FILTERED:
+                if (accept(edge)) {
+                    filteredNodes.remove(out);
+                    warn("unfiltering : artifact="+out.artifact);
                     out.state = Node.INCLUDED;
                 }
                 break;
             case Node.INCLUDED: // edges injection
                 break;
             default:
-                throw new IllegalStateException("Cannot add edges : artifact="
+                throw new IllegalStateException("Cannot add edge : artifact="
                         + out.artifact);
             }
-
-            filteredNodes.remove(out);
 
             out.edgesIn.add(edge);
             in.edgesOut.add(edge);
 
-            out.state = Node.INCLUDED;
         }
 
         protected boolean accept(Edge edge) {
@@ -560,7 +557,7 @@ public class Graph {
             }
 
             if (!filter.accept(edge)) {
-                debug("filtering edge (filter) : artifact=" + edge.out);
+                debug("filtering edge (filter) : artifact=" + edge.out.artifact);
                 return false;
             }
 
@@ -568,9 +565,11 @@ public class Graph {
         }
 
         protected void removeFiltered() {
-            for (Node n : filteredNodes) {
+            Iterator<Node> it = filteredNodes.iterator();
+            while (it.hasNext()) {
+                Node n = it.next();
+                it.remove();
                 removeNode(n.artifact);
-                validateDependencyTree();
             }
         }
 
@@ -584,6 +583,7 @@ public class Graph {
         public boolean visitNode(Node node) {
             if (nodes.get(node.id) == null) {
                 unreferencedNodes.add(node);
+                nodes.put(node.id, node); // re-insert missing node
             }
             return true;
         }
@@ -598,13 +598,12 @@ public class Graph {
         UnreferencedNodesValidator validator = new UnreferencedNodesValidator();
         validator.process(this);
         if (validator.unreferencedNodes.size() > 0) {
-            MavenClientFactory.getLog().warn(
-                    "Graph contains unreferenced nodes : "
-                            + validator.unreferencedNodes);
+            MavenClientFactory.getLog().warn("Fixed unreferenced nodes : " + validator.unreferencedNodes);  
         }
     }
 
     public void resolveDependencyTree(Node node, Filter filter, int depth) {
+        MavenClientFactory.getLog().info("Resolving dependencies");
         final NodesInjector injector = new NodesInjector(node, filter, depth);
         try {
             maven.resolveDependencyTree(node.artifact, new ArtifactFilter() {
@@ -620,7 +619,10 @@ public class Graph {
         validateDependencyTree();
 
         // remove filtered artifacts
+        MavenClientFactory.getLog().info("Filtering dependency tree");
         injector.removeFiltered();
+
+        validateDependencyTree();
 
     }
 
