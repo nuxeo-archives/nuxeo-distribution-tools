@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     matic
+ *     slacoin
  */
 package org.nuxeo.build.maven.filter;
 
@@ -22,7 +22,7 @@ import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
- * @author matic
+ * @author slacoin
  *
  */
 public class TrueFilter implements Filter {

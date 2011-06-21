@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2010 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, jcarsique
+ *     bstefanescu, jcarsique, slacoin
  */
 package org.nuxeo.osgi.application;
 
@@ -38,7 +38,7 @@ import org.nuxeo.dev.ClassLoaderDelegate;
 /**
  * @deprecated needs to be kept in sync with the one from nuxeo-runtime-launcher
  *             until they are merged
- * 
+ *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 public class FrameworkBootstrap implements LoaderConstants {
@@ -157,7 +157,7 @@ public class FrameworkBootstrap implements LoaderConstants {
         FileInputStream in = new FileInputStream(file);
         try {
             p.load(in);
-            env.putAll((Map)p);
+            env.putAll((Map) p);
             String v = (String) env.get(SCAN_FOR_NESTED_JARS);
             if (v != null) {
                 scanForNestedJars = Boolean.parseBoolean(v);
@@ -186,7 +186,7 @@ public class FrameworkBootstrap implements LoaderConstants {
 
     /**
      * Fills the classloader with all jars found in the defined classpath.
-     * 
+     *
      * @return the list of bundle files.
      */
     protected List<File> buildClassPath() throws IOException {

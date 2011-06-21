@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -32,14 +32,19 @@ import org.nuxeo.dev.ConfigurationReader.SectionReader;
 public class ConfigurationLoader {
 
     protected Set<String> bundles;
+
     protected Set<String> libs;
+
     protected Set<String> poms;
+
     protected ConfigurationReader reader;
+
     protected ArtifactDescriptor templateArtifact;
+
     protected String templatePrefix;
-    
+
     protected Map<String, String> props;
-    
+
     public ConfigurationLoader() {
         poms = new LinkedHashSet<String>();
         bundles = new LinkedHashSet<String>();
@@ -52,23 +57,23 @@ public class ConfigurationLoader {
         reader.addReader("template", new TemplateReader());
         reader.addReader("poms", new ArtifactReader(poms));
     }
-    
+
     public Map<String, String> getProperties() {
         return props;
     }
-    
+
     public Set<String> getPoms() {
         return poms;
     }
-    
+
     public ConfigurationReader getReader() {
         return reader;
     }
-    
+
     public Set<String> getBundles() {
         return bundles;
     }
-    
+
     public Set<String> getLibs() {
         return libs;
     }
@@ -76,30 +81,31 @@ public class ConfigurationLoader {
     public ArtifactDescriptor getTemplateArtifact() {
         return templateArtifact;
     }
-    
+
     public String getTemplatePrefix() {
         return templatePrefix;
     }
-    
+
     class ArtifactReader implements SectionReader {
-        protected Set<String> result; 
+        protected Set<String> result;
+
         ArtifactReader(Set<String> result) {
             this.result = result;
         }
+
         public void readLine(String section, String line) throws IOException {
             result.add(expandVars(line, props));
         }
     }
-    
-    
+
     class PropertiesReader implements SectionReader {
         public void readLine(String section, String line) throws IOException {
             int p = line.indexOf('=');
             if (p == -1) {
-                throw new IOException("Invalid properties line: "+line);
+                throw new IOException("Invalid properties line: " + line);
             }
             String key = line.substring(0, p).trim();
-            String value = line.substring(p+1).trim();
+            String value = line.substring(p + 1).trim();
             props.put(key, value);
         }
     }
@@ -108,21 +114,21 @@ public class ConfigurationLoader {
         public void readLine(String section, String line) throws IOException {
             int p = line.indexOf('=');
             if (p == -1) {
-                throw new IOException("Invalid configuration line: "+line);
+                throw new IOException("Invalid configuration line: " + line);
             }
             String key = line.substring(0, p).trim();
-            String value = line.substring(p+1).trim();
+            String value = line.substring(p + 1).trim();
             if ("path".equals(key)) {
-                templatePrefix =  expandVars(value, props);
+                templatePrefix = expandVars(value, props);
             } else if ("artifact".equals(key)) {
-                templateArtifact = new ArtifactDescriptor(expandVars(value, props));
+                templateArtifact = new ArtifactDescriptor(expandVars(value,
+                        props));
             } else {
-                throw new IOException("Unknown configuration property: "+key);
+                throw new IOException("Unknown configuration property: " + key);
             }
         }
     }
-    
-    
+
     /**
      * Expands any variable found in the given expression with the values in the
      * given map.
@@ -131,10 +137,9 @@ public class ConfigurationLoader {
      *
      * @param expression the expression to expand
      * @param properties a map containing variables
-     * @return
+     * @return expanded variable
      */
-    public static String expandVars(String expression,
-            Map<?, ?> properties) {
+    public static String expandVars(String expression, Map<?, ?> properties) {
         int p = expression.indexOf("${");
         if (p == -1) {
             return expression; // do not expand if not needed
@@ -151,10 +156,10 @@ public class ConfigurationLoader {
         for (int i = p; i < buf.length; i++) {
             char c = buf[i];
             switch (c) {
-            case '$' :
+            case '$':
                 dollar = true;
                 break;
-            case '{' :
+            case '{':
                 if (dollar) {
                     dollar = false;
                     var = true;
@@ -180,7 +185,7 @@ public class ConfigurationLoader {
                 break;
             default:
                 if (var) {
-                  varBuf.append(c);
+                    varBuf.append(c);
                 } else {
                     result.append(c);
                 }
@@ -189,6 +194,5 @@ public class ConfigurationLoader {
         }
         return result.toString();
     }
-
 
 }

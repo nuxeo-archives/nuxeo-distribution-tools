@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -13,8 +13,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * bstefanescu, jcarsique, $Id$
+ *     bstefanescu, jcarsique, slacoin
  */
 
 package org.nuxeo.build.ant.artifact;
@@ -30,7 +29,7 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * Attaches the artifact to Maven.
- * 
+ *
  * @author Kohsuke Kawaguchi
  */
 public class AttachArtifactTask extends Task {
@@ -41,7 +40,6 @@ public class AttachArtifactTask extends Task {
 
     private String type;
 
-    @SuppressWarnings("hiding")
     private String target;
 
     /**
@@ -93,7 +91,8 @@ public class AttachArtifactTask extends Task {
         } else {
             node.getPom().getArtifact().setFile(file);
             node.getPom().getArtifact().setResolved(true);
-//            maven.getProjectHelper().attachArtifact(node.getPom(), type, file);
+            // maven.getProjectHelper().attachArtifact(node.getPom(), type,
+            // file);
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.swing.tree;
 
@@ -61,7 +61,8 @@ public class ItemProvider {
 
     public Icon getIcon(Node node, boolean isExpanded) {
         String type = node.getArtifact().getType();
-        return IconUtils.createImageIcon(ArtifactCellRenderer.class, type+".gif");
+        return IconUtils.createImageIcon(ArtifactCellRenderer.class, type
+                + ".gif");
     }
 
     public String getName(Node node) {
@@ -69,39 +70,44 @@ public class ItemProvider {
     }
 
     public String getTooltip(Node node) {
-        return node.getId().substring(0, node.getId().length()-1);
+        return node.getId().substring(0, node.getId().length() - 1);
     }
 
     public String getInfo(Node node) {
-        String id = node.getId().substring(0, node.getId().length()-1);
+        String id = node.getId().substring(0, node.getId().length() - 1);
         Collection<Edge> edgesIn = node.getEdgesIn();
         String scopes = null;
         if (edgesIn != null && !edgesIn.isEmpty()) {
-            scopes="<br>";
+            scopes = "<br>";
             for (Edge edge : edgesIn) {
-                scopes+="&nbsp;&nbsp;<dd>"+edge.in.getArtifact().getArtifactId()+": <strong><i>"+(edge.scope==null?"compile":edge.scope)+"</i></strong></dd><br>";
+                scopes += "&nbsp;&nbsp;<dd>"
+                        + edge.in.getArtifact().getArtifactId()
+                        + ": <strong><i>"
+                        + (edge.scope == null ? "compile" : edge.scope)
+                        + "</i></strong></dd><br>";
             }
-            //scopes+="</ul>";
+            // scopes+="</ul>";
         } else {
             scopes = "N/A";
         }
         MavenProject pom = node.getPomIfAlreadyLoaded();
         String desc = null;
         if (pom != null) {
-            desc = "<i>"+pom.getDescription()+"</i>";
+            desc = "<i>" + pom.getDescription() + "</i>";
             String href = pom.getUrl();
             String fileRef = null;
             try {
-                fileRef=node.getFile().toURI().toURL().toExternalForm();
+                fileRef = node.getFile().toURI().toURL().toExternalForm();
             } catch (Exception e) {
-                fileRef = "file:/"+node.getFile().getAbsolutePath();
+                fileRef = "file:/" + node.getFile().getAbsolutePath();
             }
-            desc+="<p><b>Url:</b> "+href+"<br><b>File:</b> <a href=\""+fileRef+"\">"+node.getFile()+"</a></p>";
+            desc += "<p><b>Url:</b> " + href + "<br><b>File:</b> <a href=\""
+                    + fileRef + "\">" + node.getFile() + "</a></p>";
         } else {
             desc = "<i><font color=\"light-gray\">Pom not loaded. Enter the artifact to load it.</font></i>";
         }
-        return "<html><body><b>Artifact: </b> "+id+"<br><b>Scopes: </b>"+scopes+"<p>"+desc+"</p></body></html>";
+        return "<html><body><b>Artifact: </b> " + id + "<br><b>Scopes: </b>"
+                + scopes + "<p>" + desc + "</p></body></html>";
     }
-
 
 }

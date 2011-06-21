@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, jcarsique
+ *     bstefanescu, jcarsique, slacoin
  */
 package org.nuxeo.build.maven.graph;
 
@@ -28,18 +28,16 @@ import org.codehaus.plexus.util.StringUtils;
 import org.nuxeo.build.maven.filter.Filter;
 
 /**
- * TODO: use pom settings when resolving an artifact (use remote repos specified
- * in pom if any)
- * 
+ *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * 
+ *
  */
 public class Node {
 
     protected final Graph graph;
 
     protected final String id;
-    
+
     protected final Artifact artifact;
 
     protected final List<Edge> edgesIn = new ArrayList<Edge>();
@@ -86,13 +84,13 @@ public class Node {
     }
     
     protected static final int UNKNOWN = 0;
+
     protected static final int INCLUDED = 1;
     protected static final int OMITTED = 2;
     protected static final int FILTERED = 3;
 
     
     protected int state = UNKNOWN;
-
 
     public Artifact getArtifact() {
         return artifact;
@@ -226,6 +224,6 @@ public class Node {
     }
 
     public void expand(Filter filter, int depth) {
-        graph.resolveDependencyTree(this, filter,depth);
+        graph.resolveDependencyTree(this, filter, depth);
     }
 }

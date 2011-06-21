@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.ant.artifact;
 
@@ -39,39 +39,49 @@ import org.nuxeo.build.maven.graph.Node;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  *
  */
-public class ArtifactDependencies extends DataType implements ResourceCollection {
+public class ArtifactDependencies extends DataType implements
+        ResourceCollection {
 
     protected Graph graph = MavenClientFactory.getInstance().getGraph();
+
     protected Node node;
+
     protected List<Node> nodes;
+
     public String key;
+
     public int depth = 1;
+
     public ArtifactDescriptor ad = ArtifactDescriptor.emptyDescriptor();
 
     public Includes includes;
+
     public Excludes excludes;
-    
+
     public void setDepth(String depth) {
         if ("all".equals(depth)) {
             this.depth = Integer.MAX_VALUE;
         } else {
             this.depth = Integer.parseInt(depth);
             if (this.depth == 0) {
-                throw new IllegalArgumentException("0 is not a valid value for depth"); 
+                throw new IllegalArgumentException(
+                        "0 is not a valid value for depth");
             }
         }
     }
-    
+
     public void addExcludes(@SuppressWarnings("hiding") Excludes excludes) {
         if (this.excludes != null) {
-            throw new BuildException("Found an Excludes that is defined more than once in an artifact dependencies");
-        }        
+            throw new BuildException(
+                    "Found an Excludes that is defined more than once in an artifact dependencies");
+        }
         this.excludes = excludes;
     }
-    
+
     public void addIncludes(@SuppressWarnings("hiding") Includes includes) {
         if (this.includes != null) {
-            throw new BuildException("Found an Includes that is defined more than once in an artifact dependencies");
+            throw new BuildException(
+                    "Found an Includes that is defined more than once in an artifact dependencies");
         }
         this.includes = includes;
     }
@@ -83,32 +93,34 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
     public void setArtifactId(String artifactId) {
         this.ad.artifactId = artifactId;
     }
-    
+
     public void setGroupId(String groupId) {
         this.ad.groupId = groupId;
     }
-    
+
     public void setType(String type) {
         this.ad.type = type;
     }
-    
+
     public void setVersion(String version) {
         this.ad.version = version;
     }
-    
 
     public Node getNode() {
         if (node == null) {
             if (key != null) {
                 node = graph.findFirst(key);
             } else {
-                node =graph.findNode(ad);
+                node = graph.findNode(ad);
             }
             if (node == null) {
-                throw new BuildException("Artifact with pattern "+(key!=null?key:ad.getNodeKeyPattern())+" was not found in graph");
+                throw new BuildException("Artifact with pattern "
+                        + (key != null ? key : ad.getNodeKeyPattern())
+                        + " was not found in graph");
             }
             if (ad.classifier != null) {
-                // we need to create a virtual node that points to the attachment
+                // we need to create a virtual node that points to the
+                // attachment
                 node = new AttachmentNode(node, ad.classifier);
             }
         }
@@ -128,9 +140,10 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
                 }
                 filter = CompositeFilter.compact(andf);
             }
-            // make sure node is expanded  
-            
-            graph.resolveDependencyTree(getNode(), new TrueFilter(), Integer.MAX_VALUE); // if not already expanded this expand may not be done correctly
+            // make sure node is expanded
+            // if not already expanded, this expand may not be done correctly
+            graph.resolveDependencyTree(getNode(), new TrueFilter(),
+                    Integer.MAX_VALUE);
             nodes = new ArrayList<Node>();
             if (filter != null) {
                 for (Edge edge : node.getEdgesOut()) {
@@ -141,12 +154,12 @@ public class ArtifactDependencies extends DataType implements ResourceCollection
             } else {
                 for (Edge edge : node.getEdgesOut()) {
                     nodes.add(edge.out);
-                }            
-            }            
+                }
+            }
         }
         return nodes;
     }
-    
+
     public Iterator<FileResource> iterator() {
         return ArtifactSet.createIterator(getNodes());
     }

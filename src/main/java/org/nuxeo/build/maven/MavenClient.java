@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.maven;
 
@@ -23,18 +23,15 @@ import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.resolver.ResolutionListener;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
-import org.apache.maven.embedder.MavenEmbedderException;
 import org.apache.maven.model.Profile;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectBuildingException;
 import org.nuxeo.build.ant.profile.AntProfileManager;
 import org.nuxeo.build.maven.graph.Graph;
-
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -52,10 +49,10 @@ public interface MavenClient {
 
     public ArtifactFactory getArtifactFactory();
 
-    //public ProfileManager getProfileManager();
+    // public ProfileManager getProfileManager();
 
     public List<Profile> getActiveProfiles();
-    
+
     public MavenProjectBuilder getProjectBuilder();
 
     public ArtifactRepository getLocalRepository();
@@ -64,10 +61,14 @@ public interface MavenClient {
 
     public void resolve(Artifact artifact) throws ArtifactNotFoundException;
 
-    public void resolve(Artifact artifact, List<ArtifactRepository> remoteRepositories) throws ArtifactNotFoundException;
+    public void resolve(Artifact artifact,
+            List<ArtifactRepository> remoteRepositories)
+            throws ArtifactNotFoundException;
 
-    public void resolveDependencyTree(Artifact artifact, ArtifactFilter filter, ResolutionListener listener) throws ArtifactResolutionException, ProjectBuildingException;
-    
+    public void resolveDependencyTree(Artifact artifact, ArtifactFilter filter,
+            ResolutionListener listener) throws ArtifactResolutionException,
+            ProjectBuildingException;
+
     public Logger getCommonLogger();
 
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -13,12 +13,12 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
+ *     bstefanescu, slacoin
  *
  * $Id$
  */
 
 package org.nuxeo.build.maven.graph;
-
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,20 +31,23 @@ import org.nuxeo.build.util.FileUtils;
 
 /**
  * Generates a dependency diagram by using GraphViz.
+ *
  * @author Bogdan Stefanescu
  */
 public class GraphVizExporter extends AbstractGraphVisitor {
 
     protected final PrintWriter out;
-    protected final Map<Object/*Node,Edge*/,String> colors = new HashMap<Object,String>();
-    protected String nodeColor = "black";
-    protected String edgeColor = "black";
 
+    protected final Map<Object/* Node,Edge */, String> colors = new HashMap<Object, String>();
+
+    protected String nodeColor = "black";
+
+    protected String edgeColor = "black";
 
     /**
      * Unique IDs given to GraphViz for each node.
      */
-    private Map<Node,String> ids = new HashMap<Node, String>();
+    private Map<Node, String> ids = new HashMap<Node, String>();
 
     public GraphVizExporter(PrintWriter out) {
         this.out = out;
@@ -63,7 +66,6 @@ public class GraphVizExporter extends AbstractGraphVisitor {
         this.nodeColor = nodeColor;
     }
 
-
     public void setColors(Collection<Node> nodes, final String nodeColor) {
         for (Node node : nodes) {
             colors.put(node, nodeColor);
@@ -71,9 +73,11 @@ public class GraphVizExporter extends AbstractGraphVisitor {
     }
 
     /**
-     * Paint all edges and nodes that belong to the given subgraph by using the specified color.
+     * Paint all edges and nodes that belong to the given subgraph by using the
+     * specified color.
      */
-    public void setColors(Collection<Node> nodes, final String nodeColor, final String edgeColor) {
+    public void setColors(Collection<Node> nodes, final String nodeColor,
+            final String edgeColor) {
         for (Node node : nodes) {
             if (nodeColor != null) {
                 colors.put(node, nodeColor);
@@ -106,15 +110,17 @@ public class GraphVizExporter extends AbstractGraphVisitor {
     }
 
     public boolean visitEdge(Edge edge) {
-        Map<String,String> attrs = new HashMap<String, String>();
+        Map<String, String> attrs = new HashMap<String, String>();
 
-        if(!"compile".equals(edge.scope))   // most of dependencies are compile, so skip them for brevity
-            attrs.put("label",edge.scope);
-        if(edge.isOptional)
-            attrs.put("style","dotted");
+        // most of dependencies are compile, so skip them for brevity
+        if (!"compile".equals(edge.scope))
+
+            attrs.put("label", edge.scope);
+        if (edge.isOptional)
+            attrs.put("style", "dotted");
         attrs.put("color", getEdgeColor(edge));
-        if(edge.in.artifact.getGroupId().equals(edge.out.artifact.getGroupId()))
-            attrs.put("weight","10");
+        if (edge.in.artifact.getGroupId().equals(edge.out.artifact.getGroupId()))
+            attrs.put("weight", "10");
 
         out.printf("%s -> %s ", id(edge.in), id(edge.out));
         writeAttributes(attrs);
@@ -122,23 +128,27 @@ public class GraphVizExporter extends AbstractGraphVisitor {
     }
 
     public boolean visitNode(Node node) {
-        Map<String,String> attrs = new HashMap<String, String>();
-        attrs.put("label",node.artifact.getGroupId()+':'+node.artifact.getArtifactId());
+        Map<String, String> attrs = new HashMap<String, String>();
+        attrs.put(
+                "label",
+                node.artifact.getGroupId() + ':'
+                        + node.artifact.getArtifactId());
         attrs.put("color", getNodeColor(node));
 
-        out.print(id(node)+' ');
+        out.print(id(node) + ' ');
         writeAttributes(attrs);
         return true;
     }
 
-    private void writeAttributes(Map<String,String> attributes) {
+    private void writeAttributes(Map<String, String> attributes) {
         out.print('[');
-        boolean first=true;
-        for (Map.Entry<String,String> e : attributes.entrySet()) {
-            if(e.getValue()==null)  continue;   // skip
+        boolean first = true;
+        for (Map.Entry<String, String> e : attributes.entrySet()) {
+            if (e.getValue() == null)
+                continue; // skip
 
-            out.printf("%s=\"%s\"",e.getKey(),e.getValue());
-            if(!first)
+            out.printf("%s=\"%s\"", e.getKey(), e.getValue());
+            if (!first)
                 out.print(',');
             else
                 first = false;
@@ -148,29 +158,31 @@ public class GraphVizExporter extends AbstractGraphVisitor {
 
     private String id(Node n) {
         String id = ids.get(n);
-        if(id==null) {
-            id = "n"+ids.size();
-            ids.put(n,id);
+        if (id == null) {
+            id = "n" + ids.size();
+            ids.put(n, id);
         }
         return id;
     }
 
-    public void process(Graph graph, @SuppressWarnings("hiding") OutputStream out) {
+    public void process(Graph graph,
+            @SuppressWarnings("hiding") OutputStream out) {
         process(graph.getRoots());
     }
 
-    public void process(Collection<Node> nodes, @SuppressWarnings("hiding") OutputStream out) throws IOException {
+    public void process(Collection<Node> nodes,
+            @SuppressWarnings("hiding") OutputStream out) throws IOException {
         GraphVizExporter viz = GraphVizExporter.createPng(out);
         super.process(nodes);
         viz.close();
     }
 
-
     /**
      * Returns a {@link GraphVizExporter} that generates a PNG file.
      */
-    public static GraphVizExporter createPng(final OutputStream out) throws IOException {
-        ProcessBuilder pb = new ProcessBuilder("/usr/local/bin/dot","-Tpng");
+    public static GraphVizExporter createPng(final OutputStream out)
+            throws IOException {
+        ProcessBuilder pb = new ProcessBuilder("/usr/local/bin/dot", "-Tpng");
         final Process proc = pb.start();
 
         final Thread stdoutCopier = new Thread() {

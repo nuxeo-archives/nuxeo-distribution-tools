@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.maven.filter;
 
@@ -32,6 +32,7 @@ import org.nuxeo.build.maven.graph.Node;
 public class AncestorFilter implements Filter {
 
     protected ArtifactDescriptor ad;
+
     protected List<EdgeFilter> filters;
 
     public AncestorFilter(String pattern) {
@@ -71,11 +72,12 @@ public class AncestorFilter implements Filter {
     }
 
     public boolean accept(Edge edge, Dependency dep) {
-        throw new UnsupportedOperationException("Ancestor folder cannot be applied on dependency objects");
+        throw new UnsupportedOperationException(
+                "Ancestor folder cannot be applied on dependency objects");
     }
 
     public boolean accept(Edge edge) {
-        for (int i=0,len=filters.size(); i<len; i++) {
+        for (int i = 0, len = filters.size(); i < len; i++) {
             if (!filters.get(i).accept(edge)) {
                 return false;
             }
@@ -84,7 +86,8 @@ public class AncestorFilter implements Filter {
     }
 
     public boolean accept(Artifact artifact) {
-        throw new UnsupportedOperationException("Ancestor folder cannot be applied on artifact objects");
+        throw new UnsupportedOperationException(
+                "Ancestor folder cannot be applied on artifact objects");
     }
 
 }

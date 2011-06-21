@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, jcarsique
+ *     bstefanescu, jcarsique, slacoin
  */
 package org.nuxeo.dev;
 

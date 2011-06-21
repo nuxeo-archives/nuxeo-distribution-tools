@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.maven.filter;
 
@@ -34,9 +34,8 @@ public class ScopeFilter implements Filter {
 
     protected SegmentMatch matcher;
 
-
     public ScopeFilter(String pattern) {
-        this (SegmentMatch.parse(pattern));
+        this(SegmentMatch.parse(pattern));
     }
 
     public ScopeFilter(SegmentMatch matcher) {

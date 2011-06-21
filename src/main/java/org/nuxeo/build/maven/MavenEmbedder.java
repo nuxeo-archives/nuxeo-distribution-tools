@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, jcarsique
+ *     bstefanescu, jcarsique, slacoin
  */
 
 /*
@@ -105,7 +105,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 /**
  * Class intended to be used by clients who wish to embed Maven into their
  * applications
- * 
+ *
  * @author <a href="mailto:jason@maven.org">Jason van Zyl</a>
  */
 public class MavenEmbedder {
@@ -142,7 +142,7 @@ public class MavenEmbedder {
     protected ArtifactFactory artifactFactory;
 
     protected ArtifactResolver artifactResolver;
-    
+
     protected ArtifactMetadataSource artifactMetadataSource;
 
     protected ArtifactRepositoryLayout defaultArtifactRepositoryLayout;
@@ -218,7 +218,7 @@ public class MavenEmbedder {
 
     /**
      * Set the classloader to use with the maven embedder.
-     * 
+     *
      * @param classLoader
      */
     public void setClassLoader(ClassLoader classLoader) {
@@ -660,7 +660,7 @@ public class MavenEmbedder {
      * aligning with the user installation then we lookup the standard settings
      * builder and use that to create our settings. Otherwise we constructs a
      * settings object and populate the information ourselves.
-     * 
+     *
      * @throws MavenEmbedderException
      * @throws ComponentLookupException
      */
@@ -738,4 +738,4 @@ public class MavenEmbedder {
         }
     }
 
- }
+}

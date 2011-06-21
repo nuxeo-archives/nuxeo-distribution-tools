@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.ant.profile;
 
@@ -33,9 +33,10 @@ import org.nuxeo.build.maven.MavenClientFactory;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  *
  */
-public class Resources extends DataType  implements ResourceCollection {
+public class Resources extends DataType implements ResourceCollection {
 
     protected List<ResourceCollection> sets;
+
     protected File baseDir;
 
     public Resources(Project project, File baseDir) {
@@ -48,7 +49,7 @@ public class Resources extends DataType  implements ResourceCollection {
                 fs.setDir(new File(baseDir, name));
                 sets.add(fs);
             } else {
-                project.log("Skiping disabled resource directory: "+name);
+                project.log("Skiping disabled resource directory: " + name);
             }
         }
     }
@@ -69,17 +70,19 @@ public class Resources extends DataType  implements ResourceCollection {
         return len;
     }
 
-
-    public static class CompositeIterator implements Iterator<Resource>{
+    public static class CompositeIterator implements Iterator<Resource> {
         Iterator<Resource>[] its;
+
         int offset;
+
         @SuppressWarnings("unchecked")
         public CompositeIterator(List<ResourceCollection> cols) {
             its = new Iterator[cols.size()];
-            for (int i=0; i<its.length ; i++) {
+            for (int i = 0; i < its.length; i++) {
                 its[i] = cols.get(i).iterator();
             }
         }
+
         public boolean hasNext() {
             if (offset >= its.length) {
                 return false;
@@ -87,14 +90,15 @@ public class Resources extends DataType  implements ResourceCollection {
             if (its[offset].hasNext()) {
                 return true;
             }
-            if (offset+1 >= its.length) {
+            if (offset + 1 >= its.length) {
                 return false;
             }
-            if (its[offset+1].hasNext()) {
+            if (its[offset + 1].hasNext()) {
                 return true;
             }
             return false;
         }
+
         public Resource next() {
             if (offset >= its.length) {
                 throw new NoSuchElementException("no more elements");
@@ -108,6 +112,8 @@ public class Resources extends DataType  implements ResourceCollection {
             return its[offset].next();
         }
 
-        public void remove() { throw new UnsupportedOperationException("Remove not supported");};
+        public void remove() {
+            throw new UnsupportedOperationException("Remove not supported");
+        };
     }
 }

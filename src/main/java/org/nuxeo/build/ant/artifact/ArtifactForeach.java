@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009 Nuxeo SA (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2009-2011 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -25,16 +25,15 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * Iterate through a artifact set and do action on it
- * 
+ *
  * Usage: <artifact:foreach setref="bundles" artifactJarPathProperty="path" >
  * (...) </artifact:foreach>
- * 
+ *
  * @author Sun Seng David TAN
- * 
+ *
  */
 public class ArtifactForeach extends Sequential {
 
-    @SuppressWarnings("hiding")
     public String target;
 
     public String property;
@@ -73,8 +72,7 @@ public class ArtifactForeach extends Sequential {
             try {
                 canonicalPath = node.getFile().getCanonicalPath();
             } catch (IOException e) {
-                log(
-                        "An error occured while getting artifact file canonical path",
+                log("An error occurred while getting artifact file canonical path",
                         e, Project.MSG_WARN);
             }
             getProject().setProperty(property + ".file.path", canonicalPath);
