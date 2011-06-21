@@ -63,11 +63,14 @@ public class Node {
     }
 
     public static String createNodeId(Artifact artifact) {
-        return artifact.toString();
+        return new StringBuilder().append(artifact.getGroupId()).append(':').append(
+                artifact.getArtifactId()).append(':').append(
+                artifact.getVersion()).append(':').append(artifact.getType()).append(
+                ':').toString();
     }
-
+    
     public Node(Node node) {
-        this.id = createNodeId(node.artifact);
+        this.id = node.id;
         this.graph = node.graph;
         this.artifact = node.artifact;
         this.edgesIn.addAll(node.edgesIn);
@@ -81,11 +84,13 @@ public class Node {
         this.artifact = artifact;
         this.pom = pom;
     }
-
+    
     protected static final int UNKNOWN = 0;
     protected static final int INCLUDED = 1;
-    protected static final int FILTERED = 2;
+    protected static final int OMITTED = 2;
+    protected static final int FILTERED = 3;
 
+    
     protected int state = UNKNOWN;
 
 
@@ -131,16 +136,6 @@ public class Node {
 
     public Collection<Edge> getEdgesOut() {
         return edgesOut;
-    }
-
-    protected static String dependencyId(Dependency dep) {
-        final String groupId = StringUtils.defaultString(dep.getGroupId());
-        final String artifactId = StringUtils.defaultString(dep.getArtifactId());
-        final String version = StringUtils.defaultString(dep.getVersion());
-        final String type = StringUtils.defaultString(dep.getType());
-        final String classifier = StringUtils.defaultString(dep.getClassifier());
-        return String.format("%s:%s:%s:%s:%s", groupId, artifactId, version,
-                type, classifier);
     }
 
     public Collection<Edge> getEdgesIn() {
@@ -207,7 +202,7 @@ public class Node {
 
     @Override
     public String toString() {
-        return artifact.toString();
+        return id;
     }
 
     /**
