@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.ant.artifact;
 
@@ -29,7 +29,7 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * 
+ *
  */
 public class ExpandTask extends Task {
 
@@ -38,7 +38,7 @@ public class ExpandTask extends Task {
     public int depth = 1;
 
     public AndFilter filter = new AndFilter();
-    
+
     public void setKey(String key) {
         this.key = key;
     }
@@ -58,7 +58,7 @@ public class ExpandTask extends Task {
     public void addIncludes(Includes includes) {
         filter.addFilter(includes.getFilter());
     }
- 
+
     protected boolean acceptNode(Node node) {
         return true;
     }
@@ -77,7 +77,8 @@ public class ExpandTask extends Task {
             if (!acceptNode(node)) {
                 continue;
             }
-            graph.resolveDependencyTree(node, CompositeFilter.compact(filter), depth);
+            graph.resolveDependencyTree(node, CompositeFilter.compact(filter),
+                    depth);
         }
     }
 

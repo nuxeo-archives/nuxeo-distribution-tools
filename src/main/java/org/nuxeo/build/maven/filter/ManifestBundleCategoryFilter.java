@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     Julien Carsique
+ *     Julien Carsique, slacoin
  *
  * $Id$
  */
@@ -37,7 +37,7 @@ import org.nuxeo.build.maven.graph.Node;
 
 /**
  * @author jcarsique
- * 
+ *
  */
 public class ManifestBundleCategoryFilter implements Filter {
 

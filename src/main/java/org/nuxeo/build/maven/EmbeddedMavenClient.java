@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.maven;
 
@@ -34,7 +34,6 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactCollector;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.resolver.DefaultArtifactCollector;
 import org.apache.maven.artifact.resolver.ResolutionListener;
@@ -63,7 +62,6 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.nuxeo.build.ant.profile.AntProfileManager;
 import org.nuxeo.build.maven.graph.Graph;
 
-
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  *
@@ -74,14 +72,15 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
     protected Graph graph;
 
     protected File settingsFile;
-    private  List<ArtifactRepository> remoteRepos;
+
+    private List<ArtifactRepository> remoteRepos;
 
     protected AntProfileManager profileMgr = new AntProfileManager();
 
     protected Logger mylogger;
 
     public EmbeddedMavenClient() {
-        this (null);
+        this(null);
     }
 
     public EmbeddedMavenClient(ClassLoader loader) {
@@ -90,7 +89,7 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
             if (loader == null) {
                 loader = EmbeddedMavenClient.class.getClassLoader();
             }
-        }        
+        }
         setClassLoader(loader);
         graph = new Graph(this);
         mylogger = new MyLogger();
@@ -100,7 +99,7 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
     public List<Profile> getActiveProfiles() {
         throw new UnsupportedOperationException("Not yet implemented");
     }
-    
+
     public MavenProjectHelper getProjectHelper() {
         try {
             return (MavenProjectHelper) embedder.lookup(MavenProjectHelper.ROLE);
@@ -148,7 +147,7 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
     public Settings getSettings() {
         return settings;
     }
-    
+
     /**
      * Default implementation is not flexible enough
      */
@@ -156,7 +155,7 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
     protected void createMavenSettings() throws MavenEmbedderException,
             ComponentLookupException {
         if (settingsFile != null) {
-            settingsBuilder = (MavenSettingsBuilder) embedder.lookup( MavenSettingsBuilder.ROLE );
+            settingsBuilder = (MavenSettingsBuilder) embedder.lookup(MavenSettingsBuilder.ROLE);
             try {
                 settings = settingsBuilder.buildSettings(settingsFile);
             } catch (IOException e) {
@@ -209,7 +208,9 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
         resolve(artifact, getRemoteRepositories());
     }
 
-    public void resolve(Artifact artifact, List<ArtifactRepository> remoteRepositories) throws ArtifactNotFoundException {
+    public void resolve(Artifact artifact,
+            List<ArtifactRepository> remoteRepositories)
+            throws ArtifactNotFoundException {
         try {
             super.resolve(artifact, remoteRepositories, localRepository);
         } catch (ArtifactResolutionException e) {
@@ -239,26 +240,26 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
         return repos;
     }
 
-    public List<ArtifactRepository> buildArtifactRepositories(Model model) throws Exception {
+    public List<ArtifactRepository> buildArtifactRepositories(Model model)
+            throws Exception {
         ArrayList<ArtifactRepository> repos = new ArrayList<ArtifactRepository>();
-        List<Repository> mavenRepos =  model.getRepositories();
+        List<Repository> mavenRepos = model.getRepositories();
         for (Repository mavenRepo : mavenRepos) {
             ArtifactRepository artifactRepo = null;
             try {
-                artifactRepo = ProjectUtils.buildArtifactRepository(
-                        mavenRepo, artifactRepositoryFactory,
+                artifactRepo = ProjectUtils.buildArtifactRepository(mavenRepo,
+                        artifactRepositoryFactory,
                         getPlexusEmbedder().getContainer());
             } catch (InvalidRepositoryException e) {
-                throw new Exception("Failed to build profile repositories",
-                        e);
+                throw new Exception("Failed to build profile repositories", e);
             }
             repos.add(artifactRepo);
         }
         return repos;
     }
 
-
-    public Model readModel( String projectId, File pom, boolean strict) throws Exception {
+    public Model readModel(String projectId, File pom, boolean strict)
+            throws Exception {
         Reader reader = new FileReader(pom);
         try {
             return readModel(projectId, pom.getAbsolutePath(), reader, strict);
@@ -267,7 +268,8 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
         }
     }
 
-    public Model readModel( String projectId, URL pom, boolean strict) throws Exception {
+    public Model readModel(String projectId, URL pom, boolean strict)
+            throws Exception {
         Reader reader = new InputStreamReader(pom.openStream());
         try {
             return readModel(projectId, pom.toExternalForm(), reader, strict);
@@ -276,85 +278,81 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
         }
     }
 
+    public Model readModel(String projectId, String pomLocation, Reader reader,
+            boolean strict) throws IOException, InvalidProjectModelException {
+        String modelSource = IOUtil.toString(reader);
 
-    public Model readModel( String projectId,
-            String pomLocation,
-            Reader reader,
-            boolean strict )
-    throws IOException, InvalidProjectModelException
-    {
-        String modelSource = IOUtil.toString( reader );
-
-        if ( modelSource.indexOf( "<modelVersion>" + DefaultMavenProjectBuilder.MAVEN_MODEL_VERSION ) < 0 )
-        {
-            throw new InvalidProjectModelException( projectId, pomLocation, "Not a v" + DefaultMavenProjectBuilder.MAVEN_MODEL_VERSION  + " POM." );
+        if (modelSource.indexOf("<modelVersion>"
+                + DefaultMavenProjectBuilder.MAVEN_MODEL_VERSION) < 0) {
+            throw new InvalidProjectModelException(projectId, pomLocation,
+                    "Not a v" + DefaultMavenProjectBuilder.MAVEN_MODEL_VERSION
+                            + " POM.");
         }
 
-        StringReader sReader = new StringReader( modelSource );
+        StringReader sReader = new StringReader(modelSource);
 
-        try
-        {
-            return modelReader.read( sReader, strict );
-        }
-        catch ( XmlPullParserException e )
-        {
-            throw new InvalidProjectModelException( projectId, pomLocation,
-                    "Parse error reading POM. Reason: " + e.getMessage(), e );
+        try {
+            return modelReader.read(sReader, strict);
+        } catch (XmlPullParserException e) {
+            throw new InvalidProjectModelException(projectId, pomLocation,
+                    "Parse error reading POM. Reason: " + e.getMessage(), e);
         }
     }
 
-    
     public Logger getCommonLogger() {
         return new MyLogger();
     }
-        
+
     class MyLogger implements Logger {
 
-            public void debug(String message) {
-                logger.debug(message);
-            }
-
-            public void debug(String message, Throwable error) {
-                logger.debug(message, error);
-            }
-
-            public void error(String message) {
-                logger.error(message);
-            }
-
-            public void error(String message, Throwable error) {
-                logger.error(message, error);
-            }
-
-            public void info(String message) {
-                logger.info(message);
-            }
-
-            public void info(String message, Throwable error) {
-                logger.info(message, error);
-            }
-
-            public void warn(String message) {
-                logger.warn(message);
-            }
-
-            public void warn(String message, Throwable error) {
-                logger.warn(message, error);
-            }
-
-            public boolean isDebugEnabled() {
-                return logger.isDebugEnabled();
-            }
+        public void debug(String message) {
+            logger.debug(message);
         }
 
-       public void resolveDependencyTree(Artifact artifact, ArtifactFilter filter,
-            ResolutionListener listener) throws ArtifactResolutionException, ProjectBuildingException  {
-           MavenProject project = mavenProjectBuilder.buildFromRepository(artifact, getRemoteRepositories(), localRepository);
+        public void debug(String message, Throwable error) {
+            logger.debug(message, error);
+        }
+
+        public void error(String message) {
+            logger.error(message);
+        }
+
+        public void error(String message, Throwable error) {
+            logger.error(message, error);
+        }
+
+        public void info(String message) {
+            logger.info(message);
+        }
+
+        public void info(String message, Throwable error) {
+            logger.info(message, error);
+        }
+
+        public void warn(String message) {
+            logger.warn(message);
+        }
+
+        public void warn(String message, Throwable error) {
+            logger.warn(message, error);
+        }
+
+        public boolean isDebugEnabled() {
+            return logger.isDebugEnabled();
+        }
+    }
+
+    public void resolveDependencyTree(Artifact artifact, ArtifactFilter filter,
+            ResolutionListener listener) throws ArtifactResolutionException,
+            ProjectBuildingException {
+        MavenProject project = mavenProjectBuilder.buildFromRepository(
+                artifact, getRemoteRepositories(), localRepository);
         ArtifactCollector collector = new DefaultArtifactCollector();
         collector.collect(project.getDependencyArtifacts(),
-                    project.getArtifact(), project.getManagedVersionMap(),
-                    localRepository, project.getRemoteArtifactRepositories(),
-                    artifactMetadataSource, filter, Collections.singletonList(listener));
+                project.getArtifact(), project.getManagedVersionMap(),
+                localRepository, project.getRemoteArtifactRepositories(),
+                artifactMetadataSource, filter,
+                Collections.singletonList(listener));
     }
 
 }

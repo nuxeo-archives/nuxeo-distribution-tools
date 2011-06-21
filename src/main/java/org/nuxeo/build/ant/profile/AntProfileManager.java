@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.ant.profile;
 
@@ -28,6 +28,7 @@ import java.util.Map;
 public class AntProfileManager {
 
     protected Map<String, Profile> profiles = new HashMap<String, Profile>();
+
     protected List<ProfileGroup> groups = new ArrayList<ProfileGroup>();
 
     public AntProfileManager() {
@@ -43,7 +44,8 @@ public class AntProfileManager {
         return result;
     }
 
-    public void addGroup(@SuppressWarnings("hiding") String[] profiles, String defaultProfile) {
+    public void addGroup(@SuppressWarnings("hiding") String[] profiles,
+            String defaultProfile) {
         groups.add(new ProfileGroup(this, profiles, defaultProfile));
     }
 
@@ -70,9 +72,9 @@ public class AntProfileManager {
 
     public void activateProfile(String profile, boolean isActive) {
         if (isActive) {
-            System.out.println("Activating profile: "+profile);
+            System.out.println("Activating profile: " + profile);
         } else {
-            System.out.println("Disabling profile: "+profile);
+            System.out.println("Disabling profile: " + profile);
         }
         getOrCreateProfile(profile).setActive(isActive);
     }

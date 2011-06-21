@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, jcarsique
+ *     bstefanescu, jcarsique, slacoin
  */
 package org.nuxeo.dev;
 
@@ -81,7 +81,6 @@ public class Main {
                 opt = null;
             } else { // the home directory
                 home = arg.startsWith("/") ? new File(arg) : new File(".", arg);
-                opt = null;
             }
         }
 

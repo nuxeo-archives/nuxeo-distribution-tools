@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, jcarsique
+ *     bstefanescu, jcarsique, slacoin
  */
 package org.nuxeo.build.maven.graph;
 
@@ -44,7 +44,7 @@ import org.nuxeo.build.maven.filter.VersionManagement;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * 
+ *
  */
 public class Graph {
 
@@ -282,7 +282,7 @@ public class Graph {
 
         @Override
         public void endProcessChildren(Artifact artifact) {
-            Node node = (Node) parentNodes.pop();
+            Node node = parentNodes.pop();
 
             debug("endProcessChildren: artifact=" + artifact);
 
@@ -398,7 +398,7 @@ public class Graph {
         /**
          * Writes the specified message to the log at debug level with
          * indentation for the current node's depth.
-         * 
+         *
          * @param message the message to write to the log
          */
         private void debug(String message) {
@@ -438,7 +438,7 @@ public class Graph {
         private boolean isCurrentNodeIncluded() {
 
             for (Iterator<Node> iterator = parentNodes.iterator(); iterator.hasNext();) {
-                Node node = (Node) iterator.next();
+                Node node = iterator.next();
 
                 if (node.state == Node.UNKNOWN) {
                     return false;
@@ -450,7 +450,7 @@ public class Graph {
 
         protected Node addNode(Artifact artifact) {
             Node node = createNode(artifact);
-            Node previousNode = (Node) nodesByArtifact.put(artifact, node);
+            Node previousNode = nodesByArtifact.put(artifact, node);
             nodes.put(node.id, node);
 
             if (previousNode != null) {
@@ -458,9 +458,7 @@ public class Graph {
                         "Duplicate node registered for artifact: "
                                 + node.getArtifact());
             }
-
             currentNode = node;
-
             return node;
         }
 
@@ -497,7 +495,7 @@ public class Graph {
                 return false;
             }
 
-            Node in = (Node) parentNodes.peek();
+            Node in = parentNodes.peek();
             Edge edge = new Edge(in, out);
 
             if (!accept(edge)) {

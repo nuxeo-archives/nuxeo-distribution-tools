@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, jcarsique
+ *     bstefanescu, jcarsique, slacoin
  */
 package org.nuxeo.build.maven;
 
@@ -30,7 +30,6 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactCollector;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.resolver.DefaultArtifactCollector;
 import org.apache.maven.artifact.resolver.ResolutionListener;
@@ -51,14 +50,14 @@ import org.nuxeo.build.maven.graph.Graph;
 import org.nuxeo.build.maven.graph.Node;
 
 /**
- * 
+ *
  * @goal build
  * @phase package
- * 
+ *
  * @requiresDependencyResolution runtime
- * 
+ *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * 
+ *
  */
 public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
@@ -68,28 +67,28 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Location of the build file, if unique
-     * 
+     *
      * @parameter expression="${buildFile}"
      */
     protected File buildFile;
 
     /**
      * Location of the build files.
-     * 
+     *
      * @parameter expression="${buildFiles}"
      */
     protected File[] buildFiles;
 
     /**
      * Ant target to call on build file(s).
-     * 
+     *
      * @parameter expression="${target}"
      */
     protected String target;
 
     /**
      * Ant targets to call on build file(s).
-     * 
+     *
      * @since 1.6
      * @parameter expression="${targets}"
      */
@@ -97,14 +96,14 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * How many levels the graph must be expanded before running ant.
-     * 
+     *
      * @parameter expression="${expand}" default-value="0"
      */
     protected int expand;
 
     /**
      * Location of the file.
-     * 
+     *
      * @parameter expression="${project}"
      * @required
      */
@@ -112,7 +111,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Maven ProjectHelper
-     * 
+     *
      * @component
      * @readonly
      */
@@ -120,7 +119,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Location of the local repository.
-     * 
+     *
      * @parameter expression="${localRepository}"
      * @readonly
      * @required
@@ -129,7 +128,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * List of Remote Repositories used by the resolver
-     * 
+     *
      * @parameter expression="${project.remoteArtifactRepositories}"
      * @readonly
      * @required
@@ -138,7 +137,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Used to look up Artifacts in the remote repository.
-     * 
+     *
      * @component
      * @required
      * @readonly
@@ -147,7 +146,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     /**
      * Used to look up Artifacts in the remote repository.
-     * 
+     *
      * @component
      * @required
      * @readonly
@@ -155,7 +154,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     protected org.apache.maven.artifact.resolver.ArtifactResolver resolver;
 
     /**
-     * 
+     *
      * @component
      * @readonly
      */
@@ -338,13 +337,14 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     public void resolveDependencyTree(Artifact artifact, ArtifactFilter filter,
             ResolutionListener listener) throws ArtifactResolutionException,
             ProjectBuildingException {
-        MavenProject project = projectBuilder.buildFromRepository(artifact,
-                remoteRepositories, localRepository);
+        MavenProject mavenProject = projectBuilder.buildFromRepository(
+                artifact, remoteRepositories, localRepository);
         ArtifactCollector collector = new DefaultArtifactCollector();
-        collector.collect(project.getDependencyArtifacts(),
-                project.getArtifact(), project.getManagedVersionMap(),
-                localRepository, project.getRemoteArtifactRepositories(),
-                metadataSource, filter, Collections.singletonList(listener));
+        collector.collect(mavenProject.getDependencyArtifacts(),
+                mavenProject.getArtifact(),
+                mavenProject.getManagedVersionMap(), localRepository,
+                mavenProject.getRemoteArtifactRepositories(), metadataSource,
+                filter, Collections.singletonList(listener));
     }
 
     public Graph getGraph() {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.swing.tree;
 
@@ -42,21 +42,23 @@ public class ArtifactCellRenderer extends DefaultTreeCellRenderer {
     }
 
     @Override
-    public Component getTreeCellRendererComponent(@SuppressWarnings("hiding") JTree tree, Object value,
-            boolean sel, boolean expanded, boolean leaf, int row,
+    public Component getTreeCellRendererComponent(
+            @SuppressWarnings("hiding") JTree tree, Object value, boolean sel,
+            boolean expanded, boolean leaf, int row,
             @SuppressWarnings("hiding") boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf,
                 row, hasFocus);
-        DefaultMutableTreeNode tn = (DefaultMutableTreeNode)value;
+        DefaultMutableTreeNode tn = (DefaultMutableTreeNode) value;
         Object o = tn.getUserObject();
         if (o instanceof Node) {
-            Node node = (Node)o;
+            Node node = (Node) o;
             processNode(this.tree.getProvider(), node, sel, expanded);
         }
         return this;
     }
 
-    protected void processNode(ItemProvider provider, Node node, boolean isSelected, boolean isExpanded) {
+    protected void processNode(ItemProvider provider, Node node,
+            boolean isSelected, boolean isExpanded) {
         Icon icon = provider.getIcon(node, isExpanded);
         if (icon != null) {
             setIcon(icon);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, slacoin
  */
 package org.nuxeo.build.ant.artifact;
 
@@ -28,9 +28,9 @@ import org.nuxeo.build.maven.MavenClientFactory;
 
 /**
  * TODO offline setting is not working
- * 
+ *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * 
+ *
  */
 public class SettingsTask extends Sequential {
 
@@ -108,7 +108,7 @@ public class SettingsTask extends Sequential {
             policy.setEnabled(repo.snapshotsPolicy.enabled);
             policy.setChecksumPolicy(repo.snapshotsPolicy.checksumPolicy);
             policy.setUpdatePolicy(repo.snapshotsPolicy.udpatePolicy);
-//            policy.setModelEncoding(repo.snapshotsPolicy.modelEncoding);
+            // policy.setModelEncoding(repo.snapshotsPolicy.modelEncoding);
         }
         r.setSnapshots(policy);
 
@@ -119,7 +119,7 @@ public class SettingsTask extends Sequential {
             policy.setEnabled(repo.releasesPolicy.enabled);
             policy.setChecksumPolicy(repo.releasesPolicy.checksumPolicy);
             policy.setUpdatePolicy(repo.releasesPolicy.udpatePolicy);
-//            policy.setModelEncoding(repo.releasesPolicy.modelEncoding);
+            // policy.setModelEncoding(repo.releasesPolicy.modelEncoding);
         }
         r.setReleases(policy);
         return r;

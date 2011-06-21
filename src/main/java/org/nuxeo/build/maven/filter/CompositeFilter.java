@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, jcarsique
+ *     bstefanescu, jcarsique, slacoin
  */
 package org.nuxeo.build.maven.filter;
 
@@ -26,7 +26,7 @@ import org.nuxeo.build.maven.MavenClientFactory;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * 
+ *
  */
 public abstract class CompositeFilter implements Filter {
 
@@ -46,7 +46,7 @@ public abstract class CompositeFilter implements Filter {
     public void removeFilter(Filter filter) {
         filters.remove(filter);
     }
-    
+
     public void addFilters(List<Filter> filtersToAdd) {
         this.filters.addAll(filtersToAdd);
     }
@@ -54,7 +54,7 @@ public abstract class CompositeFilter implements Filter {
     public void removeFilters(@SuppressWarnings("hiding") List<Filter> filters) {
         this.filters.removeAll(filters);
     }
- 
+
     public List<Filter> getFilters() {
         return filters;
     }
@@ -64,7 +64,7 @@ public abstract class CompositeFilter implements Filter {
     }
 
     public void addFiltersFromPattern(String pattern) {
-        if (pattern!=null) {
+        if (pattern != null) {
             addFiltersFromDescriptor(new ArtifactDescriptor(pattern));
         }
     }
@@ -104,7 +104,7 @@ public abstract class CompositeFilter implements Filter {
 
     /**
      * Add a filter managing negation in pattern with '!'
-     * 
+     *
      * @param filterClass Filter class implementation to use
      * @param pattern Pattern given to Filter implementation
      */
