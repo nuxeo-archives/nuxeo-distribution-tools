@@ -50,8 +50,6 @@ public class Graph {
 
     protected MavenClient maven;
 
-    protected Node root;
-
     protected final TreeMap<String, Node> nodes = new TreeMap<String, Node>();
 
     protected final LinkedList<Node> roots = new LinkedList<Node>();
@@ -579,7 +577,7 @@ public class Graph {
 
         @Override
         public boolean visitNode(Node node) {
-            if (nodes.get(node.id) == null) {
+            if (nodes.get(node.id) == null && !roots.contains(node)) {
                 unreferencedNodes.add(node);
                 nodes.put(node.id, node); // re-insert missing node
             }
