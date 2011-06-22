@@ -29,7 +29,6 @@ import java.util.Stack;
 import java.util.TreeMap;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.resolver.WarningResolutionListener;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.artifact.versioning.OverConstrainedVersionException;
 import org.apache.maven.artifact.versioning.VersionRange;
@@ -339,14 +338,14 @@ public class Graph {
                 return;
             }
 
-//            Node omittedNode = nodesByArtifact.get(omitted);
-//
-//            if (omittedNode != null) {
-//                removeNode(omitted);
-//                validateDependencyTree();
-//                omittedNode.state = Node.OMITTED;
-//            }
-            
+            // Node omittedNode = nodesByArtifact.get(omitted);
+            //
+            // if (omittedNode != null) {
+            // removeNode(omitted);
+            // validateDependencyTree();
+            // omittedNode.state = Node.OMITTED;
+            // }
+
             Node keptNode = nodesByArtifact.get(kept);
 
             if (keptNode == null) {
@@ -355,7 +354,6 @@ public class Graph {
                 addEdges(keptNode);
                 currentNode = keptNode;
             }
-
 
         }
 
@@ -406,9 +404,9 @@ public class Graph {
          */
         protected void debug(String message) {
 
-             if (logger.isDebugEnabled() == false) {
-                 return;
-             }
+            if (logger.isDebugEnabled() == false) {
+                return;
+            }
 
             int depth = parentNodes.size();
 
@@ -521,13 +519,13 @@ public class Graph {
                     filteredNodes.add(out);
                     out.state = Node.FILTERED;
                     return;
-                } 
-                 out.state = Node.INCLUDED;
+                }
+                out.state = Node.INCLUDED;
                 break;
             case Node.FILTERED:
                 if (accept(edge)) {
                     filteredNodes.remove(out);
-                    warn("unfiltering : artifact="+out.artifact);
+                    warn("unfiltering : artifact=" + out.artifact);
                     out.state = Node.INCLUDED;
                 }
                 break;
@@ -598,7 +596,8 @@ public class Graph {
         UnreferencedNodesValidator validator = new UnreferencedNodesValidator();
         validator.process(this);
         if (validator.unreferencedNodes.size() > 0) {
-            MavenClientFactory.getLog().warn("Fixed unreferenced nodes : " + validator.unreferencedNodes);  
+            MavenClientFactory.getLog().warn(
+                    "Fixed unreferenced nodes : " + validator.unreferencedNodes);
         }
     }
 

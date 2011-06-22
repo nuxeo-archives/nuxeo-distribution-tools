@@ -22,9 +22,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.StringUtils;
 import org.nuxeo.build.maven.filter.Filter;
 
 /**
@@ -66,7 +64,7 @@ public class Node {
                 artifact.getVersion()).append(':').append(artifact.getType()).append(
                 ':').toString();
     }
-    
+
     public Node(Node node) {
         this.id = node.id;
         this.graph = node.graph;
@@ -82,14 +80,15 @@ public class Node {
         this.artifact = artifact;
         this.pom = pom;
     }
-    
+
     protected static final int UNKNOWN = 0;
 
     protected static final int INCLUDED = 1;
+
     protected static final int OMITTED = 2;
+
     protected static final int FILTERED = 3;
 
-    
     protected int state = UNKNOWN;
 
     public Artifact getArtifact() {
