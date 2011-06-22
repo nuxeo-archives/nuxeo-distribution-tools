@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, slacoin
+ *     bstefanescu, slacoin, jcarsique
  */
 package org.nuxeo.build.ant.artifact;
 
@@ -115,12 +115,10 @@ public class ArtifactDependencies extends DataType implements
             }
             if (node == null) {
                 throw new BuildException("Artifact with pattern "
-                        + (key != null ? key : ad.getNodeKeyPattern())
-                        + " was not found in graph");
+                        + (key != null ? key : ad) + " was not found in graph");
             }
             if (ad.classifier != null) {
-                // we need to create a virtual node that points to the
-                // attachment
+                // create a virtual node that points to the attachment
                 node = new AttachmentNode(node, ad.classifier);
             }
         }
