@@ -579,7 +579,6 @@ public class Graph {
         public boolean visitNode(Node node) {
             if (nodes.get(node.id) == null && !roots.contains(node)) {
                 unreferencedNodes.add(node);
-                nodes.put(node.id, node); // re-insert missing node
             }
             return true;
         }
@@ -591,6 +590,7 @@ public class Graph {
     }
 
     protected void validateDependencyTree() {
+        // re-inject referenced nodes if they are missing
         UnreferencedNodesValidator validator = new UnreferencedNodesValidator();
         validator.process(this);
         if (validator.unreferencedNodes.size() > 0) {

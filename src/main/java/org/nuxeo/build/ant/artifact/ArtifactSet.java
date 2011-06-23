@@ -332,7 +332,12 @@ public class ArtifactSet extends DataType implements ResourceCollection {
 
     public static Iterator<FileResource> createIterator(Collection<Node> nodes) {
         ArrayList<FileResource> files = new ArrayList<FileResource>();
+        Graph graph = MavenClientFactory.getInstance().getGraph();
+        List<Node> roots = graph.getRoots();
         for (Node node : nodes) {
+            if (roots.contains(node)) {
+                continue;
+            }
             File file = node.getFile();
             if (file != null) {
                 FileResource fr = new FileResource(file);
