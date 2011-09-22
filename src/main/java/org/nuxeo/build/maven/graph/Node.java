@@ -22,7 +22,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.project.MavenProject;
+import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.Filter;
 
 /**
@@ -44,7 +46,7 @@ public class Node {
 
     /**
      * Point to an artifact pom. When embedded in maven and using the current
-     * project pom as the root this will be set by the maven loader mojo to
+     * project pom as the root this will be set by the maven loader Mojo to
      * point to the current pom
      */
     protected final MavenProject pom;
@@ -59,10 +61,13 @@ public class Node {
     }
 
     public static String createNodeId(Artifact artifact) {
-        return new StringBuilder().append(artifact.getGroupId()).append(':').append(
-                artifact.getArtifactId()).append(':').append(
-                artifact.getVersion()).append(':').append(artifact.getType()).append(
-                ':').toString();
+        StringBuilder sb = new StringBuilder().append(artifact.getGroupId()).append(
+                ':').append(artifact.getArtifactId()).append(':').append(
+                artifact.getVersion()).append(':').append(artifact.getType());
+        if (artifact.getClassifier() != null) {
+            sb.append(':').append(artifact.getClassifier());
+        }
+        return sb.toString();
     }
 
     public Node(Node node) {
@@ -90,6 +95,20 @@ public class Node {
     protected static final int FILTERED = 3;
 
     protected int state = UNKNOWN;
+
+    /**
+     * Default format with GAV: group:artifact:version:type:classifier
+     *
+     * @since 1.10.2
+     */
+    public static final int FORMAT_GAV = 0;
+
+    /**
+     * Key-value format: FILENAME=GAV
+     *
+     * @since 1.10.2
+     */
+    public static final int FORMAT_KV_F_GAV = 1;
 
     public Artifact getArtifact() {
         return artifact;
@@ -224,5 +243,35 @@ public class Node {
 
     public void expand(Filter filter, int depth) {
         graph.resolveDependencyTree(this, filter, depth);
+    }
+
+    /**
+     * @param format output format
+     * @return String representation depending on format
+     * @see #FORMAT_GAV
+     * @see #FORMAT_KV_F_GAV
+     * @since 1.10.2
+     */
+    public String toString(int format) {
+        switch (format) {
+        case FORMAT_GAV:
+            return toString();
+
+        case FORMAT_KV_F_GAV:
+            String toString;
+            try {
+                if (artifact.getFile() == null) {
+                    MavenClientFactory.getInstance().resolve(artifact);
+                }
+                toString = artifact.getFile().getName();
+            } catch (ArtifactNotFoundException e) {
+                toString = "ArtifactNotFound";
+            }
+            toString += "=" + createNodeId(artifact);
+            return toString;
+
+        default:
+            return "Unknown format: " + format + "!";
+        }
     }
 }

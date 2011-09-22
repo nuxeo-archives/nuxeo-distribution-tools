@@ -34,7 +34,6 @@ import org.apache.maven.artifact.versioning.OverConstrainedVersionException;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.project.MavenProject;
 import org.apache.tools.ant.BuildException;
-import org.nuxeo.build.ant.artifact.GraphTask;
 import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.build.maven.Logger;
 import org.nuxeo.build.maven.MavenClient;
@@ -50,9 +49,9 @@ public class Graph {
 
     protected MavenClient maven;
 
-    protected final TreeMap<String, Node> nodes = new TreeMap<String, Node>();
+    public final TreeMap<String, Node> nodes = new TreeMap<String, Node>();
 
-    protected final LinkedList<Node> roots = new LinkedList<Node>();
+    public final LinkedList<Node> roots = new LinkedList<Node>();
 
     protected Resolver resolver = new Resolver(this);
 
@@ -152,13 +151,13 @@ public class Graph {
 
     public Node addRootNode(String key) {
         ArtifactDescriptor ad = new ArtifactDescriptor(key);
-        Artifact artifact = GraphTask.readArtifact(ad);
+        Artifact artifact = ad.getBuildArtifact();
         return getRootNode(artifact);
     }
 
     public Node getRootNode(Artifact artifact) {
         MavenProject pom = resolver.load(artifact);
-        Node node = nodes.get(artifact);
+        Node node = nodes.get(Node.createNodeId(artifact));
         if (node == null) {
             node = new Node(Graph.this, artifact, pom);
             nodes.put(node.getId(), node);
@@ -236,7 +235,7 @@ public class Graph {
         }
     }
 
-    protected final IdentityHashMap<Artifact, Node> nodesByArtifact = new IdentityHashMap<Artifact, Node>();
+    public final IdentityHashMap<Artifact, Node> nodesByArtifact = new IdentityHashMap<Artifact, Node>();
 
     protected class NodesInjector implements
             org.apache.maven.artifact.resolver.ResolutionListener {
@@ -608,7 +607,6 @@ public class Graph {
                 public boolean include(Artifact artifact) {
                     return false;
                 }
-
             }, injector);
         } catch (Exception cause) {
             throw new Error("Cannot resolve dependency tree for " + node, cause);

@@ -208,6 +208,26 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
             public boolean isDebugEnabled() {
                 return getLog().isDebugEnabled();
             }
+
+            @Override
+            public void info(Throwable error) {
+                getLog().info(error);
+            }
+
+            @Override
+            public void warn(Throwable error) {
+                getLog().warn(error);
+            }
+
+            @Override
+            public void error(Throwable error) {
+                getLog().error(error);
+            }
+
+            @Override
+            public void debug(Throwable error) {
+                getLog().debug(error);
+            }
         };
         antProfileManager = new AntProfileManager();
 
@@ -260,11 +280,12 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
             targets = new String[] { target };
         }
         for (File file : buildFiles) {
-            graph = new Graph(this);
-
-            Node root = graph.addRootNode(project);
+            newGraph();
             if (expand > 0) {
-                graph.resolveDependencyTree(root, new TrueFilter(), expand);
+                for (Node rootNode : graph.getRoots()) {
+                    graph.resolveDependencyTree(rootNode, new TrueFilter(),
+                            expand);
+                }
             }
 
             try {
@@ -277,6 +298,15 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                 throw new MojoExecutionException("Failed to run " + file, e);
             }
         }
+    }
+
+    /**
+     * @since 1.10.2
+     */
+    public Graph newGraph() {
+        graph = new Graph(this);
+        graph.addRootNode(project);
+        return graph;
     }
 
     @SuppressWarnings("unchecked")

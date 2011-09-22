@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, slacoin
+ *     bstefanescu, slacoin, jcarsique
  */
 package org.nuxeo.build.ant.artifact;
 
@@ -88,7 +88,7 @@ public class GraphTask extends Task {
         if (resolves != null) {
             for (ArtifactKey resolve : resolves) {
                 ArtifactDescriptor ad = new ArtifactDescriptor(resolve.pattern);
-                Artifact arti = readArtifact(ad);
+                Artifact arti = ad.getBuildArtifact();
                 final Graph graph = maven.getGraph();
                 Node node = graph.getRootNode(arti);
                 if (expand != null) {
@@ -98,11 +98,5 @@ public class GraphTask extends Task {
                 }
             }
         }
-    }
-
-    public static Artifact readArtifact(ArtifactDescriptor artifactDescriptor) {
-        return MavenClientFactory.getInstance().getArtifactFactory().createBuildArtifact(
-                artifactDescriptor.groupId, artifactDescriptor.artifactId,
-                artifactDescriptor.version, artifactDescriptor.type);
     }
 }

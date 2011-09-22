@@ -340,6 +340,26 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
         public boolean isDebugEnabled() {
             return logger.isDebugEnabled();
         }
+
+        @Override
+        public void info(Throwable error) {
+            logger.info("", error);
+        }
+
+        @Override
+        public void warn(Throwable error) {
+            logger.warn("", error);
+        }
+
+        @Override
+        public void error(Throwable error) {
+            logger.error("", error);
+        }
+
+        @Override
+        public void debug(Throwable error) {
+            logger.debug("", error);
+        }
     }
 
     public void resolveDependencyTree(Artifact artifact, ArtifactFilter filter,
@@ -353,6 +373,12 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
                 localRepository, project.getRemoteArtifactRepositories(),
                 artifactMetadataSource, filter,
                 Collections.singletonList(listener));
+    }
+
+    @Override
+    public Graph newGraph() {
+        graph = new Graph(this);
+        return graph;
     }
 
 }

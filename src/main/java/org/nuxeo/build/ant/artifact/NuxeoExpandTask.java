@@ -17,6 +17,7 @@
 package org.nuxeo.build.ant.artifact;
 
 import org.apache.maven.artifact.Artifact;
+import org.nuxeo.build.maven.filter.AndFilter;
 import org.nuxeo.build.maven.filter.Filter;
 import org.nuxeo.build.maven.filter.GroupIdFilter;
 import org.nuxeo.build.maven.filter.NotFilter;
@@ -66,6 +67,34 @@ public class NuxeoExpandTask extends ExpandTask {
 
     protected boolean acceptNode(Node node) {
         return node.getArtifact().getGroupId().startsWith("org.nuxeo");
+    }
+
+    public void setScope(String scope) {
+        if ("test".equals(scope)) {
+            filter = new AndFilter();
+            filter.addFilter(new Filter() {
+
+                public boolean accept(Artifact artifact) {
+                    return true;
+                }
+
+                public boolean accept(Edge edge) {
+                    if (edge.isOptional) {
+                        return false;
+                    }
+                    if ("test".equals(edge.scope)) {
+                        return true;
+                    }
+                    return false;
+                }
+
+                public boolean accept(Node node) {
+                    return true;
+                }
+            });
+            filter.addFilter(new NotFilter(new VersionFilter("[*)")));
+            filter.addFilter(new NotFilter(new GroupIdFilter("org.nuxeo.build")));
+        }
     }
 
 }

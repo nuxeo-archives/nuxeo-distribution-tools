@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,11 +12,14 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu
+ *     bstefanescu, jcarsique
  */
 package org.nuxeo.build.maven;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.versioning.VersionRange;
+import org.apache.tools.ant.BuildException;
+import org.nuxeo.build.maven.filter.VersionManagement;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -118,6 +121,39 @@ public class ArtifactDescriptor {
         buf.append(':').append(classifier);
         buf.append(':').append(scope);
         return buf.toString();
+    }
+
+    /**
+     * @return ArtifactFactory().createDependencyArtifact()
+     * @since 1.10.2
+     */
+    public Artifact getArtifact() {
+        MavenClient maven = MavenClientFactory.getInstance();
+        // Resolve version if not provided
+        if (version == null) {
+            VersionManagement versionManagement = maven.getGraph().getVersionManagement();
+            version = versionManagement.getVersion(this);
+            if (version == null) {
+                throw new BuildException(
+                        "Version is required since not found in dependency management: "
+                                + this);
+            }
+        }
+        Artifact artifact = maven.getArtifactFactory().createDependencyArtifact(
+                groupId, artifactId, VersionRange.createFromVersion(version),
+                type, classifier, scope);
+        return artifact;
+    }
+
+    /**
+     * Should be equivalent to {@link #getArtifact()}...
+     *
+     * @return ArtifactFactory().createBuildArtifact()
+     * @since 1.10.2
+     */
+    public Artifact getBuildArtifact() {
+        return MavenClientFactory.getInstance().getArtifactFactory().createBuildArtifact(
+                groupId, artifactId, version, type);
     }
 
 }

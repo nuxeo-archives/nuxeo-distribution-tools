@@ -71,4 +71,9 @@ public interface MavenClient {
 
     public Logger getCommonLogger();
 
+    /**
+     * @since 1.10.2
+     */
+    public Graph newGraph();
+
 }

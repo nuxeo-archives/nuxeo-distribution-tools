@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2009-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -19,7 +19,7 @@
 package org.nuxeo.build.maven;
 
 /**
- * 
+ *
  * @author jcarsique
  *
  */
@@ -29,17 +29,37 @@ public interface Logger {
 
     public void info(String message, Throwable error);
 
+    /**
+     * @since 1.10.2
+     */
+    public void info(Throwable error);
+
     public void warn(String message);
 
     public void warn(String message, Throwable error);
+
+    /**
+     * @since 1.10.2
+     */
+    public void warn(Throwable error);
 
     public void error(String message);
 
     public void error(String message, Throwable error);
 
+    /**
+     * @since 1.10.2
+     */
+    public void error(Throwable error);
+
     public void debug(String message);
 
     public void debug(String message, Throwable error);
+
+    /**
+     * @since 1.10.2
+     */
+    public void debug(Throwable error);
 
     public boolean isDebugEnabled();
 

@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     bstefanescu, slacoin
+ *     bstefanescu, slacoin, jcarsique
  */
 package org.nuxeo.build.ant.artifact;
 
@@ -20,7 +20,6 @@ import java.util.Collection;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
-import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.AndFilter;
 import org.nuxeo.build.maven.filter.CompositeFilter;
@@ -44,11 +43,7 @@ public class ExpandTask extends Task {
     }
 
     public void setDepth(String depth) {
-        if ("all".equals(depth)) {
-            this.depth = Integer.MAX_VALUE;
-        } else {
-            this.depth = Integer.parseInt(depth);
-        }
+        this.depth = Expand.readExpand(depth);
     }
 
     public void addExcludes(Excludes excludes) {
@@ -65,9 +60,15 @@ public class ExpandTask extends Task {
 
     @Override
     public void execute() throws BuildException {
+        Graph graph = MavenClientFactory.getInstance().newGraph();
+        execute(graph);
+    }
+
+    /**
+     * @since 1.10.2
+     */
+    public void execute(Graph graph) {
         Collection<Node> nodes = null;
-        MavenClient maven = MavenClientFactory.getInstance();
-        Graph graph = maven.getGraph();
         if (key == null) {
             nodes = graph.getRoots();
         } else {
