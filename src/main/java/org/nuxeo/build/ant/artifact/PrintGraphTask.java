@@ -74,7 +74,7 @@ public class PrintGraphTask extends Task {
             } catch (MavenEmbedderException e) {
                 throw new BuildException(e);
             }
-            graph = MavenClientFactory.getInstance().getGraph();
+            graph = MavenClientFactory.getInstance().newGraph();
             ArtifactDescriptor ad = new ArtifactDescriptor(source);
             rootNode = graph.getRootNode(ad.getArtifact());
             ExpandTask expandTask = new NuxeoExpandTask();

@@ -145,8 +145,7 @@ public class Graph {
      * maven mojo to initialize the graph with the current pom.
      */
     public Node addRootNode(MavenProject pom) {
-        Artifact artifact = pom.getArtifact();
-        return getRootNode(artifact);
+        return getRootNode(pom, pom.getArtifact());
     }
 
     public Node addRootNode(String key) {
@@ -157,6 +156,13 @@ public class Graph {
 
     public Node getRootNode(Artifact artifact) {
         MavenProject pom = resolver.load(artifact);
+        return getRootNode(pom, artifact);
+    }
+
+    /**
+     * @since 1.10.2
+     */
+    public Node getRootNode(MavenProject pom, Artifact artifact) {
         Node node = nodes.get(Node.createNodeId(artifact));
         if (node == null) {
             node = new Node(Graph.this, artifact, pom);

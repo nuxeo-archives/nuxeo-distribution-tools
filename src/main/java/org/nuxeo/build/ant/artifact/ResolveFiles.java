@@ -92,7 +92,7 @@ public class ResolveFiles extends DataType implements ResourceCollection {
                 try {
                     artifacts.add(resolveFile(artifactKey));
                 } catch (ArtifactNotFoundException e) {
-                    MavenClientFactory.getLog().error(e.getMessage());
+                    MavenClientFactory.getLog().warn(e.getMessage());
                 }
             }
         }
@@ -125,7 +125,9 @@ public class ResolveFiles extends DataType implements ResourceCollection {
                 VersionRange.createFromVersion(ad.version), ad.type,
                 ad.classifier, ad.scope);
         MavenClientFactory.getInstance().resolve(artifact);
-        return new FileResource(artifact.getFile());
+        FileResource fr = new FileResource(artifact.getFile());
+        fr.setBaseDir(artifact.getFile().getParentFile());
+        return fr;
     }
 
     @Override

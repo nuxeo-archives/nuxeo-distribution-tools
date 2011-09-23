@@ -33,7 +33,7 @@ public class NuxeoExpandTask extends ExpandTask {
 
     {
         setDepth("all");
-        Filter nuxeoFilter = new Filter() {
+        filter.addFilter(new Filter() {
 
             public boolean accept(Artifact artifact) {
                 return true;
@@ -59,8 +59,7 @@ public class NuxeoExpandTask extends ExpandTask {
             public boolean accept(Node node) {
                 return true;
             }
-        };
-        filter.addFilter(nuxeoFilter);
+        });
         filter.addFilter(new NotFilter(new VersionFilter("[*)")));
         filter.addFilter(new NotFilter(new GroupIdFilter("org.nuxeo.build")));
     }
