@@ -18,6 +18,7 @@ package org.nuxeo.build.ant.artifact;
 
 import java.util.Collection;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.nuxeo.build.maven.MavenClientFactory;
@@ -77,6 +78,11 @@ public class ExpandTask extends Task {
         for (Node node : nodes) {
             if (!acceptNode(node)) {
                 continue;
+            }
+            // NXBT-320 managed version don't resolve 
+            Artifact artifact = node.getArtifact();
+            if (artifact.isSnapshot()) {
+                artifact.setVersion(artifact.getBaseVersion());
             }
             graph.resolveDependencyTree(node, CompositeFilter.compact(filter),
                     depth);
