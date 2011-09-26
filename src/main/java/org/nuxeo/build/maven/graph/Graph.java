@@ -605,7 +605,7 @@ public class Graph {
     }
 
     public void resolveDependencyTree(Node node, Filter filter, int depth) {
-        MavenClientFactory.getLog().info("Resolving dependencies");
+        MavenClientFactory.getLog().info("Resolving dependencies for " + node);
         final NodesInjector injector = new NodesInjector(node, filter, depth);
         try {
             maven.resolveDependencyTree(node.artifact, new ArtifactFilter() {

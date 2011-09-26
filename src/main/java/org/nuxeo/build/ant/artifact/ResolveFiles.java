@@ -28,15 +28,11 @@ import java.util.Properties;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
-import org.apache.maven.artifact.versioning.VersionRange;
-import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.types.DataType;
 import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.FileResource;
 import org.nuxeo.build.maven.ArtifactDescriptor;
-import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
-import org.nuxeo.build.maven.filter.VersionManagement;
 
 /**
  * Resolve multiple files from a properties list
@@ -106,24 +102,11 @@ public class ResolveFiles extends DataType implements ResourceCollection {
      */
     private FileResource resolveFile(String artifactKey)
             throws ArtifactNotFoundException {
-        MavenClient maven = MavenClientFactory.getInstance();
         ArtifactDescriptor ad = new ArtifactDescriptor(artifactKey);
         if (classifier != null) {
             ad.classifier = classifier;
         }
-        if (ad.version == null) {
-            VersionManagement versionManagement = maven.getGraph().getVersionManagement();
-            ad.version = versionManagement.getVersion(ad);
-            if (ad.version == null) {
-                throw new BuildException(
-                        "Version is required since not found in dependency management: "
-                                + ad);
-            }
-        }
-        Artifact artifact = maven.getArtifactFactory().createDependencyArtifact(
-                ad.groupId, ad.artifactId,
-                VersionRange.createFromVersion(ad.version), ad.type,
-                ad.classifier, ad.scope);
+        Artifact artifact = ad.getArtifact();
         MavenClientFactory.getInstance().resolve(artifact);
         FileResource fr = new FileResource(artifact.getFile());
         fr.setBaseDir(artifact.getFile().getParentFile());

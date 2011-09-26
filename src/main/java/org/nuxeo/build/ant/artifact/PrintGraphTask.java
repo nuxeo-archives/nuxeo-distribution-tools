@@ -23,12 +23,11 @@ import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.maven.embedder.MavenEmbedderException;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.nuxeo.build.maven.ArtifactDescriptor;
-import org.nuxeo.build.maven.EmbeddedMavenClient;
-import org.nuxeo.build.maven.MavenClient;
 import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.graph.Edge;
 import org.nuxeo.build.maven.graph.Graph;
@@ -62,28 +61,30 @@ public class PrintGraphTask extends Task {
 
     @Override
     public void execute() throws BuildException {
-        Graph graph;
-        Node rootNode = null;
-        MavenClient originalMavenClient = MavenClientFactory.getInstance();
+        // MavenClient originalMavenClient = MavenClientFactory.getInstance();
         if (source != null) {
-            // Build a new graph with "source" as root node
-            EmbeddedMavenClient mavenClient = new EmbeddedMavenClient();
-            MavenClientFactory.setInstance(mavenClient);
+            ArtifactDescriptor ad = new ArtifactDescriptor(source);
+            Artifact artifact = ad.getArtifact();
             try {
-                mavenClient.start();
-            } catch (MavenEmbedderException e) {
+                MavenClientFactory.getInstance().resolve(artifact);
+            } catch (ArtifactNotFoundException e) {
                 throw new BuildException(e);
             }
-            graph = MavenClientFactory.getInstance().newGraph();
-            ArtifactDescriptor ad = new ArtifactDescriptor(source);
-            rootNode = graph.getRootNode(ad.getArtifact());
+            // Build a new graph with "source" as root node
+            // EmbeddedMavenClient mavenClient = new EmbeddedMavenClient();
+            // MavenClientFactory.setInstance(mavenClient);
+            // try {
+            // mavenClient.start();
+            // } catch (MavenEmbedderException e) {
+            // throw new BuildException(e);
+            // }
+            Graph graph = MavenClientFactory.getInstance().newGraph();
+            graph.getRootNode(artifact);
             ExpandTask expandTask = new NuxeoExpandTask();
             expandTask.setDepth("all");
             expandTask.execute(graph);
-        } else {
-            graph = MavenClientFactory.getInstance().getGraph();
         }
-        for (Node node : graph.getRoots()) {
+        for (Node node : MavenClientFactory.getInstance().getGraph().getRoots()) {
             try {
                 HashSet<Node> collectedNodes = new HashSet<Node>();
                 if (MODE_TREE.equalsIgnoreCase(mode)) {
@@ -98,9 +99,9 @@ public class PrintGraphTask extends Task {
                 throw new BuildException(e);
             }
         }
-        if (source != null) {
-            MavenClientFactory.setInstance(originalMavenClient);
-        }
+        // if (source != null) {
+        // MavenClientFactory.setInstance(originalMavenClient);
+        // }
     }
 
     /**
