@@ -49,6 +49,8 @@ public class PrintGraphTask extends Task {
      */
     public static final String MODE_FLAT = "flat";
 
+    public static final String MODE_SDK = "sdk";
+
     private OutputStream output = System.out;
 
     private String mode = MODE_TREE;
@@ -161,6 +163,10 @@ public class PrintGraphTask extends Task {
      * @since 1.10.2
      */
     public void setMode(String mode) {
+        if (MODE_SDK.equals(mode)) {
+            this.mode = MODE_FLAT;
+            this.format = Node.FORMAT_KV_F_GAV;
+        }
         this.mode = mode;
     }
 
