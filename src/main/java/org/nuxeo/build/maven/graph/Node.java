@@ -67,6 +67,7 @@ public class Node {
         if (artifact.getClassifier() != null) {
             sb.append(':').append(artifact.getClassifier());
         }
+        sb.append(':').append(artifact.getScope());
         return sb.toString();
     }
 
@@ -267,7 +268,7 @@ public class Node {
             } catch (ArtifactNotFoundException e) {
                 toString = "ArtifactNotFound";
             }
-            toString += "=" + createNodeId(artifact);
+            toString += "=" + id;
             return toString;
 
         default:
