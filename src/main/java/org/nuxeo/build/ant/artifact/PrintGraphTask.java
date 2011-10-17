@@ -166,8 +166,9 @@ public class PrintGraphTask extends Task {
         if (MODE_SDK.equals(mode)) {
             this.mode = MODE_FLAT;
             this.format = Node.FORMAT_KV_F_GAV;
+        } else {
+            this.mode = mode;
         }
-        this.mode = mode;
     }
 
     /**
