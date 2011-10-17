@@ -20,8 +20,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
@@ -61,9 +65,11 @@ public class PrintGraphTask extends Task {
 
     private String source;
 
+    private List<String> scopes = Arrays.asList(new String[] { "compile",
+            "runtime", "system" });
+
     @Override
     public void execute() throws BuildException {
-        // MavenClient originalMavenClient = MavenClientFactory.getInstance();
         if (source != null) {
             ArtifactDescriptor ad = new ArtifactDescriptor(source);
             Artifact artifact = ad.getArtifact();
@@ -72,14 +78,6 @@ public class PrintGraphTask extends Task {
             } catch (ArtifactNotFoundException e) {
                 throw new BuildException(e);
             }
-            // Build a new graph with "source" as root node
-            // EmbeddedMavenClient mavenClient = new EmbeddedMavenClient();
-            // MavenClientFactory.setInstance(mavenClient);
-            // try {
-            // mavenClient.start();
-            // } catch (MavenEmbedderException e) {
-            // throw new BuildException(e);
-            // }
             Graph graph = MavenClientFactory.getInstance().newGraph();
             graph.getRootNode(artifact);
             ExpandTask expandTask = new NuxeoExpandTask();
@@ -93,7 +91,11 @@ public class PrintGraphTask extends Task {
                     printTree("", node, collectedNodes);
                 } else if (MODE_FLAT.equalsIgnoreCase(mode)) {
                     HashSet<String> printedArtifacts = new HashSet<String>();
-                    printFlat(node, collectedNodes, printedArtifacts);
+                    // Ignore root node (= current project)
+                    printedArtifacts.add(node.getId());
+                    for (Edge edge : node.getEdgesOut()) {
+                        printFlat(edge.out, collectedNodes, printedArtifacts);
+                    }
                 } else {
                     throw new BuildException("Unknown mode: " + mode);
                 }
@@ -101,9 +103,6 @@ public class PrintGraphTask extends Task {
                 throw new BuildException(e);
             }
         }
-        // if (source != null) {
-        // MavenClientFactory.setInstance(originalMavenClient);
-        // }
     }
 
     /**
@@ -116,14 +115,14 @@ public class PrintGraphTask extends Task {
      */
     private void printFlat(Node node, HashSet<Node> collectedNodes,
             HashSet<String> printedArtifacts) throws IOException {
-        if (!printedArtifacts.contains(node.getId())) {
+        if (scopes.contains(node.getArtifact().getScope())
+                && !printedArtifacts.contains(node.getId())) {
             print(node.toString(format) + System.getProperty("line.separator"));
             printedArtifacts.add(node.getId());
         }
-        if (collectedNodes.contains(node)) {
+        if (!collectedNodes.add(node)) {
             return;
         }
-        collectedNodes.add(node);
         for (Edge edge : node.getEdgesOut()) {
             printFlat(edge.out, collectedNodes, printedArtifacts);
         }
@@ -201,6 +200,19 @@ public class PrintGraphTask extends Task {
      */
     public void setSource(String source) {
         this.source = source;
+    }
+
+    /**
+     * @since 1.10.2
+     * @param scopes Comma separated list of scopes to include. Defaults to
+     *            "compile,runtime,system".
+     */
+    public void setScopes(String scopes) {
+        StringTokenizer st = new StringTokenizer(scopes, ",");
+        this.scopes = new ArrayList<String>();
+        while (st.hasMoreTokens()) {
+            this.scopes.add(st.nextToken());
+        }
     }
 
 }

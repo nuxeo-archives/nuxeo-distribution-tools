@@ -16,8 +16,11 @@
  */
 package org.nuxeo.build.ant.artifact;
 
+import java.util.HashMap;
+
 import org.apache.maven.artifact.Artifact;
-import org.nuxeo.build.maven.filter.AndFilter;
+import org.apache.tools.ant.BuildException;
+import org.nuxeo.build.maven.MavenClientFactory;
 import org.nuxeo.build.maven.filter.Filter;
 import org.nuxeo.build.maven.filter.GroupIdFilter;
 import org.nuxeo.build.maven.filter.NotFilter;
@@ -31,8 +34,28 @@ import org.nuxeo.build.maven.graph.Node;
  */
 public class NuxeoExpandTask extends ExpandTask {
 
-    {
+    private HashMap<String, Boolean> includedScopes = new HashMap<String, Boolean>();
+
+    private boolean includeCompileScope = true;
+
+    private boolean includeProvidedScope = false;
+
+    private boolean includeRuntimeScope = true;
+
+    private boolean includeTestScope = false;
+
+    private boolean includeSystemScope = true;
+
+    @Override
+    public void execute() throws BuildException {
         setDepth("all");
+
+        getIncludedScopes().put("compile", includeCompileScope);
+        getIncludedScopes().put("provided", includeProvidedScope);
+        getIncludedScopes().put("runtime", includeRuntimeScope);
+        getIncludedScopes().put("test", includeTestScope);
+        getIncludedScopes().put("system", includeSystemScope);
+
         filter.addFilter(new Filter() {
 
             public boolean accept(Artifact artifact) {
@@ -43,17 +66,12 @@ public class NuxeoExpandTask extends ExpandTask {
                 if (edge.isOptional) {
                     return false;
                 }
-                String scope = edge.scope;
-                if (scope == null) {
-                    scope = "compile";
+                if (edge.scope == null) {
+                    MavenClientFactory.getLog().warn(
+                            "Missing scope, set to compile : " + edge);
+                    edge.scope = "compile";
                 }
-                if ("compile".equals(scope)) {
-                    return true;
-                }
-                if ("runtime".equals(scope)) {
-                    return true;
-                }
-                return false;
+                return getIncludedScopes().get(edge.scope);
             }
 
             public boolean accept(Node node) {
@@ -62,38 +80,52 @@ public class NuxeoExpandTask extends ExpandTask {
         });
         filter.addFilter(new NotFilter(new VersionFilter("[*)")));
         filter.addFilter(new NotFilter(new GroupIdFilter("org.nuxeo.build")));
+        super.execute();
     }
 
     protected boolean acceptNode(Node node) {
         return node.getArtifact().getGroupId().startsWith("org.nuxeo");
     }
 
-    public void setScope(String scope) {
-        if ("test".equals(scope)) {
-            filter = new AndFilter();
-            filter.addFilter(new Filter() {
-
-                public boolean accept(Artifact artifact) {
-                    return true;
-                }
-
-                public boolean accept(Edge edge) {
-                    if (edge.isOptional) {
-                        return false;
-                    }
-                    if ("test".equals(edge.scope)) {
-                        return true;
-                    }
-                    return false;
-                }
-
-                public boolean accept(Node node) {
-                    return true;
-                }
-            });
-            filter.addFilter(new NotFilter(new VersionFilter("[*)")));
-            filter.addFilter(new NotFilter(new GroupIdFilter("org.nuxeo.build")));
-        }
+    /**
+     * @since 1.10.2
+     */
+    protected HashMap<String, Boolean> getIncludedScopes() {
+        return includedScopes;
     }
 
+    /**
+     * @since 1.10.2
+     */
+    public void setIncludeCompileScope(boolean includeCompileScope) {
+        this.includeCompileScope = includeCompileScope;
+    }
+
+    /**
+     * @since 1.10.2
+     */
+    public void setIncludeProvidedScope(boolean includeProvidedScope) {
+        this.includeProvidedScope = includeProvidedScope;
+    }
+
+    /**
+     * @since 1.10.2
+     */
+    public void setIncludeRuntimeScope(boolean includeRuntimeScope) {
+        this.includeRuntimeScope = includeRuntimeScope;
+    }
+
+    /**
+     * @since 1.10.2
+     */
+    public void setIncludeTestScope(boolean includeTestScope) {
+        this.includeTestScope = includeTestScope;
+    }
+
+    /**
+     * @since 1.10.2
+     */
+    public void setIncludeSystemScope(boolean includeSystemScope) {
+        this.includeSystemScope = includeSystemScope;
+    }
 }
