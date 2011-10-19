@@ -63,9 +63,9 @@ public class Node {
     public static String createNodeId(Artifact artifact) {
         StringBuilder sb = new StringBuilder().append(artifact.getGroupId()).append(
                 ':').append(artifact.getArtifactId()).append(':').append(
-                artifact.getVersion()).append(':').append(artifact.getType());
+                artifact.getVersion()).append(':').append(artifact.getType()).append(':');
         if (artifact.getClassifier() != null) {
-            sb.append(':').append(artifact.getClassifier());
+            sb.append(artifact.getClassifier());
         }
         sb.append(':').append(artifact.getScope());
         return sb.toString();
