@@ -295,7 +295,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                     ant.run(file);
                 }
             } catch (BuildException e) {
-                throw new MojoExecutionException("Failed to run " + file, e);
+                throw new MojoExecutionException("Error occured while running " + file + ": "+e.getMessage(), e);
             }
         }
     }
