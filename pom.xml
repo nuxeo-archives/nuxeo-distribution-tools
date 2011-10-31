@@ -160,6 +160,11 @@
       <artifactId>maven-failsafe-plugin</artifactId>
       <version>2.8.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <version>2.1</version>
+    </dependency>
 
     <!-- scope test -->
     <dependency>
