@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2011 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -107,8 +107,7 @@ public class ZipDiffTask extends Task {
             for (Iterator<String> i = set1.iterator(); i.hasNext();) {
                 String filename = i.next();
                 if (!set2.contains(filename)) {
-                    log("Only in " + file1.getName() + ": " + filename,
-                            Project.MSG_DEBUG);
+                    log("Only in " + file1.getName() + ": " + filename);
                     include(filename, fileWriter);
                     continue;
                 }
@@ -117,7 +116,7 @@ public class ZipDiffTask extends Task {
                     if (!IOUtils.contentEquals(
                             zipfile1.getInputStream(zipfile1.getEntry(filename)),
                             zipfile2.getInputStream(zipfile2.getEntry(filename)))) {
-                        log("Content differs: " + filename, Project.MSG_DEBUG);
+                        log("Content differs: " + filename);
                         include(filename, fileWriter);
                         continue;
                     }
@@ -140,8 +139,7 @@ public class ZipDiffTask extends Task {
             }
             for (Iterator<String> i = set2.iterator(); i.hasNext();) {
                 String filename = i.next();
-                log("Only in " + file2.getName() + ": " + filename,
-                        Project.MSG_DEBUG);
+                log("Only in " + file2.getName() + ": " + filename);
                 exclude(filename, fileWriter);
             }
         } catch (IOException e) {
