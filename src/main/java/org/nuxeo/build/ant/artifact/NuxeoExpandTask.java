@@ -16,7 +16,10 @@
  */
 package org.nuxeo.build.ant.artifact;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.tools.ant.BuildException;
@@ -46,10 +49,28 @@ public class NuxeoExpandTask extends ExpandTask {
 
     private boolean includeSystemScope = true;
 
+    private String[] groupPrefixes = new String[] { "org.nuxeo" };
+
+    /**
+     * @param groupPrefixes Comma separated list of accepted group prefixes
+     * @since 1.11
+     */
+    public void setGroupPrefixes(String groupPrefixes) {
+        List<String> prefixes = new ArrayList<String>();
+        StringTokenizer st = new StringTokenizer(groupPrefixes, ",");
+        while (st.hasMoreTokens()) {
+            prefixes.add(st.nextToken());
+        }
+        this.groupPrefixes = prefixes.toArray(new String[0]);
+    }
+
+    public NuxeoExpandTask() {
+        super();
+        setDepth("all");
+    }
+
     @Override
     public void execute() throws BuildException {
-        setDepth("all");
-
         getIncludedScopes().put("compile", includeCompileScope);
         getIncludedScopes().put("provided", includeProvidedScope);
         getIncludedScopes().put("runtime", includeRuntimeScope);
@@ -84,7 +105,12 @@ public class NuxeoExpandTask extends ExpandTask {
     }
 
     protected boolean acceptNode(Node node) {
-        return node.getArtifact().getGroupId().startsWith("org.nuxeo");
+        for (String prefix : groupPrefixes) {
+            if (node.getArtifact().getGroupId().startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
