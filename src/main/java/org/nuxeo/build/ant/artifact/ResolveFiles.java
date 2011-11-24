@@ -18,6 +18,8 @@
 
 package org.nuxeo.build.ant.artifact;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.tools.ant.types.DataType;
@@ -57,7 +60,13 @@ public class ResolveFiles extends DataType implements ResourceCollection {
     public void setSource(String source) throws FileNotFoundException,
             IOException {
         this.source = new Properties();
-        this.source.load(new FileInputStream(source));
+        File sourceFile = new File(source);
+        File[] files = sourceFile.getParentFile().listFiles(
+                (FileFilter) new WildcardFileFilter(sourceFile.getName()));
+        for (File file : files) {
+            MavenClientFactory.getLog().debug("Loading " + file);
+            this.source.load(new FileInputStream(file));
+        }
     }
 
     /**
