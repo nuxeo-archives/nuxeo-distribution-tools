@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -43,6 +43,8 @@ import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.tools.ant.BuildException;
+import org.codehaus.plexus.util.ReaderFactory;
+import org.codehaus.plexus.util.StringUtils;
 import org.nuxeo.build.ant.AntClient;
 import org.nuxeo.build.ant.profile.AntProfileManager;
 import org.nuxeo.build.maven.filter.TrueFilter;
@@ -165,6 +167,25 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
      * @readonly
      */
     protected ArtifactMetadataSource metadataSource;
+
+    /**
+     * The character encoding scheme to be applied.
+     *
+     * @parameter expression="${encoding}"
+     *            default-value="${project.reporting.outputEncoding}"
+     */
+    private String encoding;
+
+    public String getEncoding() {
+        if (StringUtils.isEmpty(encoding)) {
+            getLog().warn(
+                    "File encoding has not been set, using platform encoding "
+                            + ReaderFactory.FILE_ENCODING
+                            + ", i.e. build is platform dependent!");
+            encoding = ReaderFactory.FILE_ENCODING;
+        }
+        return encoding;
+    }
 
     private Logger logger;
 
@@ -295,7 +316,8 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                     ant.run(file);
                 }
             } catch (BuildException e) {
-                throw new MojoExecutionException("Error occured while running " + file + ": "+e.getMessage(), e);
+                throw new MojoExecutionException("Error occured while running "
+                        + file + ": " + e.getMessage(), e);
             }
         }
     }

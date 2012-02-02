@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     mguillaume
+ *     mguillaume, jcarsique
  */
 package org.nuxeo.build.maven;
 
@@ -28,10 +28,12 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.surefire.booter.ProviderConfiguration;
 import org.apache.maven.surefire.failsafe.model.FailsafeSummary;
 import org.apache.maven.surefire.failsafe.model.io.xpp3.FailsafeSummaryXpp3Writer;
-import org.codehaus.plexus.util.ReaderFactory;
-import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.IOUtil;
 
 /**
+ *
+ * Store a summary file in case of issue during execution and testFailureIgnore
+ * is false.
  *
  * @goal integration-test
  * @phase integration-test
@@ -39,6 +41,7 @@ import org.codehaus.plexus.util.StringUtils;
  * @requiresDependencyResolution runtime
  *
  * @author <a href="mailto:mg@nuxeo.com">Mathieu Guillaume</a>
+ * @see VerifyMojo
  *
  */
 public class IntegrationTestMojo extends AntBuildMojo {
@@ -50,45 +53,36 @@ public class IntegrationTestMojo extends AntBuildMojo {
      */
     private boolean testFailureIgnore;
 
-    public boolean isTestFailureIgnore()
-    {
+    public boolean isTestFailureIgnore() {
         return testFailureIgnore;
     }
 
-    public void setTestFailureIgnore( boolean testFailureIgnore )
-    {
+    public void setTestFailureIgnore(boolean testFailureIgnore) {
         this.testFailureIgnore = testFailureIgnore;
     }
 
     /**
      * The summary file to write integration test results to.
      *
-     * @parameter expression="${project.build.directory}/nxtools-reports/nxtools-summary.xml"
+     * @parameter expression=
+     *            "${project.build.directory}/nxtools-reports/nxtools-summary.xml"
      * @required
      */
     private File summaryFile;
 
-     public File getSummaryFile()
-    {
+    public File getSummaryFile() {
         return summaryFile;
     }
 
-    public void setSummaryFile( File summaryFile )
-    {
+    public void setSummaryFile(File summaryFile) {
         this.summaryFile = summaryFile;
     }
 
-    /**
-     * The character encoding scheme to be applied.
-     *
-     * @parameter expression="${encoding}" default-value="${project.reporting.outputEncoding}"
-     */
-    private String encoding;
-
     public void execute() throws MojoExecutionException, MojoFailureException {
-
         FailsafeSummary result = new FailsafeSummary();
-
+        // Remove already existing summaryFile to avoid confusion if there's
+        // no error in the current execution
+        summaryFile.delete();
         try {
             super.execute();
         } catch (MojoExecutionException e) {
@@ -101,36 +95,24 @@ public class IntegrationTestMojo extends AntBuildMojo {
                 writeSummary(result);
             }
         }
-
     }
 
-     private void writeSummary(FailsafeSummary summary) throws MojoExecutionException {
+    private void writeSummary(FailsafeSummary summary)
+            throws MojoExecutionException {
 
-        File summaryFile = getSummaryFile();
         if (!summaryFile.getParentFile().isDirectory()) {
             summaryFile.getParentFile().mkdirs();
         }
+        Writer writer = null;
         try {
-            String encoding;
-            if ( StringUtils.isEmpty( this.encoding ) ) {
-                getLog().warn(
-                    "File encoding has not been set, using platform encoding " + ReaderFactory.FILE_ENCODING
-                        + ", i.e. build is platform dependent!" );
-                encoding = ReaderFactory.FILE_ENCODING;
-            } else {
-                encoding = this.encoding;
-            }
-
-            FileOutputStream fileOutputStream = new FileOutputStream(summaryFile);
-            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
-            Writer writer = new OutputStreamWriter(bufferedOutputStream, encoding);
+            writer = new OutputStreamWriter(new BufferedOutputStream(
+                    new FileOutputStream(summaryFile)), getEncoding());
             FailsafeSummaryXpp3Writer xpp3Writer = new FailsafeSummaryXpp3Writer();
             xpp3Writer.write(writer, summary);
-            writer.close();
-            bufferedOutputStream.close();
-            fileOutputStream.close();
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
+        } finally {
+            IOUtil.close(writer);
         }
     }
 
