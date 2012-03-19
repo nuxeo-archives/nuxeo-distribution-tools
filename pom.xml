@@ -84,6 +84,12 @@
     </snapshotRepository>
   </distributionManagement>
 
+  <scm>
+    <connection>scm:git:git://github.com/nuxeo/nuxeo-distribution-tools.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com:nuxeo/nuxeo-distribution-tools.git</developerConnection>
+    <url>https://github.com/nuxeo/nuxeo-distribution-tools</url>
+  </scm>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.maven</groupId>
