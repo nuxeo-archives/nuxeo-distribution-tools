@@ -35,6 +35,8 @@ public class ResolveFile extends FileResource {
 
     public String classifier;
 
+    private Artifact artifact;
+
     public void setKey(String pattern) {
         int p = pattern.lastIndexOf(';');
         if (p > -1) {
@@ -55,16 +57,20 @@ public class ResolveFile extends FileResource {
     }
 
     protected File resolveFile() throws ArtifactNotFoundException {
-        ArtifactDescriptor ad = new ArtifactDescriptor(key);
-        // Sync classifier set from key or from setClassifier()
-        if (ad.classifier != null) {
-            classifier = ad.classifier;
-        } else if (classifier != null) {
-            ad.classifier = classifier;
-        }
-        Artifact artifact = ad.getArtifact();
-        if (!artifact.isResolved()) {
-            MavenClientFactory.getInstance().resolve(artifact);
+        if (artifact == null) {
+            ArtifactDescriptor ad = new ArtifactDescriptor(key);
+            // Sync classifier set from key or from setClassifier()
+            if (ad.classifier != null) {
+                classifier = ad.classifier;
+            } else if (classifier != null) {
+                ad.classifier = classifier;
+            }
+            artifact = ad.getArtifact();
+            if (!artifact.isResolved()) {
+                MavenClientFactory.getLog().info(
+                        "Resolving " + artifact.toString() + " ...");
+                MavenClientFactory.getInstance().resolve(artifact);
+            }
         }
         return artifact.getFile();
     }
