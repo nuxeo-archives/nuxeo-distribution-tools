@@ -58,7 +58,7 @@ file in the artifact key.
 
 An artifact is uniquely defined in the graph using the following key:
 
-  groupId:artifactId:version:type
+    groupId:artifactId:version:type
 
 This means a single node can be linked to multiple artifact files if the
 corresponding artifact have attached files.
@@ -69,18 +69,18 @@ the right file you want to use in ant.
 When searching for an artifact you can specify only the first components you
 want to match. So all of the following combinations are correct lookup keys:
 
-  groupId
-  groupId:artifactId
-  groupId:artifactId:version
-  groupId:artifactId:version:type
+    groupId
+    groupId:artifactId
+    groupId:artifactId:version
+    groupId:artifactId:version:type
 
 
 ## Tasks
 
 ### Graph tasks
 
-  <artifact:graph> -> builds the graph
-  <artifact:expand> -> expands artifact nodes in the current graph
+    <artifact:graph> -> builds the graph
+    <artifact:expand> -> expands artifact nodes in the current graph
 
 The expand task is expanding one or more selected nodes from the graph.
 
@@ -93,8 +93,8 @@ above).  If no key is given all graph roots will be selected.
 
 Example:
 
-  <artifact:expand key="org.nuxeo.runtime:nuxeo-runtime" depth="all" />
-  <artifact:expand /> <!-- expand all roots -->
+    <artifact:expand key="org.nuxeo.runtime:nuxeo-runtime" depth="all" />
+    <artifact:expand /> <!-- expand all roots -->
 
 ### Artifact File Resources
 
@@ -105,13 +105,13 @@ You can use classifiers if you want a specific file.
 
 There are four artifact file resource types:
 
-  <artifact:file>         -> selects a single artifact
-  <artifact:resolveFile>  -> selects a single remote artifact that is not specified by the graph. This is not using the graph but directly the Maven repositories.
-  <artifact:set>          -> selects a set of artifacts. Can use includes and excludes clauses (filters are supported).
-  <artifact:dependencies> -> selects the dependencies of an artifact (the depth can be controlled and filters are supported).
+    <artifact:file>         -> selects a single artifact
+    <artifact:resolveFile>  -> selects a single remote artifact that is not specified by the graph. This is not using the graph but directly the Maven repositories.
+    <artifact:set>          -> selects a set of artifacts. Can use includes and excludes clauses (filters are supported).
+    <artifact:dependencies> -> selects the dependencies of an artifact (the depth can be controlled and filters are supported).
 
 
-<artifact:file> have the following attributes:
+`<artifact:file>` have the following attributes:
 
   - groupId
   - artifactId
@@ -129,21 +129,15 @@ The key format is the same as the node artifact key format described above.
 
 Example:
 
-  <artifact:file key="nuxeo-runtime"> will get the file of the first artifact
-  found having the artifactId == "nuxeo-runtime"
+    <artifact:file key="nuxeo-runtime"> will get the file of the first artifact found having the artifactId == "nuxeo-runtime"
 
-  <artifact:file key="org.nuxeo.runtime:nuxeo-runtime"> will get the file of the
-  first artifact found having the groupId == "org.nxueo.runtime" and artifactId
-  == "nuxeo-runtime"
+    <artifact:file key="org.nuxeo.runtime:nuxeo-runtime"> will get the file of the first artifact found having the groupId == "org.nxueo.runtime" and artifactId == "nuxeo-runtime"
 
-  <artifact:file key="nuxeo-runtime;allinone"> - the ';' is a shortcut to be
-  able to specify the classifier inside a node key.
+    <artifact:file key="nuxeo-runtime;allinone"> - the ';' is a shortcut to be able to specify the classifier inside a node key.
 
-  <artifact:file artifactId="nuxeo-runtime" classifier="allinone"> this is
-  identical to the previous example.
+    <artifact:file artifactId="nuxeo-runtime" classifier="allinone"> this is identical to the previous example.
 
-Note: using 'key' may generate faster lookups. (it's a prefix search on a tree
-map).
+Note: using 'key' may generate faster lookups. (it's a prefix search on a tree map).
 
 Example:
 
@@ -177,41 +171,41 @@ Look at `nuxeo-distribution/*/pom.xml` and
 
 The following properties are exported from maven to Ant build file:
 
-  basedir -> maven.basedir
-  project.name -> maven.project.name
-  project.artifactId -> maven.project.artifactId
-  project.groupId -> maven.project.groupId
-  project.version -> maven.project.version
-  project.packaging -> maven.project.packaging
-  project.id -> maven.project.id
-  project.build.directory -> maven.project.build.directory
-  project.build.outputDirectory -> maven.project.build.outputDirectory
-  project.build.finalName -> maven.project.build.finalName
+  - basedir -> maven.basedir
+  - project.name -> maven.project.name
+  - project.artifactId -> maven.project.artifactId
+  - project.groupId -> maven.project.groupId
+  - project.version -> maven.project.version
+  - project.packaging -> maven.project.packaging
+  - project.id -> maven.project.id
+  - project.build.directory -> maven.project.build.directory
+  - project.build.outputDirectory -> maven.project.build.outputDirectory
+  - project.build.finalName -> maven.project.build.finalName
 
 Any user defined Maven property will be imported as an Ant property.
 
 For every active Maven profile, a property of the following form is created:
 
-  maven.profile.X = true
+    maven.profile.X = true
 
 where X is the profile name.
 
 This can be used in conditional Ant constructs like:
 
-  <target if="maven.profile.X">
+    <target if="maven.profile.X">
 
 or
 
-  <target unless="maven.profile.X">
+    <target unless="maven.profile.X">
 
 to make task execution depending on whether a profile is active or not.
 
 Maven profiles are also exported as Ant profiles so you can use the custom
 nx:profile tasks to conditionally execute code. Example:
 
-<nx:profile name="X">
- ... put any ant construct here that will be executed only if profile X is active ..
-</nx:profile>
+    <nx:profile name="X">
+      ... put any ant construct here that will be executed only if profile X is active ..
+    </nx:profile>
 
 The current Maven POM (project) is put as a root into the artifact graph.
 
