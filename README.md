@@ -1,24 +1,22 @@
-This module provides a maven and ant integration that can be used in 2 ways:
+# Introduction
 
-- as a standalone application (that is embedding a maven 2.0.9 engine and ant 1.7.0 engine) 
+This module provides a Maven and Ant integration that can be used in two ways:
 
-- as a maven plugin (that can be used from any maven project using the locally installed maven). 
+- as a standalone application (that is embedding a Maven 2.2.1 engine and Ant 1.8.2 engine)
+- as a Maven plugin
 
-Ant 1.7.0 will be used.
+Also a FreeMarker integration is done to be able to generate files from
+templates. See the FreeMarker section.
 
-Also a freemarker integration is done to be able to generate files from
-templates. See the freemarker section.
+The application can be used to assemble (e.g. build) applications using Ant
+constructs by retrieving components using the Maven dependency graph.
 
-The application can be used to assemble (e.g. build) applications using ant
-constructs by retrieving components using maven dependency graph.
+So the main functionality provided is the management of an artifact graph.
 
-So the main functionality provided by this application is an artifact graph. 
-
-All others functionality (like custom ant tasks) are using this graph to
+The others functionalities (like custom Ant tasks) are mostly using this graph to
 resolve artifact files.
 
-The artifact Graph
--------------------------------------------------------------------------
+## The artifact Graph
 
 In order to use the artifact graph you should first construct it then you can
 lookup artifacts and their dependencies from the constructed graph.
@@ -34,30 +32,29 @@ Then you can expand each root node as desired (using a fixed depth or expanding
 it completely).
 
 By expanding nodes their dependencies are added to the graph and in/out edges
-are created.    
+are created.
 
 If you want to include in the graph only direct dependency you can use a depth
 (e.g. level) of 1.
 
 Using a value of "all" you will expand the entire dependency sub-tree of the
-node. 
+node.
 
-When you are finishing 'expanding' (e.g. constructing) the tree you can start
+When you have finishing 'expanding' (e.g. constructing) the tree you can start
 using it by doing lookups on artifact node keys. These lookups can use complete
 keys (including groupId, artifactId, version etc) but also wildcard keys that
-may select multiple nodes from the graph. 
+may select multiple nodes from the graph.
 
-Returned artifacts can be then used directly in any task that accept file
-resources like copy, delete, move, zip etc. 
+Returned artifacts can be then used directly in any Ant task that accept file
+resources like copy, delete, move, zip, etc.
 
-When using an artifact in ant you are in fact using the artifact file (usually
+When using an artifact in Ant you are in fact using the artifact file (usually
 a JAR). An artifact may have multiple attached files.
 
 In order to use the desired file you need to specify the classifier of that
 file in the artifact key.
 
-Artifact Node keys
--------------------
+## Artifact Node keys
 
 An artifact is uniquely defined in the graph using the following key:
 
@@ -67,7 +64,7 @@ This means a single node can be linked to multiple artifact files if the
 corresponding artifact have attached files.
 
 You can in that case use the maven classifier of the attached file to choose
-the right file you want to use in ant. 
+the right file you want to use in ant.
 
 When searching for an artifact you can specify only the first components you
 want to match. So all of the following combinations are correct lookup keys:
@@ -78,15 +75,12 @@ want to match. So all of the following combinations are correct lookup keys:
   groupId:artifactId:version:type
 
 
-----------------------------------------------------------------------
-Tasks
-----------------------------------------------------------------------
+## Tasks
 
-Graph tasks
------------------------
+### Graph tasks
 
-  <artifact:graph> -> build the graph
-  <artifact:expand> -> expand artifact nodes in the current graph
+  <artifact:graph> -> builds the graph
+  <artifact:expand> -> expands artifact nodes in the current graph
 
 The expand task is expanding one or more selected nodes from the graph.
 
@@ -102,20 +96,19 @@ Example:
   <artifact:expand key="org.nuxeo.runtime:nuxeo-runtime" depth="all" />
   <artifact:expand /> <!-- expand all roots -->
 
-Artifact File Resources
-------------------------
+### Artifact File Resources
 
 Artifact file resources are used to select the file for the specified
 artifacts.
 
 You can use classifiers if you want a specific file.
 
-There are 4 artifact file resources types:
+There are four artifact file resource types:
 
-<artifact:file>         -> selects a single artifact
-<artifact:resolveFile>  -> selects a single remote artifact that is not specified by the graph. This is not using the graph but directly maven repositories.
-<artifact:set>          -> selects a set of artifacts. can use includes and excludes clauses (filter are supported) 
-<artifact:dependencies> -> selects the dependencies of an artifact (the depth can be controlled and filter are supported)
+  <artifact:file>         -> selects a single artifact
+  <artifact:resolveFile>  -> selects a single remote artifact that is not specified by the graph. This is not using the graph but directly the Maven repositories.
+  <artifact:set>          -> selects a set of artifacts. Can use includes and excludes clauses (filters are supported).
+  <artifact:dependencies> -> selects the dependencies of an artifact (the depth can be controlled and filters are supported).
 
 
 <artifact:file> have the following attributes:
@@ -137,14 +130,14 @@ The key format is the same as the node artifact key format described above.
 Example:
 
   <artifact:file key="nuxeo-runtime"> will get the file of the first artifact
-  found having the artifactId == "nuxeo-runtime" 
+  found having the artifactId == "nuxeo-runtime"
 
   <artifact:file key="org.nuxeo.runtime:nuxeo-runtime"> will get the file of the
   first artifact found having the groupId == "org.nxueo.runtime" and artifactId
   == "nuxeo-runtime"
 
   <artifact:file key="nuxeo-runtime;allinone"> - the ';' is a shortcut to be
-  able to specify the classifier inside a node key. 
+  able to specify the classifier inside a node key.
 
   <artifact:file artifactId="nuxeo-runtime" classifier="allinone"> this is
   identical to the previous example.
@@ -164,23 +157,30 @@ Example:
     </artifact:dependencies>
     </copy>
 
--------------------------------------------------------------------------
 
-Standalone application
-----------------------
-TODO
+# Standalone application
 
--------------------------------------------------------------------------
+TODO write documentation...
 
-Integration as a maven plugin.
-------------------------------
 
-The following properties are exported from maven to ant build file:
+# Integration as a Maven plugin.
+
+## Usage and examples
+
+The whole [nuxeo-distribution](https://github.com/nuxeo/nuxeo-distribution/)
+project is using nuxeo-distribution-tools for building Nuxeo distributions, running tests, ...
+
+Look at `nuxeo-distribution/*/pom.xml` and
+`nuxeo-distribution/*/src/main/assemble/assembly.xml` files for concrete usage samples.
+
+## Basics
+
+The following properties are exported from maven to Ant build file:
 
   basedir -> maven.basedir
   project.name -> maven.project.name
   project.artifactId -> maven.project.artifactId
-  project.groupId -> maven.project.groupId        
+  project.groupId -> maven.project.groupId
   project.version -> maven.project.version
   project.packaging -> maven.project.packaging
   project.id -> maven.project.id
@@ -188,16 +188,15 @@ The following properties are exported from maven to ant build file:
   project.build.outputDirectory -> maven.project.build.outputDirectory
   project.build.finalName -> maven.project.build.finalName
 
-Also, any user defined maven property will be imported as an ant property. 
+Any user defined Maven property will be imported as an Ant property.
 
-Also, for every active maven profile a property of the following form is
-created:
+For every active Maven profile, a property of the following form is created:
 
   maven.profile.X = true
 
 where X is the profile name.
 
-This way you can use conditional ant constructs like:
+This can be used in conditional Ant constructs like:
 
   <target if="maven.profile.X">
 
@@ -205,35 +204,29 @@ or
 
   <target unless="maven.profile.X">
 
-to conditionally execute tasks depending on whether a profile is active or not.
+to make task execution depending on whether a profile is active or not.
 
-Maven profiles are also exported as ant profiles so you can use the custom
+Maven profiles are also exported as Ant profiles so you can use the custom
 nx:profile tasks to conditionally execute code. Example:
 
 <nx:profile name="X">
  ... put any ant construct here that will be executed only if profile X is active ..
 </nx:profile>
-  
-The current maven pom (project) is put as a root into the artifact graph.
 
-If expand > 0 (you can define this in pom.xml as a plugin configuration
-property), then the project node will be expanded using a depth equals to the
+The current Maven POM (project) is put as a root into the artifact graph.
+
+If expand > 0, then the project node will be expanded using a depth equals to the
 expand property.
 
 Example: if you use expand=1 -> the direct dependencies of the project are
-added to the graph. 
+added to the graph.
 
-Different mojo instances can be used in different threads, each of them will
-have it's own graph. (The mojo is bound to a thread variable so that ant will
-use the mojo bound to the current thread).
-
-
-----------------------------------------------
+Different Mojo instances can be used in different threads, each of them will
+have its own graph. (The Mojo is bound to a thread variable so that Ant will
+use the Mojo bound to the current thread).
 
 
-Freemarker Integration
-----------------------
+# Freemarker Integration
 
-TODO
+TODO write documentation...
 
------------------------------------------------
