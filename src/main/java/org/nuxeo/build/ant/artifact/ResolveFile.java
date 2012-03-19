@@ -63,7 +63,9 @@ public class ResolveFile extends FileResource {
             ad.classifier = classifier;
         }
         Artifact artifact = ad.getArtifact();
-        MavenClientFactory.getInstance().resolve(artifact);
+        if (!artifact.isResolved()) {
+            MavenClientFactory.getInstance().resolve(artifact);
+        }
         return artifact.getFile();
     }
 

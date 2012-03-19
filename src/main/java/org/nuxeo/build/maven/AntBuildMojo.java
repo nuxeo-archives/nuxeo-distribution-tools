@@ -316,8 +316,9 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                     ant.run(file);
                 }
             } catch (BuildException e) {
-                throw new MojoExecutionException("Error occured while running "
-                        + file + ": " + e.getMessage(), e);
+                throw new MojoExecutionException(
+                        "Error occurred while running " + file + ": "
+                                + e.getMessage(), e);
             }
         }
     }
@@ -372,7 +373,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         } catch (ArtifactResolutionException e) {
             throw new RuntimeException(e);
         } catch (ArtifactNotFoundException e) {
-            throw e;
+            tryResolutionOnLocalBaseVersion(artifact, e);
         }
     }
 
@@ -382,6 +383,34 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         } catch (ArtifactResolutionException e) {
             throw new RuntimeException(e);
         } catch (ArtifactNotFoundException e) {
+            tryResolutionOnLocalBaseVersion(artifact, e);
+        }
+    }
+
+    /**
+     * Try to locally resolve an artifact with its "unique" version.
+     *
+     * @since 1.11.1
+     * @param artifact Artifact to resolve with its unique version
+     * @param e ArtifactNotFoundException originally thrown
+     * @throws ArtifactNotFoundException If alternate resolution failed.
+     * @see Artifact#getBaseVersion()
+     */
+    protected void tryResolutionOnLocalBaseVersion(Artifact artifact,
+            ArtifactNotFoundException e) throws ArtifactNotFoundException {
+        String resolvedVersion = artifact.getVersion();
+        artifact.updateVersion(artifact.getBaseVersion(), localRepository);
+        File localFile = new File(localRepository.getBasedir(),
+                localRepository.pathOf(artifact));
+        if (localFile.exists()) {
+            getLog().warn(
+                    String.format(
+                            "Couldn't resolve %s, fallback on local install of unique version %s.",
+                            resolvedVersion, artifact.getBaseVersion()));
+            artifact.setResolved(true);
+        } else {
+            // No success, set back the previous version and raise an error
+            artifact.updateVersion(resolvedVersion, localRepository);
             throw e;
         }
     }
