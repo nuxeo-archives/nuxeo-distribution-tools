@@ -16,6 +16,41 @@ So the main functionality provided is the management of an artifact graph.
 The others functionalities (like custom Ant tasks) are mostly using this graph to
 resolve artifact files.
 
+## Available Ant tasks
+
+[All standard Ant tasks](http://ant.apache.org/manual/tasklist.html) are available. 
+
+[Ant contrib tasks](http://ant-contrib.sourceforge.net/) are also included.
+
+All the Nuxeo Ant tasks are listed in [src/main/resources/org/nuxeo/build/antlib.xml](src/main/resources/org/nuxeo/build/antlib.xml) and 
+[src/main/resources/org/nuxeo/build/artifact/antlib.xml](src/main/resources/org/nuxeo/build/artifact/antlib.xml). Here's quick listing:
+
+- nx:templates (org.nuxeo.build.ant.ftl.ProcessTemplateTask)
+- nx:profile (org.nuxeo.build.ant.profile.ProfileTask)
+- nx:archetype (org.nuxeo.build.ant.archetype.ArchetypeTask)
+- nx:if (org.nuxeo.build.ant.IfTask)
+- nx:regexp (org.nuxeo.build.ant.PropertyRegexp)
+- nx:preprocess (org.nuxeo.build.ant.processor.NuxeoBuildProcessor)
+- nx:rename (org.nuxeo.build.ant.RenameTask)
+- nx:rmdups (org.nuxeo.build.ant.RemoveDuplicateTask)
+- nx:zipdiff (org.nuxeo.build.ant.ZipDiffTask)
+
+- artifact:settings (org.nuxeo.build.ant.artifact.SettingsTask)
+- artifact:set (org.nuxeo.build.ant.artifact.ArtifactSet)
+- artifact:file (org.nuxeo.build.ant.artifact.ArtifactFile)
+- artifact:graph (org.nuxeo.build.ant.artifact.GraphTask)
+- artifact:expand (org.nuxeo.build.ant.artifact.ExpandTask)
+- artifact:nuxeo-expand (org.nuxeo.build.ant.artifact.NuxeoExpandTask)
+- artifact:export (org.nuxeo.build.ant.artifact.GraphExportTask)
+- artifact:attach (org.nuxeo.build.ant.artifact.AttachArtifactTask)
+- artifact:foreach (org.nuxeo.build.ant.artifact.ArtifactForeach)
+- artifact:resolveFile (org.nuxeo.build.ant.artifact.ResolveFile)
+- artifact:dependencies (org.nuxeo.build.ant.artifact.ArtifactDependencies)
+- artifact:print (org.nuxeo.build.ant.artifact.PrintGraphTask)
+- artifact:resolveFiles (org.nuxeo.build.ant.artifact.ResolveFiles)
+
+
+
 ## The artifact Graph
 
 In order to use the artifact graph you should first construct it then you can
