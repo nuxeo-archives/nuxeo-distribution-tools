@@ -510,6 +510,7 @@ public class Graph {
         protected void addEdges(Node out) {
 
             if (parentNodes.isEmpty()) {
+                out.state = Node.INCLUDED;
                 return;
             }
 
@@ -552,7 +553,7 @@ public class Graph {
                 return false;
             }
 
-            if (parentNodes.size() >= maxDepth) {
+            if (parentNodes.size() > maxDepth) {
                 debug("filtering edge (max depth) : artifact=" + edge.out);
                 return false;
             }
