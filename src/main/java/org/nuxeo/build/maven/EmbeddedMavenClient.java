@@ -26,6 +26,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.InvalidRepositoryException;
@@ -52,6 +53,7 @@ import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectUtils;
+import org.apache.maven.project.artifact.InvalidDependencyVersionException;
 import org.apache.maven.settings.MavenSettingsBuilder;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.BuildException;
@@ -74,6 +76,8 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
     protected File settingsFile;
 
     private List<ArtifactRepository> remoteRepos;
+
+    protected ProfileManager profileManager;
 
     protected AntProfileManager profileMgr = new AntProfileManager();
 
@@ -367,8 +371,23 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
             ProjectBuildingException {
         MavenProject project = mavenProjectBuilder.buildFromRepository(
                 artifact, getRemoteRepositories(), localRepository);
+
+
+        @SuppressWarnings("rawtypes")
+        Set dependencyArtifacts = project.getDependencyArtifacts();
+        if (dependencyArtifacts == null) {
+            try {
+                dependencyArtifacts = project.createArtifacts(artifactFactory,
+                        null, null);
+            } catch (InvalidDependencyVersionException e) {
+                throw new ArtifactResolutionException(
+                        "Cannot set dependencies", artifact, e);
+            }
+            project.setDependencyArtifacts(dependencyArtifacts);
+        }
+
         ArtifactCollector collector = new DefaultArtifactCollector();
-        collector.collect(project.getDependencyArtifacts(),
+        collector.collect(dependencyArtifacts,
                 project.getArtifact(), project.getManagedVersionMap(),
                 localRepository, project.getRemoteArtifactRepositories(),
                 artifactMetadataSource, filter,
