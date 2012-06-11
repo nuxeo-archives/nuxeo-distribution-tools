@@ -32,6 +32,8 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.embedder.MavenEmbedderConsoleLogger;
+import org.apache.maven.embedder.MavenEmbedderLogger;
 import org.apache.maven.model.Repository;
 import org.apache.maven.model.RepositoryPolicy;
 import org.nuxeo.build.maven.ArtifactDescriptor;
@@ -474,6 +476,10 @@ public class NuxeoApp {
     protected void initializeMaven() throws Exception {
         maven = createEmbeddedMaven();
         MavenClientFactory.setInstance(maven);
+        if (maven.getLogger() == null) {
+            maven.setLogger(new MavenEmbedderConsoleLogger());
+        }
+        maven.getLogger().setThreshold(MavenEmbedderLogger.LEVEL_DEBUG);
         maven.setOffline(isOffline);
         maven.start();
         maven.getGraph().setShouldLoadDependencyManagement(true);
@@ -576,7 +582,7 @@ public class NuxeoApp {
     }
 
     protected Node addPom(String key) {
-        return addArtifact(key, 1);
+        return addArtifact(key, Integer.MAX_VALUE);
     }
 
     protected Node addArtifact(String key) {
