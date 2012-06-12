@@ -90,6 +90,8 @@ public class NuxeoApp {
 
     protected boolean isOffline;
 
+    protected int logthreshold = MavenEmbedderLogger.LEVEL_WARN;
+
     protected ConfigurationLoader loader;
 
     protected String updatePolicy = "daily";
@@ -161,10 +163,6 @@ public class NuxeoApp {
 
     public void setOffline(boolean isOffline) {
         this.isOffline = isOffline;
-    }
-
-    public boolean isOffline() {
-        return isOffline;
     }
 
     public void build(URL config) throws Exception {
@@ -294,11 +292,10 @@ public class NuxeoApp {
 
         double s = System.currentTimeMillis();
 
-        initializeMaven();
-
-        // load configuration
         loader = new ConfigurationLoader();
         loader.getReader().read(in);
+
+        initializeMaven();
 
         initializeGraph();
 
@@ -479,10 +476,10 @@ public class NuxeoApp {
         if (maven.getLogger() == null) {
             maven.setLogger(new MavenEmbedderConsoleLogger());
         }
-        maven.getLogger().setThreshold(MavenEmbedderLogger.LEVEL_DEBUG);
-        maven.setOffline(isOffline);
+        maven.getLogger().setThreshold(loader.logThreshold(logthreshold));
+        maven.setOffline(loader.isOffline(isOffline));
+
         maven.start();
-        maven.getGraph().setShouldLoadDependencyManagement(true);
 
         Repository repo = new Repository();
         repo.setId("public");
@@ -513,6 +510,9 @@ public class NuxeoApp {
         policy.setChecksumPolicy("warn");
         repo.setSnapshots(policy);
         maven.addRemoteRepository(repo);
+
+        maven.getGraph().setShouldLoadDependencyManagement(true);
+
     }
 
     protected void initializeGraph() throws Exception {
