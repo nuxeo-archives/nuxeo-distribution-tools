@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.maven.embedder.MavenEmbedderLogger;
 import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.dev.ConfigurationReader.SectionReader;
 
@@ -31,29 +32,28 @@ import org.nuxeo.dev.ConfigurationReader.SectionReader;
  */
 public class ConfigurationLoader {
 
-    protected Set<String> bundles;
+    protected final Map<String,String> config = new HashMap<String,String>();
 
-    protected Set<String> libs;
+    protected final Set<String> bundles = new LinkedHashSet<String>();
 
-    protected Set<String> poms;
+    protected final Set<String> libs = new LinkedHashSet<String>();
 
-    protected ConfigurationReader reader;
+    protected final Set<String> poms = new LinkedHashSet<String>();
+
+    protected final Map<String, String> props = new HashMap<String,String>();
+
+    protected final ConfigurationReader reader = new ConfigurationReader();
 
     protected ArtifactDescriptor templateArtifact;
 
     protected String templatePrefix;
 
-    protected Map<String, String> props;
 
     public ConfigurationLoader() {
-        poms = new LinkedHashSet<String>();
-        bundles = new LinkedHashSet<String>();
-        libs = new LinkedHashSet<String>();
-        props = new HashMap<String, String>();
-        reader = new ConfigurationReader();
+        reader.addReader("configuration", new PropertiesReader(config));
         reader.addReader("bundles", new ArtifactReader(bundles));
         reader.addReader("libs", new ArtifactReader(libs));
-        reader.addReader("properties", new PropertiesReader());
+        reader.addReader("properties", new PropertiesReader(props));
         reader.addReader("template", new TemplateReader());
         reader.addReader("poms", new ArtifactReader(poms));
     }
@@ -78,6 +78,20 @@ public class ConfigurationLoader {
         return libs;
     }
 
+    public boolean isOffline(boolean defaultValue) {
+        if (!config.containsKey("offline")) {
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(config.get("offline"));
+    }
+
+    public int logThreshold(int defaultValue) {
+        if (!config.containsKey("logThreshold")) {
+            return defaultValue;
+        }
+        return Integer.parseInt(config.get("logThreshold"));
+    }
+
     public ArtifactDescriptor getTemplateArtifact() {
         return templateArtifact;
     }
@@ -99,6 +113,10 @@ public class ConfigurationLoader {
     }
 
     class PropertiesReader implements SectionReader {
+        final Map<String,String> props;
+        public PropertiesReader(Map<String,String> map) {
+           props = map;
+        }
         public void readLine(String section, String line) throws IOException {
             int p = line.indexOf('=');
             if (p == -1) {

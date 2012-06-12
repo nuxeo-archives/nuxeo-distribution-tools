@@ -77,8 +77,6 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
 
     private List<ArtifactRepository> remoteRepos;
 
-    protected ProfileManager profileManager;
-
     protected AntProfileManager profileMgr = new AntProfileManager();
 
     protected Logger mylogger;
@@ -177,11 +175,10 @@ public class EmbeddedMavenClient extends MavenEmbedder implements MavenClient {
         if (remoteRepos == null) {
             try {
                 remoteRepos = buildRepositoriesFromProfiles();
-                addDefaultRepositories();
             } catch (Exception e) {
-                e.printStackTrace();
                 remoteRepos = new ArrayList<ArtifactRepository>();
             }
+            addDefaultRepositories();
         }
         return remoteRepos;
     }
