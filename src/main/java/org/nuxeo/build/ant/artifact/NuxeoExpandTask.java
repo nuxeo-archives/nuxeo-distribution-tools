@@ -32,6 +32,11 @@ public class NuxeoExpandTask extends Task {
 
     protected DependencyFilter filter = new DependencyFilter() {
         public boolean accept(Node parent, Dependency dep) {
+            // Exclude dependencies with version range
+            String depVersion = dep.getVersion();
+            if (depVersion.matches("\\[.*\\)")) {
+                return false;
+            }
             String depScope = dep.getScope();
             return "compile".equals(depScope)
                     || "runtime".equals(depScope)
