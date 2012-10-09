@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactCollector;
@@ -42,6 +43,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectBuildingException;
+import org.apache.maven.settings.MavenSettingsBuilder;
 import org.apache.tools.ant.BuildException;
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.StringUtils;
@@ -176,6 +178,20 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
      */
     private String encoding;
 
+    /**
+     * @component
+     * @readonly
+     * @since 1.12
+     */
+    protected WagonManager wagonManager;
+
+    /**
+     * @component
+     * @readonly
+     * @since 1.12
+     */
+    protected MavenSettingsBuilder settingsBuilder;
+
     public String getEncoding() {
         if (StringUtils.isEmpty(encoding)) {
             getLog().warn(
@@ -192,6 +208,8 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     public void execute() throws MojoExecutionException, MojoFailureException {
         AntClient ant = new AntClient();
         MavenClientFactory.setInstance(this);
+        wagonManager.setInteractive(false);
+
         logger = new Logger() {
 
             public void debug(String message) {
@@ -270,6 +288,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                 project.getBuild().getOutputDirectory());
         props.put("maven.project.build.finalName",
                 project.getBuild().getFinalName());
+        props.put("maven.offline", wagonManager.isOnline() ? "" : "-o");
 
         // add active maven profiles to ant
         List<Profile> profiles = getActiveProfiles();
