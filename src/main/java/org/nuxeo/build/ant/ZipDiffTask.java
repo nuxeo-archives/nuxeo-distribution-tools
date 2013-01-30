@@ -54,6 +54,10 @@ public class ZipDiffTask extends Task {
 
     private PatternSet patternSet;
 
+    private boolean ignoreContent = false;
+
+    private String ignoreContentPattern = ".*(?<!SNAPSHOT)\\.jar$";
+
     public void setFile1(File file1) {
         this.file1 = file1;
     }
@@ -73,6 +77,31 @@ public class ZipDiffTask extends Task {
     public void setPatternsetid(String id) {
         patternSet = new PatternSet();
         getProject().addReference(id, patternSet);
+    }
+
+    /**
+     * If two files have same name, their content is compared. This option
+     * allows to bypass the content check.
+     *
+     * @param ignoreContent if true, files' content is not checked
+     * @since 1.13
+     */
+    public void setIgnoreContent(boolean ignoreContent) {
+        this.ignoreContent = ignoreContent;
+    }
+
+    /**
+     * If two files have same name, their content is compared. This option
+     * allows to bypass the content check for filenames matching the given
+     * pattern.
+     *
+     * @param ignoreContentPattern Pattern of filenames for which content must
+     *            not be checked. Default value bypass content check for JAR
+     *            files but SNAPSHOT ones.
+     * @since 1.13
+     */
+    public void setIgnoreContentPattern(String ignoreContentPattern) {
+        this.ignoreContentPattern = ignoreContentPattern;
     }
 
     @Override
@@ -113,17 +142,18 @@ public class ZipDiffTask extends Task {
                     continue;
                 }
                 set2.remove(filename);
-                try {
-                    if (!IOUtils.contentEquals(
-                            zipfile1.getInputStream(zipfile1.getEntry(filename)),
-                            zipfile2.getInputStream(zipfile2.getEntry(filename)))) {
-                        log("Content differs: " + filename, Project.MSG_INFO);
-                        include(filename, fileWriter);
-                        continue;
+                if (!ignoreContent && !filename.matches(ignoreContentPattern)) {
+                    try {
+                        if (!IOUtils.contentEquals(
+                                zipfile1.getInputStream(zipfile1.getEntry(filename)),
+                                zipfile2.getInputStream(zipfile2.getEntry(filename)))) {
+                            log("Content differs: " + filename,
+                                    Project.MSG_INFO);
+                            include(filename, fileWriter);
+                        }
+                    } catch (IOException e) {
+                        log(e, Project.MSG_WARN);
                     }
-                } catch (IOException e) {
-                    log(e, Project.MSG_WARN);
-                    continue;
                 }
             }
         } catch (IOException e) {
