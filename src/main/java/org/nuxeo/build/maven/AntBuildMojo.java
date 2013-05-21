@@ -205,6 +205,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     private Logger logger;
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void execute() throws MojoExecutionException, MojoFailureException {
         AntClient ant = new AntClient();
         MavenClientFactory.setInstance(this);
@@ -270,10 +271,10 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         };
         antProfileManager = new AntProfileManager();
 
-        // add project properties
         HashMap<String, String> props = new HashMap<String, String>();
-        for (Map.Entry<Object, Object> entry : project.getProperties().entrySet()) {
-            props.put(entry.getKey().toString(), entry.getValue().toString());
+        // add project properties
+        for (String key : project.getProperties().stringPropertyNames()) {
+            props.put(key, project.getProperties().getProperty(key));
         }
         props.put("maven.basedir", project.getBasedir().getAbsolutePath());
         props.put("maven.project.name", project.getName());
@@ -290,14 +291,19 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                 project.getBuild().getFinalName());
         props.put("maven.offline", wagonManager.isOnline() ? "" : "-o");
 
-        // add active maven profiles to ant
+        // add active Maven profiles to Ant
         List<Profile> profiles = getActiveProfiles();
         for (Profile profile : profiles) {
             antProfileManager.activateProfile(profile.getId(), true);
-            // define a property for each activate profile (so you can use it in
-            // ant conditional expression)
+            // define a property for each activated profile
             props.put("maven.profile." + profile.getId(), "true");
+            // add profile properties (overriding project ones)
+            for (String key : profile.getProperties().stringPropertyNames()) {
+                props.put(key, profile.getProperties().getProperty(key));
+            }
         }
+        // Finally add System properties (overriding project and profile ones)
+        props.putAll((Map) System.getProperties());
 
         ant.setGlobalProperties(props);
 
