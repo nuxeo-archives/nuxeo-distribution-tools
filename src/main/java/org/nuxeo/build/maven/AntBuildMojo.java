@@ -1,10 +1,10 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
  * (LGPL) version 2.1 which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/lgpl.html
+ * http://www.gnu.org/licenses/lgpl-2.1.html
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -205,6 +205,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
     private Logger logger;
 
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public void execute() throws MojoExecutionException, MojoFailureException {
         AntClient ant = new AntClient();
@@ -213,38 +214,47 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
 
         logger = new Logger() {
 
+            @Override
             public void debug(String message) {
                 getLog().debug(message);
             }
 
+            @Override
             public void debug(String message, Throwable error) {
                 getLog().debug(message, error);
             }
 
+            @Override
             public void error(String message) {
                 getLog().error(message);
             }
 
+            @Override
             public void error(String message, Throwable error) {
                 getLog().error(message, error);
             }
 
+            @Override
             public void info(String message) {
                 getLog().info(message);
             }
 
+            @Override
             public void info(String message, Throwable error) {
                 getLog().info(message, error);
             }
 
+            @Override
             public void warn(String message) {
                 getLog().warn(message);
             }
 
+            @Override
             public void warn(String message, Throwable error) {
                 getLog().warn(message, error);
             }
 
+            @Override
             public boolean isDebugEnabled() {
                 return getLog().isDebugEnabled();
             }
@@ -351,13 +361,14 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
     /**
      * @since 1.10.2
      */
+    @Override
     public Graph newGraph() {
         graph = new Graph(this);
         graph.addRootNode(project);
         return graph;
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
     public List<Profile> getActiveProfiles() {
         return project.getActiveProfiles();
     }
@@ -366,30 +377,37 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         return project;
     }
 
+    @Override
     public ArtifactFactory getArtifactFactory() {
         return factory;
     }
 
+    @Override
     public ArtifactResolver getArtifactResolver() {
         return resolver;
     }
 
+    @Override
     public ArtifactRepository getLocalRepository() {
         return localRepository;
     }
 
+    @Override
     public MavenProjectBuilder getProjectBuilder() {
         return projectBuilder;
     }
 
+    @Override
     public MavenProjectHelper getProjectHelper() {
         return projectHelper;
     }
 
+    @Override
     public List<ArtifactRepository> getRemoteRepositories() {
         return remoteRepositories;
     }
 
+    @Override
     public void resolve(Artifact artifact,
             List<ArtifactRepository> otherRemoteRepositories)
             throws ArtifactNotFoundException {
@@ -402,6 +420,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         }
     }
 
+    @Override
     public void resolve(Artifact artifact) throws ArtifactNotFoundException {
         try {
             resolver.resolve(artifact, remoteRepositories, localRepository);
@@ -440,6 +459,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         }
     }
 
+    @Override
     public void resolveDependencyTree(Artifact artifact, ArtifactFilter filter,
             ResolutionListener listener) throws ArtifactResolutionException,
             ProjectBuildingException {
@@ -453,14 +473,17 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
                 filter, Collections.singletonList(listener));
     }
 
+    @Override
     public Graph getGraph() {
         return graph;
     }
 
+    @Override
     public AntProfileManager getAntProfileManager() {
         return antProfileManager;
     }
 
+    @Override
     public Logger getCommonLogger() {
         return logger;
     }
