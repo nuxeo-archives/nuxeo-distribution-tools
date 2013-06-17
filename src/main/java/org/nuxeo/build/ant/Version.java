@@ -18,7 +18,7 @@ package org.nuxeo.build.ant;
 
 
 /**
- * @deprecated Use org.nuxeo.connect.update.Version instead
+ * @deprecated Since 1.14. Use org.nuxeo.connect.update.Version instead
  */
 @Deprecated
 public class Version extends org.nuxeo.connect.update.Version {
