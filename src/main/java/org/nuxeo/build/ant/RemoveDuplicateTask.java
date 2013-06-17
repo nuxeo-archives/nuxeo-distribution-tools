@@ -1,10 +1,10 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
  * (LGPL) version 2.1 which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/lgpl.html
+ * http://www.gnu.org/licenses/lgpl-2.1.html
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,11 +30,11 @@ import org.apache.tools.ant.Task;
 
 /**
  * Remove duplicate jars (with different versions) and preserve only the latest
- * version. The pattern to detect duplicates is: (.*)-([0-9]+.*).jar The version
- * is compared. and lower versions removed.
- * 
+ * version. The pattern to detect duplicates is: (.*)-([0-9]+.*).jar. The
+ * versions are compared and the lower versions are removed.
+ *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
- * 
+ *
  */
 public class RemoveDuplicateTask extends Task {
 
@@ -65,7 +65,8 @@ public class RemoveDuplicateTask extends Task {
             if (m.find()) {
                 String key = name.substring(0, m.start());
                 String v = m.group(1);
-                Entry entry = new Entry(new File(dir, name), new Version(v));
+                Entry entry = new Entry(new File(dir, name),
+                        new org.nuxeo.connect.update.Version(v));
                 List<Entry> list = map.get(key);
                 if (list == null) {
                     list = new ArrayList<RemoveDuplicateTask.Entry>();
@@ -120,17 +121,12 @@ public class RemoveDuplicateTask extends Task {
     static class Entry {
         protected File file;
 
-        protected Version version;
+        protected org.nuxeo.connect.update.Version version;
 
-        Entry(File file, Version version) {
+        Entry(File file, org.nuxeo.connect.update.Version version) {
             this.file = file;
             this.version = version;
         }
     }
 
-    public static void main(String[] args) {
-        process(null,
-                new File(
-                        "/Users/bstefanescu/work/nuxeo/nuxeo-distribution/nuxeo-distribution-dm/target/nuxeo.ear/lib2"));
-    }
 }
