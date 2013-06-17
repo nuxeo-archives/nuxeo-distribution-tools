@@ -106,80 +106,94 @@ public class ZipDiffTask extends Task {
 
     @Override
     public void execute() throws BuildException {
-        ZipFile zipfile1;
-        ZipFile zipfile2;
-
+        ZipFile zipfile1 = null;
+        ZipFile zipfile2 = null;
         try {
             zipfile1 = new ZipFile(file1);
             zipfile2 = new ZipFile(file2);
+
+            Set<String> set1 = new LinkedHashSet<String>();
+            for (Enumeration<? extends ZipEntry> zipEntries = zipfile1.entries(); zipEntries.hasMoreElements();) {
+                set1.add((zipEntries.nextElement()).getName());
+            }
+            Set<String> set2 = new LinkedHashSet<String>();
+            for (Enumeration<? extends ZipEntry> zipEntries = zipfile2.entries(); zipEntries.hasMoreElements();) {
+                set2.add((zipEntries.nextElement()).getName());
+            }
+
+            try {
+                if (includesfile != null) {
+                    includesfile.createNewFile();
+                    fileWriter = new FileWriter(includesfile);
+                }
+
+                // includes (files from file1 not present or differ in file2)
+                for (Iterator<String> i = set1.iterator(); i.hasNext();) {
+                    String filename = i.next();
+                    if (!set2.contains(filename)) {
+                        log("Only in " + file1.getName() + ": " + filename,
+                                Project.MSG_INFO);
+                        include(filename, fileWriter);
+                        continue;
+                    }
+                    set2.remove(filename);
+                    if (!ignoreContent
+                            && !filename.matches(ignoreContentPattern)) {
+                        try {
+                            if (!IOUtils.contentEquals(
+                                    zipfile1.getInputStream(zipfile1.getEntry(filename)),
+                                    zipfile2.getInputStream(zipfile2.getEntry(filename)))) {
+                                log("Content differs: " + filename,
+                                        Project.MSG_INFO);
+                                include(filename, fileWriter);
+                            }
+                        } catch (IOException e) {
+                            log(e, Project.MSG_WARN);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                throw new BuildException(e);
+            } finally {
+                IOUtils.closeQuietly(fileWriter);
+            }
+
+            // excludes (files from file2 not present in file1)
+            try {
+                if (excludesfile != null) {
+                    excludesfile.createNewFile();
+                    fileWriter = new FileWriter(excludesfile);
+                }
+                for (Iterator<String> i = set2.iterator(); i.hasNext();) {
+                    String filename = i.next();
+                    log("Only in " + file2.getName() + ": " + filename,
+                            Project.MSG_INFO);
+                    exclude(filename, fileWriter);
+                }
+            } catch (IOException e) {
+                throw new BuildException(e);
+            } finally {
+                IOUtils.closeQuietly(fileWriter);
+            }
         } catch (IOException e) {
             throw new BuildException("Error opening " + file1 + " or " + file2,
                     e);
-        }
-
-        Set<String> set1 = new LinkedHashSet<String>();
-        for (Enumeration<? extends ZipEntry> zipEntries = zipfile1.entries(); zipEntries.hasMoreElements();) {
-            set1.add((zipEntries.nextElement()).getName());
-        }
-        Set<String> set2 = new LinkedHashSet<String>();
-        for (Enumeration<? extends ZipEntry> zipEntries = zipfile2.entries(); zipEntries.hasMoreElements();) {
-            set2.add((zipEntries.nextElement()).getName());
-        }
-
-        try {
-            if (includesfile != null) {
-                includesfile.createNewFile();
-                fileWriter = new FileWriter(includesfile);
-            }
-
-            // includes (files from file1 not present or differ in file2)
-            for (Iterator<String> i = set1.iterator(); i.hasNext();) {
-                String filename = i.next();
-                if (!set2.contains(filename)) {
-                    log("Only in " + file1.getName() + ": " + filename,
-                            Project.MSG_INFO);
-                    include(filename, fileWriter);
-                    continue;
-                }
-                set2.remove(filename);
-                if (!ignoreContent && !filename.matches(ignoreContentPattern)) {
-                    try {
-                        if (!IOUtils.contentEquals(
-                                zipfile1.getInputStream(zipfile1.getEntry(filename)),
-                                zipfile2.getInputStream(zipfile2.getEntry(filename)))) {
-                            log("Content differs: " + filename,
-                                    Project.MSG_INFO);
-                            include(filename, fileWriter);
-                        }
-                    } catch (IOException e) {
-                        log(e, Project.MSG_WARN);
-                    }
+        } finally {
+            if (zipfile1 != null) {
+                try {
+                    zipfile1.close();
+                } catch (IOException e) {
+                    throw new BuildException(e);
                 }
             }
-        } catch (IOException e) {
-            throw new BuildException(e);
-        } finally {
-            IOUtils.closeQuietly(fileWriter);
-        }
-
-        // excludes (files from file2 not present in file1)
-        try {
-            if (excludesfile != null) {
-                excludesfile.createNewFile();
-                fileWriter = new FileWriter(excludesfile);
+            if (zipfile2 != null) {
+                try {
+                    zipfile2.close();
+                } catch (IOException e) {
+                    throw new BuildException(e);
+                }
             }
-            for (Iterator<String> i = set2.iterator(); i.hasNext();) {
-                String filename = i.next();
-                log("Only in " + file2.getName() + ": " + filename,
-                        Project.MSG_INFO);
-                exclude(filename, fileWriter);
-            }
-        } catch (IOException e) {
-            throw new BuildException(e);
-        } finally {
-            IOUtils.closeQuietly(fileWriter);
         }
-
     }
 
     protected void exclude(String filename, FileWriter writer)

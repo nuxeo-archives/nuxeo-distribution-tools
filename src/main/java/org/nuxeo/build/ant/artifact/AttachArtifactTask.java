@@ -1,10 +1,10 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
  * (LGPL) version 2.1 which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/lgpl.html
+ * http://www.gnu.org/licenses/lgpl-2.1.html
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,7 +40,7 @@ public class AttachArtifactTask extends Task {
 
     private String type;
 
-    private String target;
+    private String targetArtifact;
 
     /**
      * The file to be treated as an artifact.
@@ -58,7 +58,7 @@ public class AttachArtifactTask extends Task {
     }
 
     public void setTarget(String artifactKey) {
-        this.target = artifactKey;
+        this.targetArtifact = artifactKey;
     }
 
     /**
@@ -72,15 +72,16 @@ public class AttachArtifactTask extends Task {
     public void execute() throws BuildException {
         final MavenClient maven = MavenClientFactory.getInstance();
 
-        if (target == null) {
+        if (targetArtifact == null) {
             throw new BuildException("Target artifact not set");
         }
-        final Node node = maven.getGraph().findFirst(target, true);
+        final Node node = maven.getGraph().findFirst(targetArtifact, true);
         if (node == null) {
-            throw new BuildException("No such artifact found: " + target);
+            throw new BuildException("No such artifact found: "
+                    + targetArtifact);
         }
 
-        log("Attaching " + file + " to " + target, Project.MSG_INFO);
+        log("Attaching " + file + " to " + targetArtifact, Project.MSG_INFO);
         if (type == null) {
             type = getExtension(file.getName());
             log("Unspecified type, guessing is: " + type, Project.MSG_WARN);

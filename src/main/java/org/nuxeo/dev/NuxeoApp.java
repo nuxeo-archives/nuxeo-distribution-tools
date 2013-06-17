@@ -1,10 +1,10 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
  * (LGPL) version 2.1 which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/lgpl.html
+ * http://www.gnu.org/licenses/lgpl-2.1.html
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.embedder.MavenEmbedderConsoleLogger;
 import org.apache.maven.embedder.MavenEmbedderLogger;
@@ -51,8 +52,10 @@ import org.nuxeo.osgi.application.MutableClassLoader;
  * launch an embedded Nuxeo in debug mode.
  *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
+ * @deprecated Since 1.14. If used, then update it and remove the deprecation
  *
  */
+@Deprecated
 public class NuxeoApp {
 
     public final static String CORE_SERVER_532 = "core-5.3.2";
@@ -384,34 +387,38 @@ public class NuxeoApp {
     public void loadConfigurationFromCache(File cacheFile) throws Exception {
         System.out.print("Building Application from Cache ... ");
         double s = System.currentTimeMillis();
-
-        BufferedReader reader = new BufferedReader(new FileReader(cacheFile));
-        String line = reader.readLine();
-        boolean isBundle = true;
-        MutableClassLoader delegate = bootstrap.getLoader();
-        while (line != null) {
-            line = line.trim();
-            if (line.length() == 0) { // switch to libs
-                isBundle = false;
-                line = reader.readLine();
-                continue;
-            }
-            if (isBundle) {
-                int p = line.indexOf('@');
-                if (p == -1) {
-                    delegate.addURL(new URL(line));
-                } else {
-                    File file = new File(line.substring(p + 1));
-                    String symName = line.substring(0, p);
-                    if (!bundles.containsKey(symName)) {
-                        bundles.put(symName, file);
-                        delegate.addURL(file.toURI().toURL());
-                    }
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(cacheFile));
+            String line = reader.readLine();
+            boolean isBundle = true;
+            MutableClassLoader delegate = bootstrap.getLoader();
+            while (line != null) {
+                line = line.trim();
+                if (line.length() == 0) { // switch to libs
+                    isBundle = false;
+                    line = reader.readLine();
+                    continue;
                 }
-            } else {
-                delegate.addURL(new URL(line));
+                if (isBundle) {
+                    int p = line.indexOf('@');
+                    if (p == -1) {
+                        delegate.addURL(new URL(line));
+                    } else {
+                        File file = new File(line.substring(p + 1));
+                        String symName = line.substring(0, p);
+                        if (!bundles.containsKey(symName)) {
+                            bundles.put(symName, file);
+                            delegate.addURL(file.toURI().toURL());
+                        }
+                    }
+                } else {
+                    delegate.addURL(new URL(line));
+                }
+                line = reader.readLine();
             }
-            line = reader.readLine();
+        } finally {
+            IOUtils.closeQuietly(reader);
         }
         System.out.println((System.currentTimeMillis() - s) / 1000);
     }

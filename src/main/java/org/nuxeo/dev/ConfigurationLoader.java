@@ -22,7 +22,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.maven.embedder.MavenEmbedderLogger;
 import org.nuxeo.build.maven.ArtifactDescriptor;
 import org.nuxeo.dev.ConfigurationReader.SectionReader;
 
@@ -32,7 +31,7 @@ import org.nuxeo.dev.ConfigurationReader.SectionReader;
  */
 public class ConfigurationLoader {
 
-    protected final Map<String,String> config = new HashMap<String,String>();
+    protected final Map<String, String> config = new HashMap<String, String>();
 
     protected final Set<String> bundles = new LinkedHashSet<String>();
 
@@ -40,14 +39,13 @@ public class ConfigurationLoader {
 
     protected final Set<String> poms = new LinkedHashSet<String>();
 
-    protected final Map<String, String> props = new HashMap<String,String>();
+    protected final Map<String, String> props = new HashMap<String, String>();
 
     protected final ConfigurationReader reader = new ConfigurationReader();
 
     protected ArtifactDescriptor templateArtifact;
 
     protected String templatePrefix;
-
 
     public ConfigurationLoader() {
         reader.addReader("configuration", new PropertiesReader(config));
@@ -113,10 +111,12 @@ public class ConfigurationLoader {
     }
 
     class PropertiesReader implements SectionReader {
-        final Map<String,String> props;
-        public PropertiesReader(Map<String,String> map) {
-           props = map;
+        final Map<String, String> map;
+
+        public PropertiesReader(Map<String, String> map) {
+            this.map = map;
         }
+
         public void readLine(String section, String line) throws IOException {
             int p = line.indexOf('=');
             if (p == -1) {
@@ -124,7 +124,7 @@ public class ConfigurationLoader {
             }
             String key = line.substring(0, p).trim();
             String value = line.substring(p + 1).trim();
-            props.put(key, value);
+            map.put(key, value);
         }
     }
 

@@ -1,10 +1,10 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
  * (LGPL) version 2.1 which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/lgpl.html
+ * http://www.gnu.org/licenses/lgpl-2.1.html
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
@@ -73,8 +74,9 @@ public class GraphTask extends Task {
             if (resolves == null) {
                 resolves = new ArrayList<ArtifactKey>();
             }
+            BufferedReader reader = null;
             try {
-                BufferedReader reader = new BufferedReader(new FileReader(src));
+                reader = new BufferedReader(new FileReader(src));
                 String line = reader.readLine();
                 while (line != null) {
                     line = getProject().replaceProperties(line.trim());
@@ -83,6 +85,8 @@ public class GraphTask extends Task {
                 }
             } catch (IOException e) {
                 throw new BuildException("Failed to import file: " + src, e);
+            } finally {
+                IOUtils.closeQuietly(reader);
             }
         }
         if (resolves != null) {

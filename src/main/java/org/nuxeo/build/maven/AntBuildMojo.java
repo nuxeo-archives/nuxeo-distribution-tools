@@ -368,6 +368,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         return graph;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<Profile> getActiveProfiles() {
         return project.getActiveProfiles();

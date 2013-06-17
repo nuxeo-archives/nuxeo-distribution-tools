@@ -1,10 +1,10 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
  * (LGPL) version 2.1 which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/lgpl.html
+ * http://www.gnu.org/licenses/lgpl-2.1.html
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,6 @@
  * Contributors:
  *     Julien Carsique, slacoin
  *
- * $Id$
  */
 
 package org.nuxeo.build.maven.filter;
@@ -81,8 +80,9 @@ public class ManifestBundleCategoryFilter implements Filter {
         if (!file.getName().endsWith(".jar")) {
             return valuesToMatch;
         }
+        JarFile jarFile = null;
         try {
-            JarFile jarFile = new JarFile(file, true);
+            jarFile = new JarFile(file, true);
             Manifest mf = jarFile.getManifest();
             if (mf != null) {
                 Attributes attributes = mf.getMainAttributes();
@@ -105,6 +105,14 @@ public class ManifestBundleCategoryFilter implements Filter {
             MavenClientFactory.getLog().error(
                     "error while inspecting this jar manifest: "
                             + artifact.getFile(), e);
+        } finally {
+            if (jarFile != null) {
+                try {
+                    jarFile.close();
+                } catch (IOException e) {
+                    MavenClientFactory.getLog().error(e.getMessage(), e);
+                }
+            }
         }
         return valuesToMatch;
     }

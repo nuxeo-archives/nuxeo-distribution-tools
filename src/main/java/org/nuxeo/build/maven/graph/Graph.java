@@ -365,6 +365,7 @@ public class Graph {
             debug("updateScope: artifact=" + artifact + ", scope=" + scope);
         }
 
+        @Deprecated
         @Override
         public void manageArtifact(Artifact artifact, Artifact replacement) {
             debug("manageArtifact: artifact=" + artifact + ", replacement="
