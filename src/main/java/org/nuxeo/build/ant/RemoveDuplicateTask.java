@@ -38,7 +38,7 @@ import org.apache.tools.ant.Task;
  */
 public class RemoveDuplicateTask extends Task {
 
-    private static final Pattern PATTERN = Pattern.compile("-([0-9]+.*)\\.jar");
+    static final Pattern PATTERN = Pattern.compile("-([0-9]+.*)\\.jar");
 
     protected File dir;
 
@@ -65,8 +65,7 @@ public class RemoveDuplicateTask extends Task {
             if (m.find()) {
                 String key = name.substring(0, m.start());
                 String v = m.group(1);
-                Entry entry = new Entry(new File(dir, name),
-                        new org.nuxeo.connect.update.Version(v));
+                Entry entry = new Entry(new File(dir, name), Version.parse(v));
                 List<Entry> list = map.get(key);
                 if (list == null) {
                     list = new ArrayList<RemoveDuplicateTask.Entry>();
@@ -121,9 +120,9 @@ public class RemoveDuplicateTask extends Task {
     static class Entry {
         protected File file;
 
-        protected org.nuxeo.connect.update.Version version;
+        protected Version version;
 
-        Entry(File file, org.nuxeo.connect.update.Version version) {
+        Entry(File file, Version version) {
             this.file = file;
             this.version = version;
         }
