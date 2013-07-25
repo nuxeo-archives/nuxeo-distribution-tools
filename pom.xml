@@ -3,7 +3,7 @@
 
   <groupId>org.nuxeo.build</groupId>
   <artifactId>nuxeo-distribution-tools</artifactId>
-  <version>1.15-SNAPSHOT</version>
+  <version>1.15</version>
   <packaging>maven-plugin</packaging>
   <name>Nuxeo Distribution Build</name>
   <description>Assemble Nuxeo distributions</description>
