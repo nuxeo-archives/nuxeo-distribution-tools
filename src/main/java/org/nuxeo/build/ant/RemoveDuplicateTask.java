@@ -51,10 +51,6 @@ public class RemoveDuplicateTask extends Task {
         if (dir == null) {
             throw new BuildException("dir attribute is required");
         }
-        process(getProject(), dir);
-    }
-
-    static void process(Project project, File dir) {
         String[] names = dir.list();
         if (names == null) {
             return;
@@ -75,7 +71,7 @@ public class RemoveDuplicateTask extends Task {
             }
         }
         for (List<Entry> list : map.values()) {
-            removeAllButLatest(project, list);
+            removeAllButLatest(list);
         }
     }
 
@@ -97,7 +93,7 @@ public class RemoveDuplicateTask extends Task {
         return latest;
     }
 
-    public static void removeAllButLatest(Project project, List<Entry> list) {
+    public void removeAllButLatest(List<Entry> list) {
         Entry latest = getLatest(list);
         StringBuilder buf = new StringBuilder();
         for (Entry p : list) {
@@ -107,13 +103,8 @@ public class RemoveDuplicateTask extends Task {
             }
         }
         if (buf.length() > 0) {
-            if (project != null) {
-                project.log("removed duplicates: " + buf.toString()
-                        + "; preserved: " + latest.file.getName());
-            } else {
-                System.out.println("removed duplicates: " + buf.toString()
-                        + "; preserved: " + latest.file.getName());
-            }
+            log("removed duplicates: " + buf.toString() + "; preserved: "
+                    + latest.file.getName(), Project.MSG_INFO);
         }
     }
 
