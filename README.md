@@ -204,7 +204,7 @@ Look at `nuxeo-distribution/*/pom.xml` and
 
 ## Basics
 
-The following properties are exported from maven to Ant build file:
+The following properties are exported from Maven to Ant build file:
 
   - basedir -> maven.basedir
   - project.name -> maven.project.name
@@ -216,6 +216,7 @@ The following properties are exported from maven to Ant build file:
   - project.build.directory -> maven.project.build.directory
   - project.build.outputDirectory -> maven.project.build.outputDirectory
   - project.build.finalName -> maven.project.build.finalName
+  - maven.offline
 
 Any user defined Maven property will be imported as an Ant property.
 
@@ -255,7 +256,35 @@ have its own graph. (The Mojo is bound to a thread variable so that Ant will
 use the Mojo bound to the current thread).
 
 
-# Freemarker Integration
+# FreeMarker Integration
 
 TODO write documentation...
+
+# Build and tests
+
+## Build and run all Unit and integration tests (default)
+
+    mvn clean install
+
+## Build with no test
+
+    mvn clean package -DskipTests
+
+## Run Unit tests only
+
+    mvn clean package -DskipITs
+    
+## Run integration tests only
+
+    mvn clean install -Dmaven.test.skip=true
+
+## Run only some integration tests
+
+    mvn invoker:run -Dinvoker.test=test1
+
+Use comma separator. Wildcards are accepted. 
+
+## Integration tests results
+
+Results are in target/it/* sub-folders.
 

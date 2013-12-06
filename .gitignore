@@ -16,3 +16,5 @@ target
 *-bak
 *.rej
 */.DS_Store
+/target
+/target

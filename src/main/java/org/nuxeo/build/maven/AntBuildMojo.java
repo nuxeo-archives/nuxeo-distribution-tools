@@ -48,6 +48,7 @@ import org.apache.tools.ant.BuildException;
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.StringUtils;
 import org.nuxeo.build.ant.AntClient;
+import org.nuxeo.build.ant.artifact.Expand;
 import org.nuxeo.build.ant.profile.AntProfileManager;
 import org.nuxeo.build.maven.filter.TrueFilter;
 import org.nuxeo.build.maven.graph.Graph;
@@ -103,7 +104,7 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
      *
      * @parameter expression="${expand}" default-value="0"
      */
-    protected int expand;
+    protected String expand;
 
     /**
      * Location of the file.
@@ -337,10 +338,11 @@ public class AntBuildMojo extends AbstractMojo implements MavenClient {
         }
         for (File file : buildFiles) {
             newGraph();
-            if (expand > 0) {
+            int depth = Expand.readExpand(expand);
+            if (depth > 0) {
                 for (Node rootNode : graph.getRoots()) {
                     graph.resolveDependencyTree(rootNode, new TrueFilter(),
-                            expand);
+                            depth);
                 }
             }
 
