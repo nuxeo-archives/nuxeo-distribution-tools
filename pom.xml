@@ -126,6 +126,12 @@
         <version>3.2</version>
         <scope>provided</scope>
       </dependency>
+      <dependency>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>ant-assembly-maven-plugin</artifactId>
+        <version>2.0-SNAPSHOT</version>
+        <type>maven-plugin</type>
+      </dependency>
 
       <!-- scope test -->
       <dependency>
@@ -139,16 +145,13 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.nuxeo.build</groupId>
       <artifactId>ant-assembly-maven-plugin</artifactId>
-      <version>2.0-SNAPSHOT</version>
       <type>maven-plugin</type>
-    </dependency>
-
-    <!-- scope test -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
     </dependency>
   </dependencies>
 
