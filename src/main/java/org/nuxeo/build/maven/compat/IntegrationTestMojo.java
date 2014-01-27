@@ -16,21 +16,25 @@
  */
 package org.nuxeo.build.maven.compat;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- *
- * Store a summary file in case of issue during execution and testFailureIgnore
- * is false.
- *
- * @see VerifyMojo
- *
+ * @deprecated Since 2.0. Use ant-assembly-maven-plugin instead.
+ * @see org.nuxeo.build.maven.IntegrationTestMojo
  */
 @Mojo(name = "integration-test", defaultPhase = LifecyclePhase.INTEGRATION_TEST, threadSafe = true, //
 requiresProject = true, requiresDependencyResolution = ResolutionScope.TEST)
+@Deprecated
 public class IntegrationTestMojo extends
         org.nuxeo.build.maven.IntegrationTestMojo {
-
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        getLog().warn(
+                "The nuxeo-distribution-tools plugin is DEPRECATED, please use ant-assembly-maven-plugin instead.");
+        super.execute();
+    }
 }

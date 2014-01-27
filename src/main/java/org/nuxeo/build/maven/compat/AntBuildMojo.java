@@ -17,16 +17,25 @@
 
 package org.nuxeo.build.maven.compat;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- * TODO NXBT-258
+ * @deprecated Since 2.0. Use ant-assembly-maven-plugin instead.
+ * @see org.nuxeo.build.maven.AntBuildMojo
  */
 @Mojo(name = "build", threadSafe = true, defaultPhase = LifecyclePhase.PACKAGE, //
 requiresDependencyCollection = ResolutionScope.TEST, //
 requiresDependencyResolution = ResolutionScope.TEST)
+@Deprecated
 public class AntBuildMojo extends org.nuxeo.build.maven.AntBuildMojo {
-
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        getLog().warn(
+                "The nuxeo-distribution-tools plugin is DEPRECATED, please use ant-assembly-maven-plugin instead.");
+        super.execute();
+    }
 }

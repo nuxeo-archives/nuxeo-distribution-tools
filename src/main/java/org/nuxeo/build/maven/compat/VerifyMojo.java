@@ -16,21 +16,24 @@
  */
 package org.nuxeo.build.maven.compat;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- *
- * Verify if a summary file exists (created by integration tests). If the file
- * exists and contains errors, then throw a {@link MojoFailureException}.
- *
- * @see IntegrationTestMojo
- *
+ * @deprecated Since 2.0. Use ant-assembly-maven-plugin instead.
+ * @see org.nuxeo.build.maven.VerifyMojo
  */
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true, //
 requiresProject = true, requiresDependencyResolution = ResolutionScope.TEST)
+@Deprecated
 public class VerifyMojo extends org.nuxeo.build.maven.VerifyMojo {
-
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        getLog().warn(
+                "The nuxeo-distribution-tools plugin is DEPRECATED, please use ant-assembly-maven-plugin instead.");
+        super.execute();
+    }
 }

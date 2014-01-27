@@ -1,0 +1,2 @@
+The nuxeo-distribution-tools plugin is DEPRECATED, continued as ant-assembly-maven-plugin.
+See https://github.com/nuxeo/ant-assembly-maven-plugin
